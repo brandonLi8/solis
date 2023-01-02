@@ -1,0 +1,7 @@
+[package]
+name = "solis"
+version = "0.0.0"
+
+[dependencies]
+regex = "1"
+lazy_static = "1.4.0"
