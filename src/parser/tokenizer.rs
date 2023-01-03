@@ -1,6 +1,6 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-// A tokenizer for Solis. A tokenizer takes in a Solis raw string input and turns it
+// A tokenizer for Solis. A tokenizer takes in a Solis file raw string input and turns it
 // into a vector of Tokens. This is the first stage of the front end of the compiler. Working with
 // tokens will be much easier to work with compared to the raw string.
 //
@@ -8,16 +8,13 @@
 // the raw string to find the correct token, and then "consume" the token and move on. The process
 // repeats until all tokens have been consumed.
 
-extern crate regex;
-extern crate lazy_static;
+use lazy_static::lazy_static;
+use regex::Regex;
+use utils;
 
-use std::process::exit;
-use self::regex::Regex;
-use self::lazy_static::lazy_static;
-
-/// Possible tokens returned by the tokenizer
+/// Different types of tokens and data associated with each token.
 #[derive(Debug)]
-pub enum Token {
+pub enum TokenType {
     Let,
     Colon,
     Final,
@@ -26,78 +23,79 @@ pub enum Token {
     Int(i32),
 }
 
+/// A token returned by the tokenizer
+#[derive(Debug)]
+pub struct Token {
+    token_type: TokenType,
+
+    /// For error messaging purposes, we need to link a token to where it was extracted in the original raw source code.
+    start_position: usize,
+    end_position: usize, // not inclusive
+}
+
+// Converts matched text to a TokenType instance.
+type TokenTypeConstructor = fn(String) -> TokenType;
+
 lazy_static! {
 
-    // Regex Strings
-    static ref WHITESPACE_REGEX: Regex = Regex::new(r"[ \n\t\s]+").unwrap();
-    static ref LET_REGEX: Regex =        Regex::new(r"let\b").unwrap();
-    static ref COLON_REGEX: Regex =      Regex::new(r":").unwrap();
-    static ref FINAL_REGEX: Regex =      Regex::new(r"final\b").unwrap();
-    static ref EQUALS_REGEX: Regex =     Regex::new(r"=").unwrap();
-    static ref ID_REGEX: Regex =         Regex::new(r"([A-Za-z][A-Za-z0-9_]*)\b").unwrap();
-    static ref INT_REGEX: Regex =        Regex::new(r"(-?[0-9]+)\b").unwrap();
+    // Regex patterns for matching text that should be ignored in the input.
+    static ref IGNORE_PATTERNS: Vec<Regex> = vec![
+
+        // White Space
+        Regex::new(r"^[ \n\t\s]+").unwrap()
+    ];
+
+    // Regex patterns for matching different types of tokens.
+    static ref TOKEN_PATTERNS: Vec<(Regex, TokenTypeConstructor)> = vec![
+        /* LET */    (Regex::new(r"^let\b").unwrap(), |_| TokenType::Let),
+        /* COLON */  (Regex::new(r"^:").unwrap(), |_| TokenType::Colon),
+        /* FINAL */  (Regex::new(r"^final\b").unwrap(), |_| TokenType::Final),
+        /* EQUALS */ (Regex::new(r"^=").unwrap(), |_| TokenType::Equals),
+        /* ID */     (Regex::new(r"^([A-Za-z][A-Za-z0-9_]*)\b").unwrap(), |m| TokenType::Id(m)),
+        /* INT */    (Regex::new(r"^(-?[0-9]+)\b").unwrap(), |m| TokenType::Int(m.parse::<i32>().expect(&format!("unable to convert {} to int", m)))),
+    ];
 }
 
 /// Tokenize the input file into a vector of tokens
 /// TODO: can we "stream" the file in, and "stream" the tokens out?
-pub fn tokenize(file_string: String) -> Vec<Token> {
+pub fn tokenize(file: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
 
-    // Keeps track of the index that has been searched up to already. This allows us to consume tokens iteratively.
-    let mut current_position = 0;
+    // A cursor is the index the represents everything that has been tokenized already (to the left).
+    let mut cursor = 0;
 
-    while current_position < file_string.len() {
-      let next_token: Option<Token> = find_next_token(&file_string, &mut current_position);
+    'cursor_loop: while cursor < file.len() {
+        // File slice starting at the cursor
+        let file_slice = &file[cursor..];
 
-      if next_token.is_some() {
-        tokens.push(next_token.unwrap())
-      }
+        // First search for characters that we should ignore in the file.
+        for ignore_pattern in &*IGNORE_PATTERNS {
+            let ignore_match = ignore_pattern.find(file_slice);
+            if ignore_match.is_some() {
+                cursor += ignore_match.unwrap().end();
+                continue 'cursor_loop;
+            }
+        }
+
+        // Find the next token at cursor
+        for (token_pattern, token_type_constructor) in &*TOKEN_PATTERNS {
+            let token_match = token_pattern.find(file_slice);
+            if token_match.is_some() {
+                tokens.push(Token {
+                    token_type: token_type_constructor(token_match.unwrap().as_str().to_string()),
+                    start_position: cursor,
+                    end_position: cursor + token_match.unwrap().end(),
+                });
+
+                cursor += token_match.unwrap().end();
+                continue 'cursor_loop;
+            }
+        }
+
+        // At this point, nothing was found, so we raise a syntax error.
+        utils::raise_code_error(file, cursor, "Syntax Error")
     }
 
     print!("{:?}", tokens);
     return tokens;
-}
-
-/// The function will find and "consume" the next token from the search_position.
-/// search_position is the address of an integer that describes where to consume the next token from.
-/// It will return an Option<Token>, and "consume" the token by advancing the integer at search_position.
-fn find_next_token(file_string: &String, search_position: &mut usize) -> Option<Token> {
-  let mut matched_text: Option<String> = None;
-
-  if is_match_at(file_string, search_position, &WHITESPACE_REGEX, &mut matched_text) {
-    return None;
-  }
-  else if is_match_at(file_string, search_position, &LET_REGEX, &mut matched_text) {
-    return Some(Token::Let);
-  }
-  else if is_match_at(file_string, search_position, &COLON_REGEX, &mut matched_text) {
-    return Some(Token::Colon);
-  }
-  else if is_match_at(file_string, search_position, &FINAL_REGEX, &mut matched_text) {
-    return Some(Token::Final);
-  }
-  else if is_match_at(file_string, search_position, &EQUALS_REGEX, &mut matched_text) {
-    return Some(Token::Equals);
-  }
-  else if is_match_at(file_string, search_position, &ID_REGEX, &mut matched_text) {
-    return Some(Token::Id(matched_text.unwrap()));
-  }
-  else if is_match_at(file_string, search_position, &INT_REGEX, &mut matched_text) {
-    return Some(Token::Int(matched_text.unwrap().parse::<i32>().unwrap()));
-  }
-  else {
-    println!("Invalid syntax at ch:{}.\n{}", search_position, file_string);
-    exit(2)
-  }
-}
-
-fn is_match_at(file_string: &String, search_position: &mut usize, regex: &Regex, matched_text: &mut Option<String>) -> bool {
-  let regex_match: Option<regex::Match> = regex.find_at(file_string, *search_position);
-
-  if regex_match.is_some() && regex_match.unwrap().start() == *search_position {
-    *matched_text = Some(regex_match.unwrap().as_str().to_string());
-    *search_position = regex_match.unwrap().end();
-    return true;
-  }
-  return false;
 }
