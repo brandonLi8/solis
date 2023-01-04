@@ -6,19 +6,12 @@ extern crate regex;
 
 use std::fs;
 
-#[macro_use]
-mod utils;
 mod parser;
+mod utils;
 
 fn main() {
     let contents = fs::read_to_string("./examples/example.sl")
         .expect("Should have been able to read the file");
 
     parser::tokenizer::tokenize(contents);
-}
-
-#[test]
-#[should_panic]
-fn it_works() {
-    main()
 }

@@ -1,1 +1,1 @@
-  let varName: int -= 32
+let varName: int = 32
