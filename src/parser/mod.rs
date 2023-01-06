@@ -3,8 +3,12 @@
 //! The parsing module contains all the source code necessary for parsing an input source code
 //! into an AST.
 
+pub mod ast;
+pub mod parser;
 pub mod tokenizer;
 
 // tests
+#[cfg(test)]
+mod parser_tests;
 #[cfg(test)]
 mod tokenizer_tests;

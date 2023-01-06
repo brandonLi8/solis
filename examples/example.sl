@@ -1,1 +1,1 @@
-let varName: int = 32
+let b: int = 1 / 2 - 3

@@ -7,6 +7,9 @@
 //! Internally, the tokenizer works by creating a regex pattern for each token. It will then match
 //! the raw string to find the correct token, and then "consume" the token and move on. The process
 //! repeats until all tokens have been consumed.
+//!
+//! For error checking, the tokenizer only checks for tokens that it recognizes, and doesn't do any other validation
+//! or error checking. All other errors are deferred to the parser and code gen stages.
 
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -16,12 +19,26 @@ use utils;
 /// Different types of tokens and data associated with each token.
 #[derive(PartialEq, Debug)]
 pub enum TokenType {
+    // Bindings
     Let,
     Colon,
     Final,
     Equals,
     Id(String),
+
+    // Literals
     Int(i32),
+
+    // Infix Operators
+    Plus,
+    Minus,
+    Mod,
+    Times,
+    Divide,
+    Lparen,
+    Rparen,
+
+    SemiColon,
 }
 
 /// A token returned by the tokenizer
@@ -48,12 +65,20 @@ lazy_static! {
 
     // Regex patterns for matching different types of tokens.
     static ref TOKEN_PATTERNS: Vec<(Regex, TokenTypeConstructor)> = vec![
-        /* LET */    (Regex::new(r"^let\b").unwrap(), |_| TokenType::Let),
-        /* COLON */  (Regex::new(r"^:").unwrap(), |_| TokenType::Colon),
-        /* FINAL */  (Regex::new(r"^final\b").unwrap(), |_| TokenType::Final),
-        /* EQUALS */ (Regex::new(r"^=").unwrap(), |_| TokenType::Equals),
-        /* ID */     (Regex::new(r"^([A-Za-z][A-Za-z0-9_]*)\b").unwrap(), |m| TokenType::Id(m)),
-        /* INT */    (Regex::new(r"^(-?[0-9]+)\b").unwrap(), |m| TokenType::Int(m.parse::<i32>().expect(&format!("unable to convert {} to int", m)))),
+        /* LET */       (Regex::new(r"^let\b").unwrap(), |_| TokenType::Let),
+        /* COLON */     (Regex::new(r"^:").unwrap(), |_| TokenType::Colon),
+        /* FINAL */     (Regex::new(r"^final\b").unwrap(), |_| TokenType::Final),
+        /* EQUALS */    (Regex::new(r"^=").unwrap(), |_| TokenType::Equals),
+        /* ID */        (Regex::new(r"^([A-Za-z][A-Za-z0-9_]*)\b").unwrap(), |m| TokenType::Id(m)),
+        /* INT */       (Regex::new(r"^(-?[0-9]+)\b").unwrap(), |m| TokenType::Int(m.parse::<i32>().expect(&format!("unable to convert {} to int", m)))),
+        /* Plus */      (Regex::new(r"^\+").unwrap(), |_| TokenType::Plus),
+        /* Minus */     (Regex::new(r"^-").unwrap(), |_| TokenType::Minus),
+        /* Mod */       (Regex::new(r"^%").unwrap(), |_| TokenType::Mod),
+        /* Times */     (Regex::new(r"^\*").unwrap(), |_| TokenType::Times),
+        /* Divide */    (Regex::new(r"^/").unwrap(), |_| TokenType::Divide),
+        /* Lparen */    (Regex::new(r"^\(").unwrap(), |_| TokenType::Lparen),
+        /* Rparen */    (Regex::new(r"^\)").unwrap(), |_| TokenType::Rparen),
+        /* SemiColon */ (Regex::new(r"^;").unwrap(), |_| TokenType::SemiColon),
     ];
 }
 

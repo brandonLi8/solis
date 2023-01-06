@@ -1,0 +1,96 @@
+# Copyright © 2022 Brandon Li. All rights reserved.
+
+##
+This file describes the formal grammar for Solis. A formal grammar describes what **syntax** is and is not allowed in
+every Solis program. It does this by describing a set of rules for each non-terminal which eventually all lead to a
+terminal (something that actually appears in the program). Formally, a program is a valid Solis program (syntactically)
+if and only if we can start from the start rule (<program>) and "walk" through each rule to get to the program string.
+
+Note the distinction between syntax and semantics here. A grammar describes the syntax that is allowed, and not the
+semantics. For example, a `let` binding must be of the form (`let varName: type = ...`), but a grammar does not disallow
+a binding of the wrong type (this is still not allowed, but this type of error is deferred to a later phase).
+
+The grammar for Solis (as described in this file) is a context free grammar. It explicitly avoids left recursion,
+is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
+##
+
+
+<program> ::= <expressions>
+
+<terminal> ::=
+  | ID(string)
+  | NUM(n)
+
+<expressions> ::=                                   # Makes up the body of the program
+   | ε
+   | <expression> <expressions>
+
+<block-expressions> ::=                             # Makes up the body of a block, like a function, if statement, etc.
+ | RBRAQ
+ | <expression> <block-expressions>
+
+
+
+#!——————————————————————————————————————————————*!
+#  Expression
+#!——————————————————————————————————————————————*!
+
+<expression> ::=
+  | LET <let-expression>
+  | <infix-operation>
+
+<let-expression> ::=
+  | ID COLON ID EQUALS <expression>
+
+
+
+#!——————————————————————————————————————————————*!
+#  Precedence (for infix operators)
+#!——————————————————————————————————————————————*!
+
+##
+To allow for precedence (like parsing `1 + 2 * 3`
+and `1 * 2 + 3`), we must separate each level of
+precedence into the grammar with several layers,
+one for each level of precedence.
+
+Here is what each precedence level corresponds
+to (higher means executed first)
+  |             | Level       |
+  | ----------- | ----------- |
+  | +, -        | 1           |
+  | *, /, %     | 2           |
+  | (), <num>   | 3           |
+##
+
+<infix-operation> ::=                               # Infix operation, like `1`, or `1 + 2`, or `1 + 2 + 3`, etc
+   | <precedence-1-operand> <precedence-1-rest>     # The reason why makes precedence unambiguous is because: an operator
+                                                    # can only operate on something of higher precedence. Why? because
+                                                    # you must execute the higher precedence first, and then operate on
+                                                    # the result.
+                                                    # <precedence-1-operand> = "everything higher precedence than 1"
+
+<precedence-1-rest> ::=                             # The rest of the infix operation of level 1. This structure of this
+                                                    # allows for left associativity, which is implemented in the parser.
+  | ε
+  | PLUS <precedence-1-operand> <precedence-1-rest>
+  | MINUS <precedence-1-operand> <precedence-1-rest>
+
+
+<precedence-1-operand> ::=                          # What addition and subtraction can operate on.
+  | <precedence-2-operand> <precedence-2-rest>
+
+
+<precedence-2-rest> ::=
+  | ε
+  | TIMES <precedence-2-operand> <precedence-2-rest>
+  | DIVIDE <precedence-2-operand> <precedence-2-rest>
+  | MOD <precedence-2-operand> <precedence-2-rest>
+
+
+<precedence-2-operand> ::=                          # What can multiplication, division can operate on
+  | <factor>
+
+<factor> ::=                                        # Highest precedence
+  | LPAREN <expression> RPAREN
+  | <terminal>

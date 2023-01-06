@@ -13,5 +13,8 @@ fn main() {
     let contents = fs::read_to_string("./examples/example.sl")
         .expect("Should have been able to read the file");
 
-    parser::tokenizer::tokenize(contents);
+    println!(
+        "{:?}",
+        parser::parser::parse_program(&parser::tokenizer::tokenize(contents))
+    )
 }
