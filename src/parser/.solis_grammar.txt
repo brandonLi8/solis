@@ -15,19 +15,19 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 ##
 
 
-<program> ::= <expressions>
+<program> ::= <exprs>
 
 <terminal> ::=
   | ID(string)
   | NUM(n)
 
-<expressions> ::=                                   # Makes up the body of the program
+<exprs> ::=                                   # Makes up the body of the program
    | ε
-   | <expression> <expressions>
+   | <expr> <exprs>
 
-<block-expressions> ::=                             # Makes up the body of a block, like a function, if statement, etc.
- | RBRAQ
- | <expression> <block-expressions>
+<block-exprs> ::=                             # Makes up the body of a block, like a function, if statement, etc.
+ | "}"
+ | <expr> <block-exprs>
 
 
 
@@ -35,12 +35,12 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 #  Expression
 #!——————————————————————————————————————————————*!
 
-<expression> ::=
-  | LET <let-expression>
+<expr> ::=
+  | <let-expr>
   | <infix-operation>
 
-<let-expression> ::=
-  | ID COLON ID EQUALS <expression>
+<let-expr> ::=
+  | LET ID COLON ID EQUALS <expr>
 
 
 
@@ -73,8 +73,8 @@ to (higher means executed first)
 <precedence-1-rest> ::=                             # The rest of the infix operation of level 1. This structure of this
                                                     # allows for left associativity, which is implemented in the parser.
   | ε
-  | PLUS <precedence-1-operand> <precedence-1-rest>
-  | MINUS <precedence-1-operand> <precedence-1-rest>
+  | "+" <precedence-1-operand> <precedence-1-rest>
+  | "-" <precedence-1-operand> <precedence-1-rest>
 
 
 <precedence-1-operand> ::=                          # What addition and subtraction can operate on.
@@ -83,14 +83,14 @@ to (higher means executed first)
 
 <precedence-2-rest> ::=
   | ε
-  | TIMES <precedence-2-operand> <precedence-2-rest>
-  | DIVIDE <precedence-2-operand> <precedence-2-rest>
-  | MOD <precedence-2-operand> <precedence-2-rest>
+  | "*" <precedence-2-operand> <precedence-2-rest>
+  | "/" <precedence-2-operand> <precedence-2-rest>
+  | "%" <precedence-2-operand> <precedence-2-rest>
 
 
 <precedence-2-operand> ::=                          # What can multiplication, division can operate on
   | <factor>
 
 <factor> ::=                                        # Highest precedence
-  | LPAREN <expression> RPAREN
+  | "(" <expr> ")"
   | <terminal>

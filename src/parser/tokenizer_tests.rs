@@ -2,199 +2,120 @@
 
 //! Unit tests for the tokenizer.
 
+use expect_test::*;
 use parser::tokenizer::*;
+use utils;
 
 #[test]
 fn test_empty() {
-    assert_eq!(tokenize("".to_string()), vec![]);
+    tokenize_check("", expect![""]);
 }
 
 #[test]
 fn test_basic() {
-    assert_eq!(
-        tokenize("let varName: int = 32".to_string()),
-        vec![
-            Token {
-                token_type: TokenType::Let,
-                token_position: 0..3
-            },
-            Token {
-                token_type: TokenType::Id("varName".to_string()),
-                token_position: 4..11
-            },
-            Token {
-                token_type: TokenType::Colon,
-                token_position: 11..12
-            },
-            Token {
-                token_type: TokenType::Id("int".to_string()),
-                token_position: 13..16
-            },
-            Token {
-                token_type: TokenType::Equals,
-                token_position: 17..18
-            },
-            Token {
-                token_type: TokenType::Int(32),
-                token_position: 19..21
-            },
-        ]
+    tokenize_check(
+        "let name: int = 32",
+        expect![[r#"
+            Token { kind: Let, position: 0..3 }
+            Token { kind: Id("name"), position: 4..8 }
+            Token { kind: Colon, position: 8..9 }
+            Token { kind: Id("int"), position: 10..13 }
+            Token { kind: Equals, position: 14..15 }
+            Token { kind: Int(32), position: 16..18 }
+        "#]],
     );
 
-    assert_eq!(
-        tokenize("let final varName: int = -123".to_string()),
-        vec![
-            Token {
-                token_type: TokenType::Let,
-                token_position: 0..3
-            },
-            Token {
-                token_type: TokenType::Final,
-                token_position: 4..9
-            },
-            Token {
-                token_type: TokenType::Id("varName".to_string()),
-                token_position: 10..17
-            },
-            Token {
-                token_type: TokenType::Colon,
-                token_position: 17..18
-            },
-            Token {
-                token_type: TokenType::Id("int".to_string()),
-                token_position: 19..22
-            },
-            Token {
-                token_type: TokenType::Equals,
-                token_position: 23..24
-            },
-            Token {
-                token_type: TokenType::Int(-123),
-                token_position: 25..29
-            },
-        ]
+    tokenize_check(
+        "let final name: int = -123",
+        expect![[r#"
+            Token { kind: Let, position: 0..3 }
+            Token { kind: Final, position: 4..9 }
+            Token { kind: Id("name"), position: 10..14 }
+            Token { kind: Colon, position: 14..15 }
+            Token { kind: Id("int"), position: 16..19 }
+            Token { kind: Equals, position: 20..21 }
+            Token { kind: Int(-123), position: 22..26 }
+        "#]],
     );
 }
 
 #[test]
 fn test_infix() {
-    assert_eq!(
-        tokenize("let varName: int = 32 - 2 + 3 * 4 / 5 % 1 + 2 * (3 + 1)".to_string()),
-        vec![
-            Token {
-                token_type: TokenType::Let,
-                token_position: 0..3
-            },
-            Token {
-                token_type: TokenType::Id("varName".to_string()),
-                token_position: 4..11
-            },
-            Token {
-                token_type: TokenType::Colon,
-                token_position: 11..12
-            },
-            Token {
-                token_type: TokenType::Id("int".to_string()),
-                token_position: 13..16
-            },
-            Token {
-                token_type: TokenType::Equals,
-                token_position: 17..18
-            },
-            Token {
-                token_type: TokenType::Int(32),
-                token_position: 19..21
-            },
-            Token {
-                token_type: TokenType::Minus,
-                token_position: 22..23
-            },
-            Token {
-                token_type: TokenType::Int(2),
-                token_position: 24..25
-            },
-            Token {
-                token_type: TokenType::Plus,
-                token_position: 26..27
-            },
-            Token {
-                token_type: TokenType::Int(3),
-                token_position: 28..29
-            },
-            Token {
-                token_type: TokenType::Times,
-                token_position: 30..31
-            },
-            Token {
-                token_type: TokenType::Int(4),
-                token_position: 32..33
-            },
-            Token {
-                token_type: TokenType::Divide,
-                token_position: 34..35
-            },
-            Token {
-                token_type: TokenType::Int(5),
-                token_position: 36..37
-            },
-            Token {
-                token_type: TokenType::Mod,
-                token_position: 38..39
-            },
-            Token {
-                token_type: TokenType::Int(1),
-                token_position: 40..41
-            },
-            Token {
-                token_type: TokenType::Plus,
-                token_position: 42..43
-            },
-            Token {
-                token_type: TokenType::Int(2),
-                token_position: 44..45
-            },
-            Token {
-                token_type: TokenType::Times,
-                token_position: 46..47
-            },
-            Token {
-                token_type: TokenType::Lparen,
-                token_position: 48..49
-            },
-            Token {
-                token_type: TokenType::Int(3),
-                token_position: 49..50
-            },
-            Token {
-                token_type: TokenType::Plus,
-                token_position: 51..52
-            },
-            Token {
-                token_type: TokenType::Int(1),
-                token_position: 53..54
-            },
-            Token {
-                token_type: TokenType::Rparen,
-                token_position: 54..55
-            }
-        ]
+    tokenize_check(
+        "let name: int = 32 - 2 + 3 * 4 / 5 % 1 + 2 * (3 + 1)",
+        expect![[r#"
+            Token { kind: Let, position: 0..3 }
+            Token { kind: Id("name"), position: 4..8 }
+            Token { kind: Colon, position: 8..9 }
+            Token { kind: Id("int"), position: 10..13 }
+            Token { kind: Equals, position: 14..15 }
+            Token { kind: Int(32), position: 16..18 }
+            Token { kind: Minus, position: 19..20 }
+            Token { kind: Int(2), position: 21..22 }
+            Token { kind: Plus, position: 23..24 }
+            Token { kind: Int(3), position: 25..26 }
+            Token { kind: Times, position: 27..28 }
+            Token { kind: Int(4), position: 29..30 }
+            Token { kind: Divide, position: 31..32 }
+            Token { kind: Int(5), position: 33..34 }
+            Token { kind: Mod, position: 35..36 }
+            Token { kind: Int(1), position: 37..38 }
+            Token { kind: Plus, position: 39..40 }
+            Token { kind: Int(2), position: 41..42 }
+            Token { kind: Times, position: 43..44 }
+            Token { kind: OpenParen, position: 45..46 }
+            Token { kind: Int(3), position: 46..47 }
+            Token { kind: Plus, position: 48..49 }
+            Token { kind: Int(1), position: 50..51 }
+            Token { kind: CloseParen, position: 51..52 }
+        "#]],
     );
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error at 13..14")]
+fn test_abnormal_whitespace() {
+    tokenize_check(
+        "\nlet     a  \n :int = \n 2     + 3\n\n     1 +  2\n\n\n\n",
+        expect![[r#"
+            Token { kind: Let, position: 1..4 }
+            Token { kind: Id("a"), position: 9..10 }
+            Token { kind: Colon, position: 14..15 }
+            Token { kind: Id("int"), position: 15..18 }
+            Token { kind: Equals, position: 19..20 }
+            Token { kind: Int(2), position: 23..24 }
+            Token { kind: Plus, position: 29..30 }
+            Token { kind: Int(3), position: 31..32 }
+            Token { kind: Int(1), position: 39..40 }
+            Token { kind: Plus, position: 41..42 }
+            Token { kind: Int(2), position: 44..45 }
+        "#]],
+    );
+}
+
+#[test]
+#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 10..11")]
 fn test_syntax_error_basic_1() {
-    tokenize("let varName: [int = 32".to_string());
+    tokenize_check("let name: [int = 32", expect![]);
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error at 15..16")]
+#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 12..13")]
 fn test_syntax_error_basic_2() {
-    tokenize("let varName: in[t = 32".to_string());
+    tokenize_check("let name: in[t = 32", expect![]);
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error at 26..27")]
+#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 23..24")]
 fn test_syntax_error_whitespace() {
-    tokenize("\n  \nlet varName:     \nint [= 32 \n\n  ".to_string());
+    tokenize_check("\n  \nlet name:     \nint [= 32 \n\n  ", expect![]);
+}
+
+/// A helper function to test tokenizing a program, where the filename does not matter and only the contents matter.
+pub fn tokenize_check(program: &str, expect: Expect) {
+    let tokens = tokenize(&utils::File { name: String::new(), contents: program.to_string() });
+    expect.assert_eq(
+        &tokens
+            .iter()
+            .fold(String::new(), |acc, token| acc + &format!("{:?}", token) + "\n"),
+    )
 }

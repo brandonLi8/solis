@@ -34,10 +34,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "dissimilar"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd5f0c7e4bd266b8ab2550e6238d2e74977c23c15536ac7be45e9c95e2e3fbbb"
+
+[[package]]
 name = "exitcode"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de853764b47027c2e862a995c34978ffa63c1501f2e15f987ba11bd4f9bba193"
+
+[[package]]
+name = "expect-test"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d4661aca38d826eb7c72fe128e4238220616de4c0cc00db7bfc38e2e1364dd3"
+dependencies = [
+ "dissimilar",
+ "once_cell",
+]
 
 [[package]]
 name = "hermit-abi"
@@ -67,6 +83,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
+name = "once_cell"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f61fba1741ea2b3d6a1e3178721804bb716a68a6aeba1149b5d52e3d464ea66"
+
+[[package]]
 name = "regex"
 version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -89,6 +111,7 @@ version = "0.0.0"
 dependencies = [
  "colored",
  "exitcode",
+ "expect-test",
  "lazy_static",
  "regex",
 ]

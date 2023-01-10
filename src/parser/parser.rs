@@ -11,172 +11,121 @@
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
 use parser::ast::*;
+use parser::parse_expression::parse_expr;
 use parser::tokenizer::*;
+use std::mem::discriminant;
 use utils;
 
-/// Parser
-pub fn parse_program(tokens: &[Token]) -> Program {
-    let (exprs, remaining_tokens) = parse_exprs(vec![], tokens);
+/// A parse context contains information about what has been parsed so far. It is grouped together to pass between
+/// every parse function.
+pub struct ParseContext<'a> {
+    /// The remaining tokens to be parsed, as a token slice. Parsing happens from left to right. At a given
+    /// non-terminal, this represents where it should start parsing, as everything to the left has been parsed already.
+    pub remaining_tokens: &'a [Token],
+
+    /// This is the last token that was parsed (a terminal is text that appears in program) when passed into a parse
+    /// function. This is used for useful compiler error messaging.
+    pub last_token: Option<&'a Token>,
+
+    /// The original Solis input file, for error messaging.
+    pub file: &'a utils::File,
+}
+
+/// Main parser function, which returns a ast::Program.
+/// * file: the original Solis file
+/// * tokens: output from the tokenizer
+pub fn parse(file: &utils::File, tokens: Vec<Token>) -> Program {
+    // Create a parse context that is passed around throughout the entire parse process.
+    let mut context = ParseContext { remaining_tokens: &tokens, last_token: None, file };
+    let program = parse_program(&mut context);
 
     // In the case that there are some remaining tokens (potentially a expression that wasn't fully written),
     // we raise a code error.
-    if remaining_tokens.len() != 0 {
-        utils::raise_code_error("TODO".to_string(), 0..0, "TODO1")
+    if context.remaining_tokens.len() != 0 {
+        utils::compilation_error(
+            &context.file,
+            &context.remaining_tokens.last().unwrap().position,
+            "Syntax Error: unexpected end of file",
+        )
     }
-    return Program {
-        body: Expr::Do { exprs: exprs },
-    };
+
+    return program;
 }
 
-fn parse_exprs(mut previous_exprs: Vec<Expr>, tokens: &[Token]) -> (Vec<Expr>, &[Token]) {
-    match tokens {
-        [] => (previous_exprs, tokens),
-        _ => {
-            let (next_expr, remaining_tokens) = parse_expr(tokens);
-            previous_exprs.push(next_expr);
-            parse_exprs(previous_exprs, remaining_tokens)
-        }
-    }
+// Corresponds to <program> rule and parses into ast::Program.
+fn parse_program(context: &mut ParseContext) -> Program {
+    let exprs = parse_exprs(vec![], context);
+
+    return Program { body: Expr::Do { exprs } };
 }
 
-fn parse_expr(tokens: &[Token]) -> (Expr, &[Token]) {
-    match tokens {
-        [Token {
-            token_type: TokenType::Let,
-            ..
-        }, Token {
-            token_type: TokenType::Id(id),
-            ..
-        }, Token {
-            token_type: TokenType::Colon,
-            ..
-        }, Token {
-            token_type: TokenType::Id(static_type),
-            ..
-        }, Token {
-            token_type: TokenType::Equals,
-            ..
-        }, expression_tokens @ ..] => {
-            let (expr, remaining_tokens) = parse_expr(expression_tokens);
-            (
-                Expr::Let {
-                    id: id.to_string(),
-                    static_type: static_type.to_string(),
-                    expr: Box::new(expr),
-                },
-                remaining_tokens,
-            )
-        }
-        _ => {
-            let (addition_operand, rhs_addition_tokens) = parse_addition_operand(tokens);
-            parse_rest_addition(addition_operand, rhs_addition_tokens)
-        }
-    }
-}
+// Corresponds to <terminal> rule and parses into ast::Id, ast::Int, etc.
+pub fn parse_terminal(context: &mut ParseContext) -> Expr {
+    match context.remaining_tokens {
+        [token, remaining_tokens @ ..] => {
+            context.last_token = Some(token);
+            context.remaining_tokens = remaining_tokens;
 
-fn parse_terminal(tokens: &[Token]) -> (Expr, &[Token]) {
-    match tokens {
-        [Token {
-            token_type: TokenType::Id(id),
-            ..
-        }, remaining_tokens @ ..] => (
-            Expr::Id {
-                value: id.to_string(),
-            },
-            remaining_tokens,
+            match &token.kind {
+                TokenKind::Id(id) => Expr::Id { value: id.to_string() },
+                TokenKind::Int(int) => Expr::Int { value: *int },
+
+                _ => utils::compilation_error(context.file, &token.position, "Syntax Error: unexpected token"),
+            }
+        }
+        [] => utils::compilation_error(
+            context.file,
+            &context
+                .last_token
+                .unwrap_or_else(|| utils::internal_compiler_error("EOF but no last_token"))
+                .position,
+            "Syntax Error: unexpected end of file",
         ),
-        [Token {
-            token_type: TokenType::Int(int),
-            ..
-        }, remaining_tokens @ ..] => (Expr::Int { value: *int }, remaining_tokens),
-        _ => utils::raise_code_error("TODO".to_string(), 0..0, "TODO3"),
     }
 }
 
-fn parse_rest_addition(mut prev_combined_operands: Expr, tokens: &[Token]) -> (Expr, &[Token]) {
-    match tokens {
-        [Token {
-            token_type: token_type @ TokenType::Plus | token_type @ TokenType::Minus,
-            ..
-        }, addition_operand_tokens @ ..] => {
-            let (addition_operand, remaining_tokens) =
-                parse_addition_operand(addition_operand_tokens);
-            prev_combined_operands = match token_type {
-                TokenType::Plus => Expr::Plus {
-                    operand1: Box::new(prev_combined_operands),
-                    operand2: Box::new(addition_operand),
-                },
-                TokenType::Minus => Expr::Minus {
-                    operand1: Box::new(prev_combined_operands),
-                    operand2: Box::new(addition_operand),
-                },
-                _ => todo!(), // TODO: internal compiler error
-            };
-            parse_rest_addition(prev_combined_operands, remaining_tokens)
+// Corresponds to <exprs> rule and parses into ast::Expr list.
+// * previous_exprs: in order to inexpensively parse expressions and add them to a result vector, recursively.
+fn parse_exprs(mut previous_exprs: Vec<Expr>, context: &mut ParseContext) -> Vec<Expr> {
+    match context.remaining_tokens {
+        [] => previous_exprs,
+        _ => {
+            let next_expr = parse_expr(context);
+            previous_exprs.push(next_expr);
+            parse_exprs(previous_exprs, context)
         }
-        _ => (prev_combined_operands, tokens),
     }
 }
 
-fn parse_addition_operand(tokens: &[Token]) -> (Expr, &[Token]) {
-    let (multiplication_operand, rhs_multiplication_tokens) = parse_multiplication_operand(tokens);
-    parse_rest_multiplication(multiplication_operand, rhs_multiplication_tokens)
-}
-
-fn parse_rest_multiplication(
-    mut prev_combined_operands: Expr,
-    tokens: &[Token],
-) -> (Expr, &[Token]) {
-    match tokens {
-        [Token {
-            token_type: token_type @ TokenType::Times | token_type @ TokenType::Divide,
-            ..
-        }, multiplication_operand_tokens @ ..] => {
-            let (multiplication_operand, remaining_tokens) =
-                parse_multiplication_operand(multiplication_operand_tokens);
-            prev_combined_operands = match token_type {
-                TokenType::Times => Expr::Times {
-                    operand1: Box::new(prev_combined_operands),
-                    operand2: Box::new(multiplication_operand),
-                },
-                TokenType::Divide => Expr::Divide {
-                    operand1: Box::new(prev_combined_operands),
-                    operand2: Box::new(multiplication_operand),
-                },
-                _ => todo!(), // TODO: internal compiler error
-            };
-            parse_rest_multiplication(prev_combined_operands, remaining_tokens)
-        }
-        _ => (prev_combined_operands, tokens),
-    }
-}
-
-fn parse_multiplication_operand(tokens: &[Token]) -> (Expr, &[Token]) {
-    parse_factor(tokens)
-}
-
-fn parse_factor(tokens: &[Token]) -> (Expr, &[Token]) {
-    match tokens {
-        [Token {
-            token_type: TokenType::Lparen,
-            ..
-        }, parenthesized_expr_remaining_tokens @ ..] => {
-            let (expr, remaining_tokens) = parse_expr(parenthesized_expr_remaining_tokens);
-            (expr, consume_token(TokenType::Rparen, remaining_tokens))
-        }
-        _ => parse_terminal(tokens),
-    }
-}
-
-/// Ensures that the head of tokens is expected_token_type. If it is, it returns the
-/// rest of tokens. Otherwise, it raises a code error
-fn consume_token(expected_token_type: TokenType, tokens: &[Token]) -> &[Token] {
-    if tokens.len() == 0 {
-        utils::raise_code_error("TODO".to_string(), 0..0, "TODO5")
-    }
-    if tokens[0].token_type != expected_token_type {
-        utils::raise_code_error("TODO".to_string(), 0..0, "TODO6")
+/// Ensures that the first of remaining_tokens has kind expected_token_kind. If it is, it advances the remaining_tokens
+/// and returns the token. Otherwise, it raises a compiler error.
+///
+/// NOTE: this works for TokenKinds that have data in them, because this checks that the TokenKind *variant* matches.
+/// The actual data within the variant does not have to be equal, and the data within expected_token_kind is used for
+/// further error messaging help.
+pub fn consume_token(expected_token_kind: TokenKind, context: &mut ParseContext) {
+    if context.remaining_tokens.len() == 0 {
+        utils::compilation_error(
+            &context.file,
+            &context
+                .last_token
+                .unwrap_or_else(|| utils::internal_compiler_error("EOF but no last_token"))
+                .position,
+            "Syntax Error: unexpected end of file",
+        )
     }
 
-    return &tokens[1..];
+    // See https://stackoverflow.com/questions/32554285/compare-enums-only-by-variant-not-value
+    if discriminant(&expected_token_kind) != discriminant(&context.remaining_tokens[0].kind) {
+        utils::compilation_error(
+            &context.file,
+            &context
+                .last_token
+                .unwrap_or_else(|| utils::internal_compiler_error("EOF but no last_token"))
+                .position,
+            &format!("Syntax Error: expected {:?}", expected_token_kind),
+        )
+    }
+    context.last_token = Some(&context.remaining_tokens[0]);
+    context.remaining_tokens = &context.remaining_tokens[1..];
 }

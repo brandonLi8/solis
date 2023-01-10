@@ -4,17 +4,14 @@ extern crate colored;
 extern crate lazy_static;
 extern crate regex;
 
-use std::fs;
+#[cfg(test)]
+extern crate expect_test;
 
 mod parser;
 mod utils;
 
 fn main() {
-    let contents = fs::read_to_string("./examples/example.sl")
-        .expect("Should have been able to read the file");
+    let file = utils::read_file(&"./examples/example.sl".to_string());
 
-    println!(
-        "{:?}",
-        parser::parser::parse_program(&parser::tokenizer::tokenize(contents))
-    )
+    println!("{:?}", parser::parser::parse(&file, parser::tokenizer::tokenize(&file)));
 }
