@@ -4,8 +4,8 @@
 
 use expect_test::{expect, Expect};
 use parser::parser::parse;
-use parser::tokenizer::tokenize;
-use utils;
+use tokenizer::tokenizer::tokenize;
+use File;
 
 #[test]
 fn test_empty() {
@@ -134,7 +134,7 @@ fn test_math_precedence() {
 #[test]
 fn test_left_associative() {
     parse_check(
-        "let a: int = 32 - 2 * (3 + 4) / 5 - 3 * 2",
+        "let a: int = 32 - 2 * (3 + ((4))) / 5 - 3 * 2",
         expect![[r#"
             Program {
                 body: Do {
@@ -208,7 +208,7 @@ fn test_parse_factor_consume_token_end_of_file() {
 
 /// A helper function to test parsing a program, where the filename does not matter and only the contents matter.
 fn parse_check(program: &str, expect: Expect) {
-    let file = utils::File { name: String::new(), contents: program.to_string() };
+    let file = File { name: String::new(), contents: program.to_string() };
 
     expect.assert_eq(&format!("{:#?}", parse(&file, tokenize(&file))))
 }

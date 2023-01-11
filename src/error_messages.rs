@@ -1,34 +1,17 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-//! Utilities used throughout this project.
+//! This file is responsible for error messaging for compiler errors. A compiler error refers to a state when a
+//! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
 use std::backtrace::Backtrace;
-use std::fs;
 use std::ops::Range;
-use std::process::exit;
+use File;
 
-/// Information about the source Solis file, grouped together in a single struct to pass between stages of compilation.
-pub struct File {
-    pub name: String,
-    pub contents: String,
-}
-
-/// Reads in the Solis file.
-pub fn read_file(file_name: &String) -> File {
-    File {
-        name: file_name.to_string(),
-        contents: fs::read_to_string(file_name).unwrap_or_else(|_| {
-            println!("{}: no such file {file_name}", "Error".red().bold());
-            exit(exitcode::DATAERR)
-        }),
-    }
-}
-
-/// Called when there is an error within the Solis **input program**. There are a variety of reasons for when
-/// compilation errors occur, such as syntax errors, etc. This function aims to provide helpful error messages for the
-/// user by pretty printing a snippet of the Solis input, pin pointing where the error is happening. This function was
-/// inspired after rust's own error messages:
+/// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
+/// when compilation errors occur, such as syntax errors, etc. This function aims to provide helpful error messages for
+/// the user by pretty printing a snippet of the Solis input, pin pointing where the error is happening. This function
+/// was inspired after rust's own error messages:
 /// ```
 /// error: syntax error
 ///  --> input_file.sl:2:8
@@ -82,18 +65,23 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
     panic!("{} at {:?}", message, position);
 
     #[cfg(not(test))]
-    exit(exitcode::DATAERR)
+    std::process::exit(exitcode::DATAERR)
 }
 
-/// Called when there is an error within the Solis **compiler** itself. Ideally, this should never be called at all.
+/// Called when there is an error within the Solis **compiler** itself, at compile time. Ideally, this should never be
+/// called at all.
 pub fn internal_compiler_error(message: &str) -> ! {
+    let backtrace = Backtrace::force_capture();
     println!(
         "{error}: {message}\n\n\
       Please submit a full bug report at https://github.com/brandonLi8/solis/issues with the backtrace below.\n\n\
       Backtrace: \n {backtrace}",
         error = "Internal Compiler Error".red().bold(),
-        backtrace = Backtrace::force_capture()
     );
 
-    exit(exitcode::SOFTWARE)
+    #[cfg(test)]
+    panic!("Internal Compiler Error: {}\n{}", message, backtrace);
+
+    #[cfg(not(test))]
+    std::process::exit(exitcode::DATAERR)
 }

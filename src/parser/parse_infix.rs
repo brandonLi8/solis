@@ -40,97 +40,102 @@
 //! operand (c) to the right. The final AST is passed onto the next <rest> call as the `left_operand`! This essentially
 //! is converting the parse tree "on the fly" into a left associative structure!
 
+use error_messages::internal_compiler_error;
 use parser::ast::Expr;
-use parser::parse_expression::parse_expr;
+use parser::parse_expr::parse_expr;
 use parser::parser::parse_terminal;
-use parser::parser::{consume_token, ParseContext};
-use parser::tokenizer::{Token, TokenKind};
-use utils;
+use parser::tokens_cursor::TokensCursor;
+use tokenizer::tokenizer::{Token, TokenKind};
 
 /// Corresponds to <infix-operation> rule and parses into `ast::Expr`.
-pub fn parse_infix_operation(context: &mut ParseContext) -> Expr {
-    let precedence_1_operand = parse_precedence_1_operand(context);
-    parse_precedence_1_rest(precedence_1_operand, context)
+pub fn parse_infix_operation(tokens_cursor: &mut TokensCursor) -> Expr {
+    let precedence_1_operand = parse_precedence_1_operand(tokens_cursor);
+    parse_precedence_1_rest(precedence_1_operand, tokens_cursor)
 }
 
 /// Corresponds to <`parse_precedence_1_rest`> rule and parses into `ast::Expr`
-/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full context.
-pub fn parse_precedence_1_rest(mut left_operand: Expr, context: &mut ParseContext) -> Expr {
-    match context.remaining_tokens {
-        [token @ Token { kind: TokenKind::Plus | TokenKind::Minus, .. }, remaining_tokens @ ..] => {
-            context.last_token = Some(token);
-            context.remaining_tokens = remaining_tokens;
+/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens_cursor`.
+pub fn parse_precedence_1_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCursor) -> Expr {
+    let (next_token, tokens_cursor) = tokens_cursor.peek();
 
-            let precedence_1_operand = parse_precedence_1_operand(context);
-            left_operand = match token.kind {
-                TokenKind::Plus => Expr::Plus {
-                    operand_1: Box::new(left_operand),
-                    operand_2: Box::new(precedence_1_operand),
-                },
-                TokenKind::Minus => Expr::Minus {
-                    operand_1: Box::new(left_operand),
-                    operand_2: Box::new(precedence_1_operand),
-                },
-                _ => utils::internal_compiler_error("Could not match +/- on inner match"),
-            };
-            parse_precedence_1_rest(left_operand, context)
-        }
-        _ => left_operand,
+    if let Some(Token { kind: kind @ (TokenKind::Plus | TokenKind::Minus), .. }) = next_token {
+        tokens_cursor.advance();
+
+        let precedence_1_operand = parse_precedence_1_operand(tokens_cursor);
+        left_operand = match kind {
+            TokenKind::Plus => Expr::Plus {
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(precedence_1_operand),
+            },
+            TokenKind::Minus => Expr::Minus {
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(precedence_1_operand),
+            },
+            _ => internal_compiler_error("Could not match +/- on inner match"),
+        };
+
+        parse_precedence_1_rest(left_operand, tokens_cursor)
+    } else {
+        left_operand
     }
 }
 
 /// Corresponds to <precedence-1-operand> rule and parses into `ast::Expr`.
-pub fn parse_precedence_1_operand(context: &mut ParseContext) -> Expr {
-    let precedence_2_operand = parse_precedence_2_operand(context);
-    parse_precedence_2_rest(precedence_2_operand, context)
+pub fn parse_precedence_1_operand(tokens_cursor: &mut TokensCursor) -> Expr {
+    let precedence_2_operand = parse_precedence_2_operand(tokens_cursor);
+    parse_precedence_2_rest(precedence_2_operand, tokens_cursor)
 }
 
 /// Corresponds to <`parse_precedence_2_rest`> rule and parses into `ast::Expr`
-/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full context.
-pub fn parse_precedence_2_rest(mut left_operand: Expr, context: &mut ParseContext) -> Expr {
-    match context.remaining_tokens {
-        [token @ Token { kind: TokenKind::Times | TokenKind::Divide | TokenKind::Mod, .. }, remaining_tokens @ ..] => {
-            context.last_token = Some(token);
-            context.remaining_tokens = remaining_tokens;
+/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens_cursor`.
+pub fn parse_precedence_2_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCursor) -> Expr {
+    let (next_token, tokens_cursor) = tokens_cursor.peek();
 
-            let precedence_2_operand = parse_precedence_2_operand(context);
-            left_operand = match token.kind {
-                TokenKind::Times => Expr::Times {
-                    operand_1: Box::new(left_operand),
-                    operand_2: Box::new(precedence_2_operand),
-                },
-                TokenKind::Divide => Expr::Divide {
-                    operand_1: Box::new(left_operand),
-                    operand_2: Box::new(precedence_2_operand),
-                },
-                TokenKind::Mod => Expr::Mod {
-                    operand_1: Box::new(left_operand),
-                    operand_2: Box::new(precedence_2_operand),
-                },
-                _ => utils::internal_compiler_error("Could not match +/- on inner match"),
-            };
-            parse_precedence_2_rest(left_operand, context)
-        }
-        _ => left_operand,
+    if let Some(Token {
+        kind: kind @ (TokenKind::Times | TokenKind::Divide | TokenKind::Mod), ..
+    }) = next_token
+    {
+        tokens_cursor.advance();
+
+        let precedence_2_operand = parse_precedence_2_operand(tokens_cursor);
+        left_operand = match kind {
+            TokenKind::Times => Expr::Times {
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(precedence_2_operand),
+            },
+            TokenKind::Divide => Expr::Divide {
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(precedence_2_operand),
+            },
+            TokenKind::Mod => Expr::Mod {
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(precedence_2_operand),
+            },
+            _ => internal_compiler_error("Could not match +/- on inner match"),
+        };
+
+        parse_precedence_2_rest(left_operand, tokens_cursor)
+    } else {
+        left_operand
     }
 }
 
 /// Corresponds to <precedence-2-operand> rule and parses into `ast::Expr`.
-fn parse_precedence_2_operand(context: &mut ParseContext) -> Expr {
-    parse_factor(context)
+fn parse_precedence_2_operand(tokens_cursor: &mut TokensCursor) -> Expr {
+    parse_factor(tokens_cursor)
 }
 
 /// Corresponds to <factor> rule and parses into `ast::Expr`.
-fn parse_factor(context: &mut ParseContext) -> Expr {
-    match context.remaining_tokens {
-        [token @ Token { kind: TokenKind::OpenParen, .. }, remaining_tokens @ ..] => {
-            context.last_token = Some(token);
-            context.remaining_tokens = remaining_tokens;
+fn parse_factor(tokens_cursor: &mut TokensCursor) -> Expr {
+    let (next_token, tokens_cursor) = tokens_cursor.peek();
 
-            let expr = parse_expr(context);
-            consume_token(TokenKind::CloseParen, context);
-            expr
-        }
-        _ => parse_terminal(context),
+    if let Some(Token { kind: TokenKind::OpenParen, .. }) = next_token {
+        tokens_cursor.advance();
+
+        let expr = parse_expr(tokens_cursor);
+        tokens_cursor.consume_token(TokenKind::CloseParen);
+        expr
+    } else {
+        parse_terminal(tokens_cursor)
     }
 }

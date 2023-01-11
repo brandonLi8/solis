@@ -1,17 +1,14 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-//! The parsing module contains all the modules necessary for parsing an input program into an AST.
+//! The parsing module is responsible for parsing an input program into an AST.
 
 pub mod ast;
-pub mod parse_expression;
-pub mod parse_infix;
 pub mod parser;
-pub mod tokenizer;
+
+mod parse_expr;
+mod parse_infix;
+mod tokens_cursor;
 
 // tests
 #[cfg(test)]
-#[path = "."]
-mod tests {
-    mod parser_tests;
-    mod tokenizer_tests;
-}
+mod parser_tests;

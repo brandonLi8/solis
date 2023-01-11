@@ -11,7 +11,7 @@ Note the distinction between syntax and semantics here. A grammar describes the 
 semantics. For example, a `let` binding must be of the form (`let varName: type = ...`), but a grammar does not disallow
 a binding of the wrong type (this is still not allowed, but this type of error is deferred to a later phase).
 
-The grammar for Solis (as described in this file) is a context free grammar. It explicitly avoids left recursion,
+The grammar for Solis (as described in this file) is a tokens_cursor free grammar. It explicitly avoids left recursion,
 is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 ##
 

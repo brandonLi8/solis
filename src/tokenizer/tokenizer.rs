@@ -11,10 +11,11 @@
 //! For error checking, the tokenizer only checks for tokens that it recognizes, and doesn't do any other validation
 //! or error checking. All other errors are deferred to the parser and code gen stages.
 
+use error_messages::{compilation_error, internal_compiler_error};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::ops::Range;
-use utils;
+use File;
 
 /// Different kinds of tokens and data associated with each token.
 #[derive(PartialEq, Debug)]
@@ -61,7 +62,7 @@ macro_rules! token_pattern {
         (Regex::new($pattern).unwrap(), |m| {
             $token_kind(
                 m.parse::<$to_type>()
-                    .unwrap_or_else(|_| utils::internal_compiler_error(&format!("unable to parse {m}"))),
+                    .unwrap_or_else(|error| internal_compiler_error(&format!("unable to parse {m}: {error}"))),
             )
         })
     };
@@ -102,7 +103,7 @@ lazy_static! {
 
 /// Tokenize the input file into a vector of tokens
 /// TODO: can we "stream" the file in, and "stream" the tokens out?
-pub fn tokenize(file: &utils::File) -> Vec<Token> {
+pub fn tokenize(file: &File) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
 
     // A cursor is the index the represents everything that has been tokenized already (to the left).
@@ -134,7 +135,7 @@ pub fn tokenize(file: &utils::File) -> Vec<Token> {
         }
 
         // At this point, nothing was found, so we raise a syntax error.
-        utils::compilation_error(file, &(cursor..cursor + 1), "Syntax Error: Invalid or unexpected token")
+        compilation_error(file, &(cursor..cursor + 1), "Syntax Error: Invalid or unexpected token")
     }
 
     tokens

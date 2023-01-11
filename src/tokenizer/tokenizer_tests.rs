@@ -3,8 +3,8 @@
 //! Unit tests for the tokenizer.
 
 use expect_test::{expect, Expect};
-use parser::tokenizer::tokenize;
-use utils;
+use tokenizer::tokenizer::tokenize;
+use File;
 
 #[test]
 fn test_empty() {
@@ -154,7 +154,7 @@ fn test_syntax_error_whitespace() {
 
 /// A helper function to test tokenizing a program, where the filename does not matter and only the contents matter.
 pub fn tokenize_check(program: &str, expect: Expect) {
-    let tokens = tokenize(&utils::File { name: String::new(), contents: program.to_string() });
+    let tokens = tokenize(&File { name: String::new(), contents: program.to_string() });
     expect.assert_eq(
         &tokens
             .iter()
