@@ -79,7 +79,7 @@ lazy_static! {
         Regex::new(r"^#(\n|$|[^#].*)").unwrap(),
 
         // Block comments
-        Regex::new(r"^#{2}(?s).*#{2}?").unwrap(),
+        Regex::new(r"^##([\s\S]*?)##").unwrap(),
     ];
 
     // Regex patterns for matching different types of tokens.
