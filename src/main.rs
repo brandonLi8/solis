@@ -13,5 +13,5 @@ mod utils;
 fn main() {
     let file = utils::read_file(&"./examples/example.sl".to_string());
 
-    println!("{:?}", parser::parser::parse(&file, parser::tokenizer::tokenize(&file)));
+    println!("{:#?}", parser::tokenizer::tokenize(&file));
 }

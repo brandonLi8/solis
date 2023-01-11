@@ -93,6 +93,44 @@ fn test_abnormal_whitespace() {
 }
 
 #[test]
+fn test_comments_ignored() {
+    tokenize_check(
+        r"# comment
+        let a: int = b # some comment
+        let a: int = b ##some comment##
+        #
+        ## block
+        comment
+        ##
+        ### block
+        comment
+        ##
+        1 + 2
+
+        # comment
+
+        ",
+        expect![[r#"
+            Token { kind: Let, position: 18..21 }
+            Token { kind: Id("a"), position: 22..23 }
+            Token { kind: Colon, position: 23..24 }
+            Token { kind: Id("int"), position: 25..28 }
+            Token { kind: Equals, position: 29..30 }
+            Token { kind: Id("b"), position: 31..32 }
+            Token { kind: Let, position: 56..59 }
+            Token { kind: Id("a"), position: 60..61 }
+            Token { kind: Colon, position: 61..62 }
+            Token { kind: Id("int"), position: 63..66 }
+            Token { kind: Equals, position: 67..68 }
+            Token { kind: Id("b"), position: 69..70 }
+            Token { kind: Int(1), position: 195..196 }
+            Token { kind: Plus, position: 197..198 }
+            Token { kind: Int(2), position: 199..200 }
+        "#]],
+    )
+}
+
+#[test]
 #[should_panic(expected = "Syntax Error: Invalid or unexpected token at 10..11")]
 fn test_syntax_error_basic_1() {
     tokenize_check("let name: [int = 32", expect![]);

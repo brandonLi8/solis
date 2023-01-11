@@ -79,7 +79,7 @@ fn test_multiple_expressions() {
                         },
                     ],
                 },
-            }"#]]
+            }"#]],
     );
 }
 
@@ -127,7 +127,7 @@ fn test_math_precedence() {
                         },
                     ],
                 },
-            }"#]]
+            }"#]],
     );
 }
 
@@ -178,7 +178,7 @@ fn test_left_associative() {
                         },
                     ],
                 },
-            }"#]]
+            }"#]],
     );
 }
 

@@ -73,7 +73,13 @@ lazy_static! {
     static ref IGNORE_PATTERNS: Vec<Regex> = vec![
 
         // White Space
-        Regex::new(r"^[ \n\t\s]+").unwrap()
+        Regex::new(r"^[ \n\t\s]+").unwrap(),
+
+        // Line comments
+        Regex::new(r"^#(\n|$|[^#].*)").unwrap(),
+
+        // Block comments
+        Regex::new(r"^#{2}(?s).*#{2}?").unwrap(),
     ];
 
     // Regex patterns for matching different types of tokens.

@@ -1,10 +1,11 @@
 # Copyright © 2022 Brandon Li. All rights reserved.
 
 ##
-This file describes the formal grammar for Solis. A formal grammar describes what **syntax** is and is not allowed in
-every Solis program. It does this by describing a set of rules for each non-terminal which eventually all lead to a
-terminal (something that actually appears in the program). Formally, a program is a valid Solis program (syntactically)
-if and only if we can start from the start rule (<program>) and "walk" through each rule to get to the program string.
+This file describes the formal grammar for Solis. A formal grammar describes what **syntax**  is and is not allowed in
+every Solis program (with white space and comments discarded). It does this by describing a set of rules for each
+non-terminal which eventually all lead to a terminal (something that actually appears in the program). Formally, a
+program is a valid Solis program (syntactically) if and only if we can start from the start rule (<program>) and "walk"
+through each rule to get to the program string.
 
 Note the distinction between syntax and semantics here. A grammar describes the syntax that is allowed, and not the
 semantics. For example, a `let` binding must be of the form (`let varName: type = ...`), but a grammar does not disallow
