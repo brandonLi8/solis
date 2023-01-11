@@ -2,7 +2,7 @@
 
 //! A tokenizer for Solis. A tokenizer takes in a Solis file raw string input and turns it
 //! into a vector of Tokens. This is the first stage of the front end of the compiler. Working with
-//! tokens will be much easier to work with compared to the raw string. For examples see tokenizer_tests.rs
+//! tokens will be much easier to work with compared to the raw string. For examples see `tokenizer_tests.rs`
 //!
 //! Internally, the tokenizer works by creating a regex pattern for each token. It will then match
 //! the raw string to find the correct token, and then "consume" the token and move on. The process
@@ -114,23 +114,21 @@ pub fn tokenize(file: &utils::File) -> Vec<Token> {
 
         // First search for characters that we should ignore in the file.
         for ignore_pattern in &*IGNORE_PATTERNS {
-            let ignore_match = ignore_pattern.find(file_slice);
-            if ignore_match.is_some() {
-                cursor += ignore_match.unwrap().end();
+            if let Some(ignore_match) = ignore_pattern.find(file_slice) {
+                cursor += ignore_match.end();
                 continue 'cursor_loop;
             }
         }
 
         // Find the next token at cursor
         for (token_pattern, token_type_constructor) in &*TOKEN_PATTERNS {
-            let token_match = token_pattern.find(file_slice);
-            if token_match.is_some() {
+            if let Some(token_match) = token_pattern.find(file_slice) {
                 tokens.push(Token {
-                    kind: token_type_constructor(token_match.unwrap().as_str().to_string()),
-                    position: cursor..cursor + token_match.unwrap().end(),
+                    kind: token_type_constructor(token_match.as_str().to_string()),
+                    position: cursor..cursor + token_match.end(),
                 });
 
-                cursor += token_match.unwrap().end();
+                cursor += token_match.end();
                 continue 'cursor_loop;
             }
         }
@@ -139,5 +137,5 @@ pub fn tokenize(file: &utils::File) -> Vec<Token> {
         utils::compilation_error(file, &(cursor..cursor + 1), "Syntax Error: Invalid or unexpected token")
     }
 
-    return tokens;
+    tokens
 }

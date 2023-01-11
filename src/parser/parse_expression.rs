@@ -2,10 +2,10 @@
 
 //! Defines the functions for parsing various types of expressions.
 
-use parser::ast::*;
-use parser::parse_infix::*;
-use parser::parser::*;
-use parser::tokenizer::*;
+use parser::ast::Expr;
+use parser::parse_infix::parse_infix_operation;
+use parser::parser::{consume_token, ParseContext};
+use parser::tokenizer::TokenKind;
 use utils;
 
 // Corresponds to <expr> rule and parses into ast::Expr.

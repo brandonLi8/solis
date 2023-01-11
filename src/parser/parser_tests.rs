@@ -2,9 +2,9 @@
 
 //! Unit tests for the parser.
 
-use expect_test::*;
-use parser::parser::*;
-use parser::tokenizer::*;
+use expect_test::{expect, Expect};
+use parser::parser::parse;
+use parser::tokenizer::tokenize;
 use utils;
 
 #[test]

@@ -2,7 +2,7 @@
 
 # ========================================================= #
 #  RustFmt configuration for Solis.
-#  See # https://rust-lang.github.io/rustfmt
+#  See https://rust-lang.github.io/rustfmt
 # ========================================================= #
 
 max_width=120

@@ -19,7 +19,7 @@ pub fn read_file(file_name: &String) -> File {
     File {
         name: file_name.to_string(),
         contents: fs::read_to_string(file_name).unwrap_or_else(|_| {
-            println!("{}: no such file {}", "Error".red().bold(), file_name);
+            println!("{}: no such file {file_name}", "Error".red().bold());
             exit(exitcode::DATAERR)
         }),
     }
@@ -43,7 +43,7 @@ pub fn read_file(file_name: &String) -> File {
 pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) -> ! {
     let next_newline_search = file.contents[position.start..].find('\n');
     let mut next_newline = next_newline_search.unwrap_or(file.contents.len() - 1 - position.start) + position.start;
-    let mut newline_indicies: Vec<usize> = file.contents[..next_newline + 1]
+    let mut newline_indicies: Vec<usize> = file.contents[..=next_newline]
         .match_indices('\n')
         .map(|(i, _)| i)
         .collect();

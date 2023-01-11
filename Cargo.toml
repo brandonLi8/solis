@@ -1,6 +1,13 @@
 [package]
 name = "solis"
 version = "0.0.0"
+description = "A programming language designed and implemented completely from scratch"
+repository = "https://github.com/brandonLi8/solis"
+readme = "README.md"
+license = "TODO"
+keywords = ["solis", "programming language", "language"]
+categories = ["compilers"]
+rust-version = "1.66"
 
 [dependencies]
 regex = "1"

@@ -2,8 +2,8 @@
 
 //! Unit tests for the tokenizer.
 
-use expect_test::*;
-use parser::tokenizer::*;
+use expect_test::{expect, Expect};
+use parser::tokenizer::tokenize;
 use utils;
 
 #[test]
@@ -158,6 +158,6 @@ pub fn tokenize_check(program: &str, expect: Expect) {
     expect.assert_eq(
         &tokens
             .iter()
-            .fold(String::new(), |acc, token| acc + &format!("{:?}", token) + "\n"),
+            .fold(String::new(), |acc, token| acc + &format!("{token:?}") + "\n"),
     )
 }
