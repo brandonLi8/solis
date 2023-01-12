@@ -1,7 +1,7 @@
 # Copyright © 2022 Brandon Li. All rights reserved.
 
 ##
-This file describes the formal grammar for Solis. A formal grammar describes what **syntax**  is and is not allowed in
+This file describes the formal grammar for Solis. A formal grammar describes what **syntax** is and is not allowed in
 every Solis program (with white space and comments discarded). It does this by describing a set of rules for each
 non-terminal which eventually all lead to a terminal (something that actually appears in the program). Formally, a
 program is a valid Solis program (syntactically) if and only if we can start from the start rule (<program>) and "walk"
@@ -11,7 +11,7 @@ Note the distinction between syntax and semantics here. A grammar describes the 
 semantics. For example, a `let` binding must be of the form (`let varName: type = ...`), but a grammar does not disallow
 a binding of the wrong type (this is still not allowed, but this type of error is deferred to a later phase).
 
-The grammar for Solis (as described in this file) is a tokens_cursor free grammar. It explicitly avoids left recursion,
+The grammar for Solis (as described in this file) is a context free grammar. It explicitly avoids left recursion,
 is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 ##
 
@@ -38,7 +38,7 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 
 <expr> ::=
   | <let-expr>
-  | <infix-operation>
+  | <infix-expr>
 
 <let-expr> ::=
   | LET ID COLON ID EQUALS <expr>
@@ -51,46 +51,67 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 
 ##
 To allow for precedence (like parsing `1 + 2 * 3`
-and `1 * 2 + 3`), we must separate each level of
-precedence into the grammar with several layers,
-one for each level of precedence.
+and `1 * 2 + 3`, or `1 < 2 == true`), we must
+separate each level of precedence into the grammar
+with several layers, one for each level of precedence.
 
 Here is what each precedence level corresponds
 to (higher means executed first)
-  |             | Level       |
-  | ----------- | ----------- |
-  | +, -        | 1           |
-  | *, /, %     | 2           |
-  | (), <num>   | 3           |
+
+  | Operator       | Category       | Precedence |
+  | -------------- | -------------- | ---------- |
+  | <, >, ==, etc. | Comparison     | 0          |
+  |                |                |            |
+  | +, -           | Arithmetic - 1 | 1          |
+  | *, /, %        | Arithmetic - 2 | 2          |
+  |                |                |            |
+  | (), <num>      | Factor         | 3          |
+
 ##
 
-<infix-operation> ::=                               # Infix operation, like `1`, or `1 + 2`, or `1 + 2 + 3`, etc
-   | <precedence-1-operand> <precedence-1-rest>     # The reason why makes precedence unambiguous is because: an operator
+<infix-expr> :: = <comparison-expr>
+
+<arithmetic-expr> ::=                               # Infix operation, like `1`, or `1 + 2`, or `1 + 2 + 3`, etc
+   | <arithmetic-1-operand> <arithmetic-1-rest>     # The reason why makes precedence unambiguous is because: an operator
                                                     # can only operate on something of higher precedence. Why? because
                                                     # you must execute the higher precedence first, and then operate on
                                                     # the result.
-                                                    # <precedence-1-operand> = "everything higher precedence than 1"
+                                                    # <arithmetic-1-operand> = "everything higher precedence than 1"
 
-<precedence-1-rest> ::=                             # The rest of the infix operation of level 1. This structure of this
+<arithmetic-1-rest> ::=                             # The rest of the infix operation of level 1. This structure of this
                                                     # allows for left associativity, which is implemented in the parser.
   | ε
-  | "+" <precedence-1-operand> <precedence-1-rest>
-  | "-" <precedence-1-operand> <precedence-1-rest>
+  | "+" <arithmetic-1-operand> <arithmetic-1-rest>
+  | "-" <arithmetic-1-operand> <arithmetic-1-rest>
 
 
-<precedence-1-operand> ::=                          # What addition and subtraction can operate on.
-  | <precedence-2-operand> <precedence-2-rest>
+<arithmetic-1-operand> ::=                          # What addition and subtraction can operate on.
+  | <arithmetic-2-operand> <arithmetic-2-rest>
 
 
-<precedence-2-rest> ::=
+<arithmetic-2-rest> ::=
   | ε
-  | "*" <precedence-2-operand> <precedence-2-rest>
-  | "/" <precedence-2-operand> <precedence-2-rest>
-  | "%" <precedence-2-operand> <precedence-2-rest>
+  | "*" <arithmetic-2-operand> <arithmetic-2-rest>
+  | "/" <arithmetic-2-operand> <arithmetic-2-rest>
+  | "%" <arithmetic-2-operand> <arithmetic-2-rest>
 
 
-<precedence-2-operand> ::=                          # What can multiplication, division can operate on
+<arithmetic-2-operand> ::=                          # What can multiplication, division can operate on
   | <factor>
+
+
+<comparison-expr> ::=                               # Comparison. Thought of as lowest precedence (executed last).
+                                                    # For example 1 + 2 < 3 => (< (+ 1 2) 3)
+  <arithmetic-expr> <comparison-expr-rest>
+
+<comparison-expr-restt> ::=
+  | ε
+  | "<" <arithmetic-expr> <comparison-expr-rest>
+  | ">" <arithmetic-expr> <comparison-expr-rest>
+  | "=" <arithmetic-expr> <comparison-expr-rest>
+  | ...
+
+
 
 <factor> ::=                                        # Highest precedence
   | "(" <expr> ")"
