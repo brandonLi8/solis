@@ -20,4 +20,10 @@ pub enum Expr {
     Times { operand_1: Box<Expr>, operand_2: Box<Expr> },
     Divide { operand_1: Box<Expr>, operand_2: Box<Expr> },
     Mod { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    LessThan { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    LessThanOrEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    MoreThan { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    MoreThanOrEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    EqualsEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    NotEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
 }

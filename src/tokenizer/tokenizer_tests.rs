@@ -12,6 +12,30 @@ fn test_empty() {
 }
 
 #[test]
+fn test_literals() {
+    tokenize_check(
+        "32 -123 true false 0 999999",
+        expect![[r#"
+            Token { kind: Int(32), position: 0..2 }
+            Token { kind: Int(-123), position: 3..7 }
+            Token { kind: Bool(true), position: 8..12 }
+            Token { kind: Bool(false), position: 13..18 }
+            Token { kind: Int(0), position: 19..20 }
+            Token { kind: Int(999999), position: 21..27 }
+        "#]],
+    );
+    tokenize_check(
+        "truee falsee a999999 varname_true_false_1_end", // Close to being literals
+        expect![[r#"
+            Token { kind: Id("truee"), position: 0..5 }
+            Token { kind: Id("falsee"), position: 6..12 }
+            Token { kind: Id("a999999"), position: 13..20 }
+            Token { kind: Id("varname_true_false_1_end"), position: 21..45 }
+        "#]],
+    );
+}
+
+#[test]
 fn test_basic() {
     tokenize_check(
         "let name: int = 32",
@@ -70,6 +94,36 @@ fn test_infix() {
             Token { kind: CloseParen, position: 51..52 }
         "#]],
     );
+
+    tokenize_check(
+        "1+58*67%35-45<6==(95/42)!=19>=42<=54>58",
+        expect![[r#"
+          Token { kind: Int(1), position: 0..1 }
+          Token { kind: Plus, position: 1..2 }
+          Token { kind: Int(58), position: 2..4 }
+          Token { kind: Times, position: 4..5 }
+          Token { kind: Int(67), position: 5..7 }
+          Token { kind: Mod, position: 7..8 }
+          Token { kind: Int(35), position: 8..10 }
+          Token { kind: Int(-45), position: 10..13 }
+          Token { kind: LessThan, position: 13..14 }
+          Token { kind: Int(6), position: 14..15 }
+          Token { kind: EqualsEquals, position: 15..17 }
+          Token { kind: OpenParen, position: 17..18 }
+          Token { kind: Int(95), position: 18..20 }
+          Token { kind: Divide, position: 20..21 }
+          Token { kind: Int(42), position: 21..23 }
+          Token { kind: CloseParen, position: 23..24 }
+          Token { kind: NotEquals, position: 24..26 }
+          Token { kind: Int(19), position: 26..28 }
+          Token { kind: MoreThanOrEquals, position: 28..30 }
+          Token { kind: Int(42), position: 30..32 }
+          Token { kind: LessThanOrEquals, position: 32..34 }
+          Token { kind: Int(54), position: 34..36 }
+          Token { kind: MoreThan, position: 36..37 }
+          Token { kind: Int(58), position: 37..39 }
+      "#]],
+    )
 }
 
 #[test]

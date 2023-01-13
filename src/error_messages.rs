@@ -37,12 +37,12 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
 
     let prev_newline = if newline_indicies.len() == 1 { 0 } else { newline_indicies[newline_indicies.len() - 2] + 1 };
 
-    // Compute the line number and the character_position within that line number
+    // Compute the line number and the column within that line number
     let line_number = newline_indicies.len();
-    let character_position = position.start - prev_newline;
+    let column = position.start - prev_newline;
 
     println!(
-        "{error}: {message}\n {arrow} {filename}:{line_number}:{character_position}\n  \
+        "{error}: {message}\n {arrow} {filename}:{line_number}:{column}\n  \
                               {bar}\n\
         {display_line_number} {bar} {line}\n  \
                               {bar} {padding}{caret}\n",
@@ -51,11 +51,11 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
         arrow = "-->".blue().bold(),
         filename = file.name,
         line_number = line_number,
-        character_position = character_position,
+        column = column,
         bar = "|".blue().bold(),
         display_line_number = line_number.to_string().blue().bold(),
         line = &file.contents[prev_newline..next_newline],
-        padding = " ".repeat(character_position),
+        padding = " ".repeat(column),
         caret = "^".repeat(position.len()).yellow().bold()
     );
 

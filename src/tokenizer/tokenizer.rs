@@ -20,6 +20,10 @@ use File;
 /// Different kinds of tokens and data associated with each token.
 #[derive(PartialEq, Debug)]
 pub enum TokenKind {
+    // Literals
+    Int(i32),
+    Bool(bool),
+
     // Bindings
     Let,
     Colon,
@@ -27,15 +31,22 @@ pub enum TokenKind {
     Equals,
     Id(String),
 
-    // Literals
-    Int(i32),
-
-    // Infix Operators
+    // Arithmetic Operators
     Plus,
     Minus,
     Mod,
     Times,
     Divide,
+
+    // Comparison Operators
+    LessThan,
+    LessThanOrEquals,
+    MoreThan,
+    MoreThanOrEquals,
+    EqualsEquals,
+    NotEquals,
+
+    // Other
     OpenParen,
     CloseParen,
 }
@@ -56,10 +67,10 @@ type TokenKindConstructor = fn(String) -> TokenKind;
 // Macro for creating a token pattern, which associates a regex pattern and a TokenKindConstructor as a tuple.
 macro_rules! token_pattern {
     ($token_kind:expr, $pattern:expr) => {
-        (Regex::new($pattern).unwrap(), |_| $token_kind)
+        (Regex::new(&format!("^{}", $pattern)).unwrap(), |_| $token_kind)
     };
     ($token_kind:expr, $pattern:expr => $to_type:ty) => {
-        (Regex::new($pattern).unwrap(), |m| {
+        (Regex::new(&format!("^{}", $pattern)).unwrap(), |m| {
             $token_kind(
                 m.parse::<$to_type>()
                     .unwrap_or_else(|error| internal_compiler_error(&format!("unable to parse {m}: {error}"))),
@@ -85,19 +96,38 @@ lazy_static! {
 
     // Regex patterns for matching different types of tokens.
     static ref TOKEN_PATTERNS: Vec<(Regex, TokenKindConstructor)> = vec![
-        token_pattern!(TokenKind::Let,        r"^let\b"),
-        token_pattern!(TokenKind::Colon,      r"^:"),
-        token_pattern!(TokenKind::Final,      r"^final\b"),
-        token_pattern!(TokenKind::Equals,     r"^="),
-        token_pattern!(TokenKind::Id,         r"^([A-Za-z][A-Za-z0-9_]*)\b" => String),
-        token_pattern!(TokenKind::Int,        r"^(-?[0-9]+)\b" => i32),
-        token_pattern!(TokenKind::Plus,       r"^\+"),
-        token_pattern!(TokenKind::Minus,      r"^-"),
-        token_pattern!(TokenKind::Mod,        r"^%"),
-        token_pattern!(TokenKind::Times,      r"^\*"),
-        token_pattern!(TokenKind::Divide,     r"^/"),
-        token_pattern!(TokenKind::OpenParen,  r"^\("),
-        token_pattern!(TokenKind::CloseParen, r"^\)"),
+        // Match literals first
+        token_pattern!(TokenKind::Int,               r"(-?[0-9]+)\b" => i32),
+        token_pattern!(TokenKind::Bool,              r"(true|false)\b" => bool),
+
+        // Keywords before Id
+        token_pattern!(TokenKind::Let,               r"let\b"),
+        token_pattern!(TokenKind::Colon,             r":"),
+        token_pattern!(TokenKind::Final,             r"final\b"),
+
+        // Arithmetic
+        token_pattern!(TokenKind::Plus,              r"\+"),
+        token_pattern!(TokenKind::Minus,             r"-"),
+        token_pattern!(TokenKind::Mod,               r"%"),
+        token_pattern!(TokenKind::Times,             r"\*"),
+        token_pattern!(TokenKind::Divide,            r"/"),
+
+        // Comparison Groups
+        token_pattern!(TokenKind::LessThanOrEquals,  r"<="),
+        token_pattern!(TokenKind::LessThan,          r"<"),
+
+        token_pattern!(TokenKind::MoreThanOrEquals,  r">="),
+        token_pattern!(TokenKind::MoreThan,          r">"),
+
+        token_pattern!(TokenKind::EqualsEquals,      r"=="),
+        token_pattern!(TokenKind::NotEquals,         r"!="),
+        token_pattern!(TokenKind::Equals,            r"="),
+
+        token_pattern!(TokenKind::OpenParen,         r"\("),
+        token_pattern!(TokenKind::CloseParen,        r"\)"),
+
+        // Id
+        token_pattern!(TokenKind::Id,                r"([A-Za-z][A-Za-z0-9_]*)\b" => String),
     ];
 }
 

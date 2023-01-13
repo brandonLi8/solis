@@ -4,7 +4,7 @@
 
 use error_messages::internal_compiler_error;
 use parser::ast::Expr;
-use parser::parse_infix::parse_infix_operation;
+use parser::parse_infix::parse_infix_expr;
 use parser::tokens_cursor::TokensCursor;
 use tokenizer::tokenizer::TokenKind;
 
@@ -13,7 +13,7 @@ pub fn parse_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.peek_unwrap();
     match &next_token.kind {
         TokenKind::Let => parse_let_expr(tokens_cursor),
-        _ => parse_infix_operation(tokens_cursor),
+        _ => parse_infix_expr(tokens_cursor),
     }
 }
 

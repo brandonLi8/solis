@@ -1,6 +1,6 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-//! Unit tests for the parser.
+//! Unit tests for the parser. Note that the semantics of some tests may not be correct, as we are only testing parsing.
 
 use expect_test::{expect, Expect};
 use parser::parser::parse;
@@ -44,7 +44,7 @@ fn test_basic() {
 #[test]
 fn test_multiple_expressions() {
     parse_check(
-        "let a: int = 32\n let b: int = -123\n a\n b 2 + 43",
+        "let a: int = 32\n let b: int = -123\n a\n b 2 + 43 == 45",
         expect![[r#"
             Program {
                 body: Do {
@@ -69,12 +69,17 @@ fn test_multiple_expressions() {
                         Id {
                             value: "b",
                         },
-                        Plus {
-                            operand_1: Int {
-                                value: 2,
+                        EqualsEquals {
+                            operand_1: Plus {
+                                operand_1: Int {
+                                    value: 2,
+                                },
+                                operand_2: Int {
+                                    value: 43,
+                                },
                             },
                             operand_2: Int {
-                                value: 43,
+                                value: 45,
                             },
                         },
                     ],
@@ -84,7 +89,7 @@ fn test_multiple_expressions() {
 }
 
 #[test]
-fn test_math_precedence() {
+fn test_arithmetic_precedence() {
     parse_check(
         "let a: int = 1 + 2 * 3 \n let b: int = 1 / 2 - 3",
         expect![[r#"
@@ -132,7 +137,128 @@ fn test_math_precedence() {
 }
 
 #[test]
-fn test_left_associative() {
+fn test_comparison_precedence() {
+    parse_check(
+        "let a: bool = z + y < z\n let b: bool = 1 != 2 / 3 \n let c: invalid = 1 + (2 >= 3) # semantics wrong",
+        expect![[r#"
+            Program {
+                body: Do {
+                    exprs: [
+                        Let {
+                            id: "a",
+                            type_reference: "bool",
+                            init_expr: LessThan {
+                                operand_1: Plus {
+                                    operand_1: Id {
+                                        value: "z",
+                                    },
+                                    operand_2: Id {
+                                        value: "y",
+                                    },
+                                },
+                                operand_2: Id {
+                                    value: "z",
+                                },
+                            },
+                        },
+                        Let {
+                            id: "b",
+                            type_reference: "bool",
+                            init_expr: NotEquals {
+                                operand_1: Int {
+                                    value: 1,
+                                },
+                                operand_2: Divide {
+                                    operand_1: Int {
+                                        value: 2,
+                                    },
+                                    operand_2: Int {
+                                        value: 3,
+                                    },
+                                },
+                            },
+                        },
+                        Let {
+                            id: "c",
+                            type_reference: "invalid",
+                            init_expr: Plus {
+                                operand_1: Int {
+                                    value: 1,
+                                },
+                                operand_2: MoreThanOrEquals {
+                                    operand_1: Int {
+                                        value: 2,
+                                    },
+                                    operand_2: Int {
+                                        value: 3,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    )
+}
+
+#[test]
+fn test_comparison_left_associative() {
+    parse_check(
+        "let a: bool = 32 < 2 <= (3 > ((4))) / 5 >= 3 != 2 == 2",
+        expect![[r#"
+            Program {
+                body: Do {
+                    exprs: [
+                        Let {
+                            id: "a",
+                            type_reference: "bool",
+                            init_expr: EqualsEquals {
+                                operand_1: NotEquals {
+                                    operand_1: MoreThanOrEquals {
+                                        operand_1: LessThanOrEquals {
+                                            operand_1: LessThan {
+                                                operand_1: Int {
+                                                    value: 32,
+                                                },
+                                                operand_2: Int {
+                                                    value: 2,
+                                                },
+                                            },
+                                            operand_2: Divide {
+                                                operand_1: MoreThan {
+                                                    operand_1: Int {
+                                                        value: 3,
+                                                    },
+                                                    operand_2: Int {
+                                                        value: 4,
+                                                    },
+                                                },
+                                                operand_2: Int {
+                                                    value: 5,
+                                                },
+                                            },
+                                        },
+                                        operand_2: Int {
+                                            value: 3,
+                                        },
+                                    },
+                                    operand_2: Int {
+                                        value: 2,
+                                    },
+                                },
+                                operand_2: Int {
+                                    value: 2,
+                                },
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    );
+}
+
+#[test]
+fn test_arithmetic_left_associative() {
     parse_check(
         "let a: int = 32 - 2 * (3 + ((4))) / 5 - 3 * 2",
         expect![[r#"
@@ -179,7 +305,7 @@ fn test_left_associative() {
                     ],
                 },
             }"#]],
-    );
+    )
 }
 
 #[test]
