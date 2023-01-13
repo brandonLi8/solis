@@ -31,12 +31,15 @@ pub enum TokenKind {
     Equals,
     Id(String),
 
-    // Arithmetic Operators
-    Plus,
-    Minus,
+    // Arithmetic Operators.
+    Plus,  // For both unary and binary Plus
+    Minus, // For both unary and binary Minus
     Mod,
     Times,
     Divide,
+
+    // Prefix Operators
+    Not,
 
     // Comparison Operators
     LessThan,
@@ -97,7 +100,7 @@ lazy_static! {
     // Regex patterns for matching different types of tokens.
     static ref TOKEN_PATTERNS: Vec<(Regex, TokenKindConstructor)> = vec![
         // Match literals first
-        token_pattern!(TokenKind::Int,               r"(-?[0-9]+)\b" => i32),
+        token_pattern!(TokenKind::Int,               r"([0-9]+)\b" => i32),
         token_pattern!(TokenKind::Bool,              r"(true|false)\b" => bool),
 
         // Keywords before Id
@@ -120,8 +123,9 @@ lazy_static! {
         token_pattern!(TokenKind::MoreThan,          r">"),
 
         token_pattern!(TokenKind::EqualsEquals,      r"=="),
-        token_pattern!(TokenKind::NotEquals,         r"!="),
         token_pattern!(TokenKind::Equals,            r"="),
+        token_pattern!(TokenKind::NotEquals,         r"!="),
+        token_pattern!(TokenKind::Not,               r"!"),
 
         token_pattern!(TokenKind::OpenParen,         r"\("),
         token_pattern!(TokenKind::CloseParen,        r"\)"),

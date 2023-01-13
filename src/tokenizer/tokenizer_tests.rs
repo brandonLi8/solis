@@ -14,14 +14,16 @@ fn test_empty() {
 #[test]
 fn test_literals() {
     tokenize_check(
-        "32 -123 true false 0 999999",
+        "32 -123 true false 0 +999999",
         expect![[r#"
             Token { kind: Int(32), position: 0..2 }
-            Token { kind: Int(-123), position: 3..7 }
+            Token { kind: Minus, position: 3..4 }
+            Token { kind: Int(123), position: 4..7 }
             Token { kind: Bool(true), position: 8..12 }
             Token { kind: Bool(false), position: 13..18 }
             Token { kind: Int(0), position: 19..20 }
-            Token { kind: Int(999999), position: 21..27 }
+            Token { kind: Plus, position: 21..22 }
+            Token { kind: Int(999999), position: 22..28 }
         "#]],
     );
     tokenize_check(
@@ -58,7 +60,32 @@ fn test_basic() {
             Token { kind: Colon, position: 14..15 }
             Token { kind: Id("int"), position: 16..19 }
             Token { kind: Equals, position: 20..21 }
-            Token { kind: Int(-123), position: 22..26 }
+            Token { kind: Minus, position: 22..23 }
+            Token { kind: Int(123), position: 23..26 }
+        "#]],
+    );
+}
+
+#[test]
+fn test_prefix() {
+    tokenize_check(
+        "let name: +2 - -3 - - 4 + !4 !",
+        expect![[r#"
+            Token { kind: Let, position: 0..3 }
+            Token { kind: Id("name"), position: 4..8 }
+            Token { kind: Colon, position: 8..9 }
+            Token { kind: Plus, position: 10..11 }
+            Token { kind: Int(2), position: 11..12 }
+            Token { kind: Minus, position: 13..14 }
+            Token { kind: Minus, position: 15..16 }
+            Token { kind: Int(3), position: 16..17 }
+            Token { kind: Minus, position: 18..19 }
+            Token { kind: Minus, position: 20..21 }
+            Token { kind: Int(4), position: 22..23 }
+            Token { kind: Plus, position: 24..25 }
+            Token { kind: Not, position: 26..27 }
+            Token { kind: Int(4), position: 27..28 }
+            Token { kind: Not, position: 29..30 }
         "#]],
     );
 }
@@ -96,33 +123,34 @@ fn test_infix() {
     );
 
     tokenize_check(
-        "1+58*67%35-45<6==(95/42)!=19>=42<=54>58",
+        "1 + 58 * 67 % 35 - 45 < 6 == (95 / 42) != 19 >= 42 <= 54 > 58",
         expect![[r#"
-          Token { kind: Int(1), position: 0..1 }
-          Token { kind: Plus, position: 1..2 }
-          Token { kind: Int(58), position: 2..4 }
-          Token { kind: Times, position: 4..5 }
-          Token { kind: Int(67), position: 5..7 }
-          Token { kind: Mod, position: 7..8 }
-          Token { kind: Int(35), position: 8..10 }
-          Token { kind: Int(-45), position: 10..13 }
-          Token { kind: LessThan, position: 13..14 }
-          Token { kind: Int(6), position: 14..15 }
-          Token { kind: EqualsEquals, position: 15..17 }
-          Token { kind: OpenParen, position: 17..18 }
-          Token { kind: Int(95), position: 18..20 }
-          Token { kind: Divide, position: 20..21 }
-          Token { kind: Int(42), position: 21..23 }
-          Token { kind: CloseParen, position: 23..24 }
-          Token { kind: NotEquals, position: 24..26 }
-          Token { kind: Int(19), position: 26..28 }
-          Token { kind: MoreThanOrEquals, position: 28..30 }
-          Token { kind: Int(42), position: 30..32 }
-          Token { kind: LessThanOrEquals, position: 32..34 }
-          Token { kind: Int(54), position: 34..36 }
-          Token { kind: MoreThan, position: 36..37 }
-          Token { kind: Int(58), position: 37..39 }
-      "#]],
+            Token { kind: Int(1), position: 0..1 }
+            Token { kind: Plus, position: 2..3 }
+            Token { kind: Int(58), position: 4..6 }
+            Token { kind: Times, position: 7..8 }
+            Token { kind: Int(67), position: 9..11 }
+            Token { kind: Mod, position: 12..13 }
+            Token { kind: Int(35), position: 14..16 }
+            Token { kind: Minus, position: 17..18 }
+            Token { kind: Int(45), position: 19..21 }
+            Token { kind: LessThan, position: 22..23 }
+            Token { kind: Int(6), position: 24..25 }
+            Token { kind: EqualsEquals, position: 26..28 }
+            Token { kind: OpenParen, position: 29..30 }
+            Token { kind: Int(95), position: 30..32 }
+            Token { kind: Divide, position: 33..34 }
+            Token { kind: Int(42), position: 35..37 }
+            Token { kind: CloseParen, position: 37..38 }
+            Token { kind: NotEquals, position: 39..41 }
+            Token { kind: Int(19), position: 42..44 }
+            Token { kind: MoreThanOrEquals, position: 45..47 }
+            Token { kind: Int(42), position: 48..50 }
+            Token { kind: LessThanOrEquals, position: 51..53 }
+            Token { kind: Int(54), position: 54..56 }
+            Token { kind: MoreThan, position: 57..58 }
+            Token { kind: Int(58), position: 59..61 }
+        "#]],
     )
 }
 

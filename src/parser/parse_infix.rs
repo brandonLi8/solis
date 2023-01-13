@@ -205,6 +205,25 @@ fn parse_factor(tokens_cursor: &mut TokensCursor) -> Expr {
         tokens_cursor.consume_token(TokenKind::CloseParen);
         expr
     } else {
+        parse_prefix_expr(tokens_cursor)
+    }
+}
+
+/// Corresponds to `<prefix-expr>` rule and parses into `ast::Expr`
+fn parse_prefix_expr(tokens_cursor: &mut TokensCursor) -> Expr {
+    let (next_token, tokens_cursor) = tokens_cursor.peek();
+
+    if let Some(Token { kind: kind @ (TokenKind::Plus | TokenKind::Minus | TokenKind::Not), .. }) = next_token {
+        tokens_cursor.advance();
+
+        let operand = parse_factor(tokens_cursor);
+        match kind {
+            TokenKind::Plus => operand, // Essentially does nothing
+            TokenKind::Minus => Expr::UnaryMinus { operand: Box::new(operand) },
+            TokenKind::Not => Expr::Not { operand: Box::new(operand) },
+            _ => internal_compiler_error("Could not match prefix operator on inner match"),
+        }
+    } else {
         parse_terminal(tokens_cursor)
     }
 }

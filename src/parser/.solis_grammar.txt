@@ -112,7 +112,12 @@ to (higher means executed first)
   | ...
 
 
-
 <factor> ::=                                        # Highest precedence
   | "(" <expr> ")"
-  | <terminal>
+  | <prefix-expr>
+
+<prefix-expr> ::=                                   # Expression in prefix notation
+  <terminal>
+  | "!" <factor>                                    # not prefix operator
+  | "+" <factor>                                    # unary plus
+  | "-" <factor>                                    # unary minus

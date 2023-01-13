@@ -59,8 +59,10 @@ fn test_multiple_expressions() {
                         Let {
                             id: "b",
                             type_reference: "int",
-                            init_expr: Int {
-                                value: -123,
+                            init_expr: UnaryMinus {
+                                operand: Int {
+                                    value: 123,
+                                },
                             },
                         },
                         Id {
@@ -309,6 +311,50 @@ fn test_arithmetic_left_associative() {
 }
 
 #[test]
+fn test_prefix() {
+    parse_check(
+        "let name: unkown = +2 - -3 - - -4 + !4",
+        expect![[r#"
+            Program {
+                body: Do {
+                    exprs: [
+                        Let {
+                            id: "name",
+                            type_reference: "unkown",
+                            init_expr: Plus {
+                                operand_1: Minus {
+                                    operand_1: Minus {
+                                        operand_1: Int {
+                                            value: 2,
+                                        },
+                                        operand_2: UnaryMinus {
+                                            operand: Int {
+                                                value: 3,
+                                            },
+                                        },
+                                    },
+                                    operand_2: UnaryMinus {
+                                        operand: UnaryMinus {
+                                            operand: Int {
+                                                value: 4,
+                                            },
+                                        },
+                                    },
+                                },
+                                operand_2: Not {
+                                    operand: Int {
+                                        value: 4,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    );
+}
+
+#[test]
 #[should_panic(expected = "Syntax Error: unexpected token at 13..14")]
 fn test_parse_terminal_unexpected_token() {
     parse_check("let a: int = * * 2", expect![[]]);
@@ -318,6 +364,12 @@ fn test_parse_terminal_unexpected_token() {
 #[should_panic(expected = "Syntax Error: unexpected end of file at 15..16")]
 fn test_parse_terminal_unexpected_end_of_file() {
     parse_check("let a: int = 2 +", expect![[]]);
+}
+
+#[test]
+#[should_panic(expected = "Syntax Error: unexpected end of file at 13..14")]
+fn test_parse_terminal_unexpected_end_of_file_2() {
+    parse_check("let a: int = +", expect![[]]);
 }
 
 #[test]

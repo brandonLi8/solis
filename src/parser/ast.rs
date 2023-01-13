@@ -26,4 +26,6 @@ pub enum Expr {
     MoreThanOrEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
     EqualsEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
     NotEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
+    Not { operand: Box<Expr> },
+    UnaryMinus { operand: Box<Expr> },
 }
