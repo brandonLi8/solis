@@ -29,3 +29,4 @@
 -A clippy::needless_pass_by_value
 -A clippy::module-inception
 -A clippy::module-name-repetitions
+-A clippy::enum-glob-use

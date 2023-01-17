@@ -11,6 +11,7 @@ extern crate regex;
 #[cfg(test)]
 extern crate expect_test;
 
+mod asm;
 mod error_messages;
 mod parser;
 mod tokenizer;
