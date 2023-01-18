@@ -58,7 +58,7 @@ fn operand_to_string(operand: Operand) -> String {
 
 // Decorates labels on mac with `_`
 fn label_name(label: String) -> String {
-    if cfg!(macos) {
+    if cfg!(target_os = "macos") && !cfg!(test) {
         format!("_{label}")
     } else {
         label

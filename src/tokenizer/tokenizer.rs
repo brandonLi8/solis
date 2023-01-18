@@ -21,7 +21,7 @@ use File;
 #[derive(PartialEq, Debug)]
 pub enum TokenKind {
     // Literals
-    Int(i32),
+    Int(i64),
     Bool(bool),
 
     // Bindings
@@ -100,7 +100,7 @@ lazy_static! {
     // Regex patterns for matching different types of tokens.
     static ref TOKEN_PATTERNS: Vec<(Regex, TokenKindConstructor)> = vec![
         // Match literals first
-        token_pattern!(TokenKind::Int,               r"([0-9]+)\b" => i32),
+        token_pattern!(TokenKind::Int,               r"([0-9]+)\b" => i64),
         token_pattern!(TokenKind::Bool,              r"(true|false)\b" => bool),
 
         // Keywords before Id

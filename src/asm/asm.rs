@@ -24,7 +24,7 @@ pub enum Register {
 /// Operands for different instructions.
 pub enum Operand {
     Reg(Register),
-    Imm(i32),
+    Imm(i64),
     MemOffset(Box<Operand>, Box<Operand>),
 }
 

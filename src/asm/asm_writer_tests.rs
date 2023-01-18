@@ -1,6 +1,6 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-//! Unit tests for the asm_writer.
+//! Unit tests for the `asm_writer`.
 
 use asm::asm::{Instruction::*, Operand::*, Register::*};
 use asm::asm_writer::write_instructions_to_file;

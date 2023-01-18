@@ -2,6 +2,7 @@
 
 use colored::Colorize;
 use std::fs;
+use std::path::Path;
 use std::process::exit;
 
 extern crate colored;
@@ -12,6 +13,8 @@ extern crate regex;
 extern crate expect_test;
 
 mod asm;
+mod bootstrapper;
+mod compiler;
 mod error_messages;
 mod parser;
 mod tokenizer;
@@ -36,8 +39,12 @@ fn read_file(file_name: &String) -> File {
 fn main() {
     let file = read_file(&"./examples/example.sl".to_string());
 
-    println!(
-        "{:?}",
-        parser::parser::parse(&file, tokenizer::tokenizer::tokenize(&file))
+    let program = parser::parser::parse(&file, tokenizer::tokenizer::tokenize(&file));
+
+    bootstrapper::bootstrap(
+        compiler::compiler::compile(program),
+        Path::new("./build"),
+        "example",
+        true,
     );
 }
