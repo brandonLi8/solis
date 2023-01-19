@@ -59,7 +59,8 @@ fn test_multiple_expressions() {
                         Let {
                             id: "b",
                             type_reference: "int",
-                            init_expr: UnaryMinus {
+                            init_expr: UnaryExpr {
+                                kind: Negative,
                                 operand: Int {
                                     value: 123,
                                 },
@@ -71,8 +72,10 @@ fn test_multiple_expressions() {
                         Id {
                             value: "b",
                         },
-                        EqualsEquals {
-                            operand_1: Plus {
+                        BinaryExpr {
+                            kind: EqualsEquals,
+                            operand_1: BinaryExpr {
+                                kind: Plus,
                                 operand_1: Int {
                                     value: 2,
                                 },
@@ -101,11 +104,13 @@ fn test_arithmetic_precedence() {
                         Let {
                             id: "a",
                             type_reference: "int",
-                            init_expr: Plus {
+                            init_expr: BinaryExpr {
+                                kind: Plus,
                                 operand_1: Int {
                                     value: 1,
                                 },
-                                operand_2: Times {
+                                operand_2: BinaryExpr {
+                                    kind: Times,
                                     operand_1: Int {
                                         value: 2,
                                     },
@@ -118,8 +123,10 @@ fn test_arithmetic_precedence() {
                         Let {
                             id: "b",
                             type_reference: "int",
-                            init_expr: Minus {
-                                operand_1: Divide {
+                            init_expr: BinaryExpr {
+                                kind: Minus,
+                                operand_1: BinaryExpr {
+                                    kind: Divide,
                                     operand_1: Int {
                                         value: 1,
                                     },
@@ -149,8 +156,10 @@ fn test_comparison_precedence() {
                         Let {
                             id: "a",
                             type_reference: "bool",
-                            init_expr: LessThan {
-                                operand_1: Plus {
+                            init_expr: BinaryExpr {
+                                kind: LessThan,
+                                operand_1: BinaryExpr {
+                                    kind: Plus,
                                     operand_1: Id {
                                         value: "z",
                                     },
@@ -166,11 +175,13 @@ fn test_comparison_precedence() {
                         Let {
                             id: "b",
                             type_reference: "bool",
-                            init_expr: NotEquals {
+                            init_expr: BinaryExpr {
+                                kind: NotEquals,
                                 operand_1: Int {
                                     value: 1,
                                 },
-                                operand_2: Divide {
+                                operand_2: BinaryExpr {
+                                    kind: Divide,
                                     operand_1: Int {
                                         value: 2,
                                     },
@@ -183,11 +194,13 @@ fn test_comparison_precedence() {
                         Let {
                             id: "c",
                             type_reference: "invalid",
-                            init_expr: Plus {
+                            init_expr: BinaryExpr {
+                                kind: Plus,
                                 operand_1: Int {
                                     value: 1,
                                 },
-                                operand_2: MoreThanOrEquals {
+                                operand_2: BinaryExpr {
+                                    kind: MoreThanOrEquals,
                                     operand_1: Int {
                                         value: 2,
                                     },
@@ -214,11 +227,16 @@ fn test_comparison_left_associative() {
                         Let {
                             id: "a",
                             type_reference: "bool",
-                            init_expr: EqualsEquals {
-                                operand_1: NotEquals {
-                                    operand_1: MoreThanOrEquals {
-                                        operand_1: LessThanOrEquals {
-                                            operand_1: LessThan {
+                            init_expr: BinaryExpr {
+                                kind: EqualsEquals,
+                                operand_1: BinaryExpr {
+                                    kind: NotEquals,
+                                    operand_1: BinaryExpr {
+                                        kind: MoreThanOrEquals,
+                                        operand_1: BinaryExpr {
+                                            kind: LessThanOrEquals,
+                                            operand_1: BinaryExpr {
+                                                kind: LessThan,
                                                 operand_1: Int {
                                                     value: 32,
                                                 },
@@ -226,8 +244,10 @@ fn test_comparison_left_associative() {
                                                     value: 2,
                                                 },
                                             },
-                                            operand_2: Divide {
-                                                operand_1: MoreThan {
+                                            operand_2: BinaryExpr {
+                                                kind: Divide,
+                                                operand_1: BinaryExpr {
+                                                    kind: MoreThan,
                                                     operand_1: Int {
                                                         value: 3,
                                                     },
@@ -270,17 +290,22 @@ fn test_arithmetic_left_associative() {
                         Let {
                             id: "a",
                             type_reference: "int",
-                            init_expr: Minus {
-                                operand_1: Minus {
+                            init_expr: BinaryExpr {
+                                kind: Minus,
+                                operand_1: BinaryExpr {
+                                    kind: Minus,
                                     operand_1: Int {
                                         value: 32,
                                     },
-                                    operand_2: Divide {
-                                        operand_1: Times {
+                                    operand_2: BinaryExpr {
+                                        kind: Divide,
+                                        operand_1: BinaryExpr {
+                                            kind: Times,
                                             operand_1: Int {
                                                 value: 2,
                                             },
-                                            operand_2: Plus {
+                                            operand_2: BinaryExpr {
+                                                kind: Plus,
                                                 operand_1: Int {
                                                     value: 3,
                                                 },
@@ -294,7 +319,8 @@ fn test_arithmetic_left_associative() {
                                         },
                                     },
                                 },
-                                operand_2: Times {
+                                operand_2: BinaryExpr {
+                                    kind: Times,
                                     operand_1: Int {
                                         value: 3,
                                     },
@@ -313,35 +339,45 @@ fn test_arithmetic_left_associative() {
 #[test]
 fn test_prefix() {
     parse_check(
-        "let name: unkown = +2 - -3 - - -4 + !4",
+        "let name: unknown = +2 - -3 - -+-+-4 + !4",
         expect![[r#"
             Program {
                 body: Do {
                     exprs: [
                         Let {
                             id: "name",
-                            type_reference: "unkown",
-                            init_expr: Plus {
-                                operand_1: Minus {
-                                    operand_1: Minus {
+                            type_reference: "unknown",
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: BinaryExpr {
+                                    kind: Minus,
+                                    operand_1: BinaryExpr {
+                                        kind: Minus,
                                         operand_1: Int {
                                             value: 2,
                                         },
-                                        operand_2: UnaryMinus {
+                                        operand_2: UnaryExpr {
+                                            kind: Negative,
                                             operand: Int {
                                                 value: 3,
                                             },
                                         },
                                     },
-                                    operand_2: UnaryMinus {
-                                        operand: UnaryMinus {
-                                            operand: Int {
-                                                value: 4,
+                                    operand_2: UnaryExpr {
+                                        kind: Negative,
+                                        operand: UnaryExpr {
+                                            kind: Negative,
+                                            operand: UnaryExpr {
+                                                kind: Negative,
+                                                operand: Int {
+                                                    value: 4,
+                                                },
                                             },
                                         },
                                     },
                                 },
-                                operand_2: Not {
+                                operand_2: UnaryExpr {
+                                    kind: Not,
                                     operand: Int {
                                         value: 4,
                                     },

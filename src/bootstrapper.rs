@@ -21,40 +21,46 @@ use std::process::Command;
 /// * name - the name of the executable, within `directory`
 /// * run - indicates if we should run the executable after creating it.
 pub fn bootstrap(instructions: Vec<Instruction>, directory: &Path, name: &str, run: bool) {
+    let assembly_file_path = &directory.join(format!("{name}.s"));
+    let object_file_path = &directory.join(format!("{name}.o"));
+    let runtime_object_file_path = &directory.join("runtime.o");
+    let executable_file_path = &directory.join(name);
+
     // Write the instructions to an assembly file.
-    write_instructions_to_file(instructions, &directory.join(format!("{name}.s")));
+    write_instructions_to_file(instructions, assembly_file_path);
 
     // Run the assembler to create an object file.
     ensure_success(
         Command::new("nasm")
-            .arg("./build/example.s")
+            .arg(assembly_file_path)
             .arg("-f")
             .arg(if cfg!(target_os = "macos") { "macho64" } else { "elf64" })
             .arg("-o")
-            .arg("./build/example.o"),
+            .arg(object_file_path),
     );
 
-    // Compile the Solis runtime
+    // Compile the Solis runtime.
     ensure_success(
         Command::new("cc")
             .arg("-c")
             .arg("./src/runtime/runtime.c")
             .arg("-o")
-            .arg("./build/runtime.o"),
+            .arg(runtime_object_file_path),
     );
 
-    // Link the object file with the runtime
+    // Link the object file with the runtime.
     ensure_success(
         Command::new("cc")
-            .arg("./build/example.o")
-            .arg("./build/runtime.o")
+            .arg(object_file_path)
+            .arg(runtime_object_file_path)
             .arg("-o")
-            .arg("./build/example"),
+            .arg(executable_file_path),
     );
 
-    // Optionally run (load) the executable
+    // Optionally run (load) the executable.
     if run {
-        let output = Command::new("./build/example")
+        println!("run");
+        let output = Command::new(executable_file_path)
             .output()
             .expect("failed to execute process");
 

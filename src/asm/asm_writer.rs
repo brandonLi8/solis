@@ -49,7 +49,7 @@ fn operand_to_string(operand: Operand) -> String {
         Reg(reg) => register_to_string(reg),
         Imm(imm) => imm.to_string(),
         MemOffset(operand_1, operand_2) => format!(
-            "QWORD [{}+ {}]",
+            "QWORD [{} + {}]",
             &operand_to_string(*operand_1),
             &operand_to_string(*operand_2)
         ),

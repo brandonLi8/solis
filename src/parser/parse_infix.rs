@@ -42,7 +42,7 @@
 //! is converting the parse tree "on the fly" into a left associative structure!
 
 use error_messages::internal_compiler_error;
-use parser::ast::Expr;
+use parser::ast::{BinaryExprKind, Expr, UnaryExprKind};
 use parser::parse_expr::parse_expr;
 use parser::parser::parse_terminal;
 use parser::tokens_cursor::TokensCursor;
@@ -68,18 +68,15 @@ fn parse_arithmetic_1_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCur
         tokens_cursor.advance();
 
         let arithmetic_1_operand = parse_arithmetic_1_operand(tokens_cursor);
-        left_operand = match kind {
-            TokenKind::Plus => Expr::Plus {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_1_operand),
+        left_operand = Expr::BinaryExpr {
+            kind: match kind {
+                TokenKind::Plus => BinaryExprKind::Plus,
+                TokenKind::Minus => BinaryExprKind::Minus,
+                _ => internal_compiler_error("Could not match +/- on inner match"),
             },
-            TokenKind::Minus => Expr::Minus {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_1_operand),
-            },
-            _ => internal_compiler_error("Could not match +/- on inner match"),
+            operand_1: Box::new(left_operand),
+            operand_2: Box::new(arithmetic_1_operand),
         };
-
         parse_arithmetic_1_rest(left_operand, tokens_cursor)
     } else {
         left_operand
@@ -104,20 +101,15 @@ fn parse_arithmetic_2_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCur
         tokens_cursor.advance();
 
         let arithmetic_2_operand = parse_arithmetic_2_operand(tokens_cursor);
-        left_operand = match kind {
-            TokenKind::Times => Expr::Times {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_2_operand),
+        left_operand = Expr::BinaryExpr {
+            kind: match kind {
+                TokenKind::Times => BinaryExprKind::Times,
+                TokenKind::Divide => BinaryExprKind::Divide,
+                TokenKind::Mod => BinaryExprKind::Mod,
+                _ => internal_compiler_error("Could not match */%// on inner match"),
             },
-            TokenKind::Divide => Expr::Divide {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_2_operand),
-            },
-            TokenKind::Mod => Expr::Mod {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_2_operand),
-            },
-            _ => internal_compiler_error("Could not match +/- on inner match"),
+            operand_1: Box::new(left_operand),
+            operand_2: Box::new(arithmetic_2_operand),
         };
 
         parse_arithmetic_2_rest(left_operand, tokens_cursor)
@@ -156,36 +148,18 @@ fn parse_comparison_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCurso
         tokens_cursor.advance();
 
         let comparison_operand = parse_arithmetic_expr(tokens_cursor);
-        left_operand = match kind {
-            TokenKind::Times => Expr::Times {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
+        left_operand = Expr::BinaryExpr {
+            kind: match kind {
+                TokenKind::LessThan => BinaryExprKind::LessThan,
+                TokenKind::LessThanOrEquals => BinaryExprKind::LessThanOrEquals,
+                TokenKind::MoreThan => BinaryExprKind::MoreThan,
+                TokenKind::MoreThanOrEquals => BinaryExprKind::MoreThanOrEquals,
+                TokenKind::EqualsEquals => BinaryExprKind::EqualsEquals,
+                TokenKind::NotEquals => BinaryExprKind::NotEquals,
+                _ => internal_compiler_error("Could not match comparison operator on inner match"),
             },
-            TokenKind::LessThan => Expr::LessThan {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            TokenKind::LessThanOrEquals => Expr::LessThanOrEquals {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            TokenKind::MoreThan => Expr::MoreThan {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            TokenKind::MoreThanOrEquals => Expr::MoreThanOrEquals {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            TokenKind::EqualsEquals => Expr::EqualsEquals {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            TokenKind::NotEquals => Expr::NotEquals {
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            _ => internal_compiler_error("Could not match +/- on inner match"),
+            operand_1: Box::new(left_operand),
+            operand_2: Box::new(comparison_operand),
         };
 
         parse_comparison_rest(left_operand, tokens_cursor)
@@ -217,11 +191,18 @@ fn parse_prefix_expr(tokens_cursor: &mut TokensCursor) -> Expr {
         tokens_cursor.advance();
 
         let operand = parse_factor(tokens_cursor);
-        match kind {
-            TokenKind::Plus => operand, // Essentially does nothing
-            TokenKind::Minus => Expr::UnaryMinus { operand: Box::new(operand) },
-            TokenKind::Not => Expr::Not { operand: Box::new(operand) },
-            _ => internal_compiler_error("Could not match prefix operator on inner match"),
+
+        if let TokenKind::Plus = kind {
+            operand
+        } else {
+            Expr::UnaryExpr {
+                kind: match kind {
+                    TokenKind::Minus => UnaryExprKind::Negative,
+                    TokenKind::Not => UnaryExprKind::Not,
+                    _ => internal_compiler_error("Could not match prefix operator on inner match"),
+                },
+                operand: Box::new(operand),
+            }
         }
     } else {
         parse_terminal(tokens_cursor)

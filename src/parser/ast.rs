@@ -11,21 +11,48 @@ pub struct Program {
 
 #[derive(PartialEq, Debug)]
 pub enum Expr {
-    Let { id: String, type_reference: String, init_expr: Box<Expr> },
-    Int { value: i64 },
-    Id { value: String },
-    Do { exprs: Vec<Expr> },
-    Plus { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    Minus { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    Times { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    Divide { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    Mod { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    LessThan { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    LessThanOrEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    MoreThan { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    MoreThanOrEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    EqualsEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    NotEquals { operand_1: Box<Expr>, operand_2: Box<Expr> },
-    Not { operand: Box<Expr> },
-    UnaryMinus { operand: Box<Expr> },
+    Let {
+        id: String,
+        type_reference: String,
+        init_expr: Box<Expr>,
+    },
+    Int {
+        value: i64,
+    },
+    Id {
+        value: String,
+    },
+    Do {
+        exprs: Vec<Expr>,
+    },
+    UnaryExpr {
+        kind: UnaryExprKind,
+        operand: Box<Expr>,
+    },
+    BinaryExpr {
+        kind: BinaryExprKind,
+        operand_1: Box<Expr>,
+        operand_2: Box<Expr>,
+    },
+}
+
+#[derive(PartialEq, Debug)]
+pub enum UnaryExprKind {
+    Not,
+    Negative,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum BinaryExprKind {
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Mod,
+    LessThan,
+    LessThanOrEquals,
+    MoreThan,
+    MoreThanOrEquals,
+    EqualsEquals,
+    NotEquals,
 }

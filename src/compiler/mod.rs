@@ -2,4 +2,6 @@
 
 //! TODO
 
+mod compile_binary_expr;
+mod compile_unary_expr;
 pub mod compiler;
