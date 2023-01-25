@@ -10,7 +10,7 @@
 //!   * `Consume` - if next = expected and not EOF next, advance. Else compilation error.
 //!   * `Peek` - peek the next as an Option indicating if there is a next.
 //!   * `PeekUnwrap` - compilation error if Peek is None
-//!   * `Prev` - gets prev, internal error is position is 0
+//!   * `Prev` - gets prev, with a internal error if position is 0
 //!
 //! See the documentation of each method for full details.
 

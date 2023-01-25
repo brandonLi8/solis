@@ -3,6 +3,7 @@
 use colored::Colorize;
 use std::fs;
 use std::path::Path;
+
 use std::process::exit;
 
 extern crate colored;
@@ -16,6 +17,7 @@ mod asm;
 mod bootstrapper;
 mod compiler;
 mod error_messages;
+mod ir;
 mod parser;
 mod tokenizer;
 
@@ -42,7 +44,7 @@ fn main() {
     let program = parser::parser::parse(&file, tokenizer::tokenizer::tokenize(&file));
 
     bootstrapper::bootstrap(
-        compiler::compiler::compile(program),
+        compiler::compiler::compile(ir::translator::translate_program(program)),
         Path::new("./build"),
         "example",
         true,

@@ -6,7 +6,12 @@
 
 #[derive(PartialEq, Debug)]
 pub struct Program {
-    pub body: Expr,
+    pub body: Block,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Block {
+    pub exprs: Vec<Expr>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -21,9 +26,6 @@ pub enum Expr {
     },
     Id {
         value: String,
-    },
-    Do {
-        exprs: Vec<Expr>,
     },
     UnaryExpr {
         kind: UnaryExprKind,

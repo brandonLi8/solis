@@ -11,7 +11,7 @@
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
 use error_messages::compilation_error;
-use parser::ast::{Expr, Program};
+use parser::ast::{Block, Expr, Program};
 use parser::parse_expr::parse_expr;
 use parser::tokens_cursor::TokensCursor;
 use tokenizer::tokenizer::{Token, TokenKind};
@@ -42,7 +42,7 @@ pub fn parse(file: &File, tokens: Vec<Token>) -> Program {
 fn parse_program(tokens_cursor: &mut TokensCursor) -> Program {
     let exprs = parse_exprs(vec![], tokens_cursor);
 
-    Program { body: Expr::Do { exprs } }
+    Program { body: Block { exprs } }
 }
 
 // Corresponds to <terminal> rule and parses into ast::Id, ast::Int, etc.

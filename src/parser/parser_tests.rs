@@ -13,7 +13,7 @@ fn test_empty() {
         "",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [],
                 },
             }"#]],
@@ -26,7 +26,7 @@ fn test_basic() {
         "let varName: int = 32",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "varName",
@@ -47,7 +47,7 @@ fn test_multiple_expressions() {
         "let a: int = 32\n let b: int = -123\n a\n b 2 + 43 == 45",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "a",
@@ -99,7 +99,7 @@ fn test_arithmetic_precedence() {
         "let a: int = 1 + 2 * 3 \n let b: int = 1 / 2 - 3",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "a",
@@ -151,7 +151,7 @@ fn test_comparison_precedence() {
         "let a: bool = z + y < z\n let b: bool = 1 != 2 / 3 \n let c: invalid = 1 + (2 >= 3) # semantics wrong",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "a",
@@ -222,7 +222,7 @@ fn test_comparison_left_associative() {
         "let a: bool = 32 < 2 <= (3 > ((4))) / 5 >= 3 != 2 == 2",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "a",
@@ -285,7 +285,7 @@ fn test_arithmetic_left_associative() {
         "let a: int = 32 - 2 * (3 + ((4))) / 5 - 3 * 2",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "a",
@@ -342,7 +342,7 @@ fn test_prefix() {
         "let name: unknown = +2 - -3 - -+-+-4 + !4",
         expect![[r#"
             Program {
-                body: Do {
+                body: Block {
                     exprs: [
                         Let {
                             id: "name",
