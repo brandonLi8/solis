@@ -10,16 +10,13 @@ extern crate colored;
 extern crate lazy_static;
 extern crate regex;
 
-#[cfg(test)]
-extern crate expect_test;
-
-mod asm;
-mod bootstrapper;
-mod compiler;
-mod error_messages;
-mod ir;
-mod parser;
-mod tokenizer;
+pub mod asm;
+pub mod bootstrapper;
+pub mod compiler;
+pub mod error_messages;
+pub mod ir;
+pub mod parser;
+pub mod tokenizer;
 
 /// Information about the source Solis file, grouped together in a single struct to pass between stages of compilation.
 pub struct File {
@@ -38,7 +35,7 @@ fn read_file(file_name: &String) -> File {
     }
 }
 
-fn main() {
+pub fn main() {
     let file = read_file(&"./examples/example.sl".to_string());
 
     let program = parser::parser::parse(&file, tokenizer::tokenizer::tokenize(&file));

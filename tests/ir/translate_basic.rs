@@ -1,12 +1,9 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-//! Unit tests for the translator.
+//! Tests basic flattening functionality of the translator.
 
-use expect_test::{expect, Expect};
-use ir::translator::translate_program;
-use parser::parser::parse;
-use tokenizer::tokenizer::tokenize;
-use File;
+use expect_test::expect;
+use test_utils::translate_check;
 
 #[test]
 fn test_empty() {
@@ -96,149 +93,80 @@ fn test_basic() {
     translate_check(
         "32 - 2 * (3 + ((4))) / 5 == 3 * 2",
         expect![[r#"
-        Program {
-            body: Block {
-                exprs: [
-                    Let {
-                        id: "@temp3",
-                        init_expr: BinaryExpr {
-                            kind: Plus,
-                            operand_1: Int {
-                                value: 3,
-                            },
-                            operand_2: Int {
-                                value: 4,
-                            },
-                        },
-                    },
-                    Let {
-                        id: "@temp4",
-                        init_expr: BinaryExpr {
-                            kind: Times,
-                            operand_1: Int {
-                                value: 2,
-                            },
-                            operand_2: Id {
-                                value: "@temp3",
-                            },
-                        },
-                    },
-                    Let {
-                        id: "@temp5",
-                        init_expr: BinaryExpr {
-                            kind: Divide,
-                            operand_1: Id {
-                                value: "@temp4",
-                            },
-                            operand_2: Int {
-                                value: 5,
-                            },
-                        },
-                    },
-                    Let {
-                        id: "@temp6",
-                        init_expr: BinaryExpr {
-                            kind: Minus,
-                            operand_1: Int {
-                                value: 32,
-                            },
-                            operand_2: Id {
-                                value: "@temp5",
-                            },
-                        },
-                    },
-                    Let {
-                        id: "@temp7",
-                        init_expr: BinaryExpr {
-                            kind: Times,
-                            operand_1: Int {
-                                value: 3,
-                            },
-                            operand_2: Int {
-                                value: 2,
-                            },
-                        },
-                    },
-                    BinaryExpr {
-                        kind: EqualsEquals,
-                        operand_1: Id {
-                            value: "@temp6",
-                        },
-                        operand_2: Id {
-                            value: "@temp7",
-                        },
-                    },
-                ],
-            },
-        }"#]],
-    )
-}
-
-#[test]
-fn test_nested_let() {
-    translate_check(
-        "let a: int = (let b: int = !(1 < 2 < 3)) + 2",
-        expect![[r#"
             Program {
                 body: Block {
                     exprs: [
                         Let {
-                            id: "@temp8",
-                            init_expr: BinaryExpr {
-                                kind: LessThan,
-                                operand_1: Int {
-                                    value: 1,
-                                },
-                                operand_2: Int {
-                                    value: 2,
-                                },
-                            },
-                        },
-                        Let {
-                            id: "@temp9",
-                            init_expr: BinaryExpr {
-                                kind: LessThan,
-                                operand_1: Id {
-                                    value: "@temp8",
-                                },
-                                operand_2: Int {
-                                    value: 3,
-                                },
-                            },
-                        },
-                        Let {
-                            id: "@temp10",
-                            init_expr: Let {
-                                id: "b",
-                                init_expr: UnaryExpr {
-                                    kind: Not,
-                                    operand: Id {
-                                        value: "@temp9",
-                                    },
-                                },
-                            },
-                        },
-                        Let {
-                            id: "a",
+                            id: "@temp3",
                             init_expr: BinaryExpr {
                                 kind: Plus,
+                                operand_1: Int {
+                                    value: 3,
+                                },
+                                operand_2: Int {
+                                    value: 4,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp4",
+                            init_expr: BinaryExpr {
+                                kind: Times,
+                                operand_1: Int {
+                                    value: 2,
+                                },
+                                operand_2: Id {
+                                    value: "@temp3",
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp5",
+                            init_expr: BinaryExpr {
+                                kind: Divide,
                                 operand_1: Id {
-                                    value: "@temp10",
+                                    value: "@temp4",
+                                },
+                                operand_2: Int {
+                                    value: 5,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp6",
+                            init_expr: BinaryExpr {
+                                kind: Minus,
+                                operand_1: Int {
+                                    value: 32,
+                                },
+                                operand_2: Id {
+                                    value: "@temp5",
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp7",
+                            init_expr: BinaryExpr {
+                                kind: Times,
+                                operand_1: Int {
+                                    value: 3,
                                 },
                                 operand_2: Int {
                                     value: 2,
                                 },
+                            },
+                        },
+                        BinaryExpr {
+                            kind: EqualsEquals,
+                            operand_1: Id {
+                                value: "@temp6",
+                            },
+                            operand_2: Id {
+                                value: "@temp7",
                             },
                         },
                     ],
                 },
             }"#]],
     )
-}
-
-/// A helper function to test translating a program, where the filename does not matter and only the contents matter.
-fn translate_check(program: &str, expect: Expect) {
-    let file = File { name: String::new(), contents: program.to_string() };
-
-    expect.assert_eq(&format!("{:#?}", translate_program(parse(&file, tokenize(&file)))))
 }

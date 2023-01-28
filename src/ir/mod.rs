@@ -4,7 +4,3 @@
 
 pub mod ir;
 pub mod translator;
-
-// tests
-#[cfg(test)]
-mod translator_tests;

@@ -5,7 +5,3 @@
 
 pub mod asm;
 pub mod asm_writer;
-
-// tests
-#[cfg(test)]
-mod asm_writer_tests;

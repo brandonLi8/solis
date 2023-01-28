@@ -23,10 +23,13 @@
 -D clippy::perf
 
 # Allow list
--A clippy::range-plus-one
--A clippy::trivial_regex
 -A clippy::derive-partial-eq-without-eq
--A clippy::needless_pass_by_value
+-A clippy::enum-glob-use
+-A clippy::implicit-hasher
+-A clippy::missing-panics-doc
 -A clippy::module-inception
 -A clippy::module-name-repetitions
--A clippy::enum-glob-use
+-A clippy::must-use-candidate
+-A clippy::needless_pass_by_value
+-A clippy::range-plus-one
+-A clippy::trivial_regex

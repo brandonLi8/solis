@@ -61,11 +61,11 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
 
     // For testing purposes, we don't want to exit() when we want to test that certain inputs raise errors.
     // Instead, we are able to test for panics.
-    #[cfg(test)]
-    panic!("{} at {:?}", message, position);
-
-    #[cfg(not(test))]
-    std::process::exit(exitcode::DATAERR)
+    if cfg!(feature = "test") {
+        panic!("{} at {:?}", message, position);
+    } else {
+        std::process::exit(exitcode::DATAERR)
+    }
 }
 
 /// Called when there is an error within the Solis **compiler** itself, at compile time. Ideally, this should never be
@@ -79,9 +79,9 @@ pub fn internal_compiler_error(message: &str) -> ! {
         error = "Internal Compiler Error".red().bold(),
     );
 
-    #[cfg(test)]
-    panic!("Internal Compiler Error: {}\n{}", message, backtrace);
-
-    #[cfg(not(test))]
-    std::process::exit(exitcode::DATAERR)
+    if cfg!(feature = "test") {
+        panic!("Internal Compiler Error: {}\n{}", message, backtrace);
+    } else {
+        std::process::exit(exitcode::DATAERR)
+    }
 }

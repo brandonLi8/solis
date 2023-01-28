@@ -8,7 +8,3 @@ pub mod parser;
 mod parse_expr;
 mod parse_infix;
 mod tokens_cursor;
-
-// tests
-#[cfg(test)]
-mod parser_tests;

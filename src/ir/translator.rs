@@ -11,6 +11,7 @@
 
 use ir::ir;
 use parser::ast;
+use std::cell::RefCell;
 
 /// Translates a `ast::Program` into a `ir::Program`
 pub fn translate_program(program: ast::Program) -> ir::Program {
@@ -78,8 +79,17 @@ fn to_direct(expr: ir::Expr, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
 }
 
 // Ensures that the variable name of temporary variables are unique and can't conflict any source code names.
-static TAG: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
-
 fn gen_temp_identifier() -> String {
-    format!("@temp{}", TAG.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
+    thread_local! {
+        pub static TAG: RefCell<u32> = RefCell::new(0);
+    }
+
+    let mut tag_value = 0;
+
+    TAG.with(|tag| {
+        tag_value = *tag.borrow();
+        *tag.borrow_mut() += 1;
+    });
+
+    format!("@temp{tag_value}")
 }

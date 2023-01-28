@@ -1,8 +1,7 @@
 # Copyright © 2022 Brandon Li. All rights reserved.
 
 # ========================================================= #
-#  Makefile for dev workflow commands. Cargo is still used
-#  to run, test, and publish this project.
+#  Makefile for dev workflow commands.
 #
 #  @author Brandon Li <brandon.li@berkeley.com>
 # ========================================================= #
@@ -23,18 +22,18 @@ close-ticket:          ## Merges the current ticket branch into master.
 	fi
 
 	@# Ensure that there are no lint errors.
-	@if ! cargo clippy -- ${CLIPPY_CONFIG}; then \
+	@if ! make lint; then \
 		echo ${NEWLINE} ${FAIL} There are lint errors; exit 1; \
 	fi
 
 	@# Ensure that there are no formatting issues.
-	@cargo fmt
+	@make fmt
 	@if [[ ! -z $$(git status --porcelain) ]]; then \
 		echo ${FAIL} There are formatting issues: ${NEWLINE}"$$(git status --porcelain)"${NEWLINE}; exit 1; \
 	fi
 
 	@# Ensure that tests pass.
-	@if ! cargo test; then \
+	@if ! make test; then \
 		echo ${NEWLINE} ${FAIL} Tests did not all pass; exit 1; \
 	fi
 
@@ -89,9 +88,36 @@ lint:                   ## Runs the clippy linter with the configuration defined
                         ## Usage:
                         ## make lint-strict fix={true|""}\n
 	@if [[ '$(fix)' =~ ^(true)$$ ]]; then \
-			cargo clippy --fix -- ${CLIPPY_CONFIG}; \
+			cargo clippy --fix --allow-dirty -- ${CLIPPY_CONFIG}; \
 	else \
 			cargo clippy -- ${CLIPPY_CONFIG}; \
+	fi
+
+
+test:                   ## Runs all unit and integration tests. Alias of cargo test\n
+                        ## Usage:
+                        ## make test fix={true|""}\n
+	@echo ${INFO} Running tests... ${NEWLINE}
+	@if [[ '$(fix)' =~ ^(true)$$ ]]; then \
+			if env UPDATE_EXPECT=1 cargo test --features test; then \
+				echo ${DONE}; \
+			else \
+				echo ${FAIL}; exit 1; \
+			fi \
+	else \
+			if cargo test --features test; then \
+				echo ${DONE}; \
+			else \
+				echo ${FAIL}; \
+			fi \
+	fi
+
+fmt:                    ## Alias of cargo fmt\n
+	@echo ${INFO} Formatting... ${NEWLINE}
+	@if cargo fmt; then \
+		echo ${DONE}; \
+	else \
+		echo ${FAIL}; \
 	fi
 
 
@@ -100,7 +126,7 @@ update-copyright:       ## Updates the copyright statements of every file in the
 
 	@#Loop through files that aren't in git-ignore
 	@for file in $(shell git ls-files); do \
-		# Ignore files that don't have copyright comments.  \
+		# Ignore files that don't hacve copyright comments.  \
 		if [[ $${file} =~ ${NO_COPYRIGHT_FILE_MATCH} ]]; then continue; \
 		\
 		# Search the first line for COPYRIGHT_MATCH. \
@@ -128,7 +154,7 @@ CHANGES = $$(git status --porcelain)
 CURRENT_YEAR = $(shell date +%Y)
 COPYRIGHT_DATE_MATCH = ([0-9]){4,}(-([0-9]){4,})?
 COPYRIGHT_MATCH = Copyright © ${COPYRIGHT_DATE_MATCH} Brandon Li. All rights reserved\.
-NO_COPYRIGHT_FILE_MATCH = .*\.(jpg|svg|png|mp4|ico|json|browserslistrc)$
+NO_COPYRIGHT_FILE_MATCH = .*\.(jpg|svg|png|mp4|ico|json)$
 CLIPPY_CONFIG = $(shell cat .clippy.sh | sed -e '/^#/d')
 
 bold = $(shell tput bold)

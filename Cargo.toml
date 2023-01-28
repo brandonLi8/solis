@@ -18,3 +18,11 @@ cc = "1.0.78"
 
 [dev-dependencies]
 expect-test = "1.4.0"
+
+[lib]
+name = "solis"
+path = "src/main.rs"
+doctest = false
+
+[features]
+test = []
