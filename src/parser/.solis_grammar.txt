@@ -37,8 +37,8 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 #!——————————————————————————————————————————————*!
 
 <expr> ::=
-  | <let-expr>
-  | <infix-expr>
+  | <let-expr>   [";"]
+  | <infix-expr> [";"]
 
 <let-expr> ::=
   | LET ID COLON ID EQUALS <expr>
@@ -104,7 +104,7 @@ to (higher means executed first)
                                                     # For example 1 + 2 < 3 => (< (+ 1 2) 3)
   <arithmetic-expr> <comparison-expr-rest>
 
-<comparison-expr-restt> ::=
+<comparison-expr-rest> ::=
   | ε
   | "<" <arithmetic-expr> <comparison-expr-rest>
   | ">" <arithmetic-expr> <comparison-expr-rest>

@@ -2,6 +2,7 @@
 
 //! Unit tests for the parse module.
 
+mod parse_ambiguity;
 mod parse_associativity_1;
 mod parse_associativity_2;
 mod parse_basic_1;

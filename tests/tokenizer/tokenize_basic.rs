@@ -37,4 +37,19 @@ fn test_basic_let() {
             Token { kind: Int(123), position: 23..26 }
         "#]],
     );
+
+    tokenize_check(
+        "(());()()",
+        expect![[r#"
+            Token { kind: OpenParen, position: 0..1 }
+            Token { kind: OpenParen, position: 1..2 }
+            Token { kind: CloseParen, position: 2..3 }
+            Token { kind: CloseParen, position: 3..4 }
+            Token { kind: Semi, position: 4..5 }
+            Token { kind: OpenParen, position: 5..6 }
+            Token { kind: CloseParen, position: 6..7 }
+            Token { kind: OpenParen, position: 7..8 }
+            Token { kind: CloseParen, position: 8..9 }
+        "#]],
+    );
 }

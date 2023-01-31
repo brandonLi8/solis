@@ -52,6 +52,7 @@ pub enum TokenKind {
     // Other
     OpenParen,
     CloseParen,
+    Semi,
 }
 
 /// A token returned by the tokenizer
@@ -129,6 +130,7 @@ lazy_static! {
 
         token_pattern!(TokenKind::OpenParen,         r"\("),
         token_pattern!(TokenKind::CloseParen,        r"\)"),
+        token_pattern!(TokenKind::Semi,              r";"),
 
         // Id
         token_pattern!(TokenKind::Id,                r"([A-Za-z][A-Za-z0-9_]*)\b" => String),

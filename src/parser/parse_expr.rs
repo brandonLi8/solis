@@ -6,15 +6,23 @@ use error_messages::internal_compiler_error;
 use parser::ast::Expr;
 use parser::parse_infix::parse_infix_expr;
 use parser::tokens_cursor::TokensCursor;
-use tokenizer::tokenizer::TokenKind;
+use tokenizer::tokenizer::{Token, TokenKind};
 
 // Corresponds to <expr> rule and parses into ast::Expr.
 pub fn parse_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.peek_unwrap();
-    match &next_token.kind {
+
+    let expr = match &next_token.kind {
         TokenKind::Let => parse_let_expr(tokens_cursor),
         _ => parse_infix_expr(tokens_cursor),
+    };
+
+    // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
+    while let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
+        tokens_cursor.advance();
     }
+
+    expr
 }
 
 // Corresponds to <let-expr> rule and parses into ast::Expr::Let.

@@ -1,2 +1,2 @@
-let a: int = 1
--2
+let a: int = 1;
+-4
