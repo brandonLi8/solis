@@ -29,6 +29,7 @@
 -A clippy::missing-panics-doc
 -A clippy::module-inception
 -A clippy::module-name-repetitions
+-A clippy::multiple-crate-versions
 -A clippy::must-use-candidate
 -A clippy::needless_pass_by_value
 -A clippy::range-plus-one

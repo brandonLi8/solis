@@ -1,7 +1,5 @@
 // Copyright © 2022 Brandon Li. All rights reserved.
 
-//! translate AST into IR, also performs type check
-
 //! The translator lowers the AST into the intermediate representation of the program. This is the first stage of the
 //! back end of the compiler. The IR structures are defined in `ir.rs`, where the context and rationale are documented.
 //!

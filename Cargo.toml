@@ -15,6 +15,7 @@ lazy_static = "1.4.0"
 colored = "2.0.0"
 exitcode = "1.1.2"
 cc = "1.0.78"
+clap = { version = "4.1.4", features = ["derive"] }
 
 [dev-dependencies]
 expect-test = "1.4.0"

@@ -20,11 +20,17 @@ use std::process::Command;
 /// * directory - the directory to create the intermediate files and resulting executable
 /// * name - the name of the executable, within `directory`
 /// * run - indicates if we should run the executable after creating it.
-pub fn bootstrap(instructions: Vec<Instruction>, directory: &Path, name: &str, run: bool) {
+/// * clean - indicates if we should remove the contents of the directory before creating executable
+pub fn bootstrap(instructions: Vec<Instruction>, directory: &Path, name: &str, run: bool, clean: bool) {
     let assembly_file_path = &directory.join(format!("{name}.s"));
     let object_file_path = &directory.join(format!("{name}.o"));
     let runtime_object_file_path = &directory.join("runtime.o");
     let executable_file_path = &directory.join(name);
+
+    // Clean the output directory
+    if clean {
+        ensure_success(Command::new("rm").arg("-rf").arg(directory));
+    }
 
     // Write the instructions to an assembly file.
     write_instructions_to_file(instructions, assembly_file_path);
