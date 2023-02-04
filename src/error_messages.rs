@@ -43,15 +43,16 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
 
     println!(
         "{error}: {message}\n {arrow} {filename}:{line_number}:{column}\n  \
-                              {bar}\n\
+                 {bar_padding}{bar}\n\
         {display_line_number} {bar} {line}\n  \
-                              {bar} {padding}{caret}\n",
+                 {bar_padding}{bar} {padding}{caret}\n",
         error = "Error".red().bold(),
         message = message.bold(),
         arrow = "-->".blue().bold(),
         filename = file.name,
         line_number = line_number,
         column = column,
+        bar_padding = " ".repeat(line_number.to_string().len() - 1),
         bar = "|".blue().bold(),
         display_line_number = line_number.to_string().blue().bold(),
         line = &file.contents[prev_newline..next_newline],

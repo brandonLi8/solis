@@ -4,12 +4,13 @@
 //! representation in the final code generation stage. Working with this representation will be much easier to work with
 //! compared to a string output.
 
-/// Every register that we can use.
+/// Every register that we can use. Registers with special purposes have been annotated.
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 pub enum Register {
-    Rax,
+    Rax, // Return value
     Rsi,
     Rdi,
-    Rsp,
+    Rsp, // Stack Pointer
     Rbp,
     R8,
     R9,
@@ -17,11 +18,11 @@ pub enum Register {
     R11,
     R12,
     R13,
-    R14,
-    R15,
+    R14, // Scratch 1
+    R15, // Scratch 2
 }
 
-/// Operands for different instructions.
+/// Operands for instructions.
 pub enum Operand {
     Reg(Register),
     Imm(i64),

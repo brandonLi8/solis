@@ -14,10 +14,12 @@ pub mod compiler;
 pub mod error_messages;
 pub mod ir;
 pub mod parser;
+pub mod register_allocation;
 pub mod tokenizer;
 
 use clap::Parser;
 use colored::Colorize;
+
 use std::fs;
 use std::path::Path;
 use std::process::exit;
@@ -75,6 +77,12 @@ pub fn main() {
     let tokens = tokenizer::tokenizer::tokenize(&file);
     let program_ast = parser::parser::parse(&file, tokens);
     let program_ir = ir::translator::translate_program(program_ast);
+
+    println!(
+        "{:#?}",
+        register_allocation::conflict_analysis::conflict_analysis(&program_ir.body)
+    );
+
     let instructions = compiler::compiler::compile(program_ir);
 
     bootstrapper::bootstrap(instructions, destination, &name, args.run, args.clean);
