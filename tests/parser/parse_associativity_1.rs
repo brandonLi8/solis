@@ -21,110 +21,215 @@ fn test_arithmetic_left_associative_1() {
             Program {
                 body: Block {
                     exprs: [
-                        BinaryExpr {
-                            kind: Plus,
-                            operand_1: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: Plus,
-                                operand_1: Int {
-                                    value: 1,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Plus,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 11..12,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 15..16,
+                                        },
+                                    },
+                                    position: 13..14,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 19..20,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
-                            },
+                            position: 17..18,
                         },
-                        BinaryExpr {
-                            kind: Minus,
-                            operand_1: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: Minus,
-                                operand_1: Int {
-                                    value: 1,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Minus,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 31..32,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 35..36,
+                                        },
+                                    },
+                                    position: 33..34,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 39..40,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
-                            },
+                            position: 37..38,
                         },
-                        BinaryExpr {
-                            kind: Plus,
-                            operand_1: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: Plus,
-                                operand_1: Int {
-                                    value: 1,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Plus,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 52..53,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 56..57,
+                                        },
+                                    },
+                                    position: 54..55,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 61..62,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
-                            },
+                            position: 59..60,
                         },
-                        BinaryExpr {
-                            kind: Minus,
-                            operand_1: Int {
-                                value: 1,
-                            },
-                            operand_2: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Int {
-                                    value: 2,
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: Minus,
+                                operand_1: Expr {
+                                    kind: Int {
+                                        value: 1,
+                                    },
+                                    position: 73..74,
                                 },
-                                operand_2: Int {
-                                    value: 3,
+                                operand_2: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Plus,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 78..79,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 3,
+                                            },
+                                            position: 82..83,
+                                        },
+                                    },
+                                    position: 80..81,
                                 },
                             },
+                            position: 75..76,
                         },
-                        BinaryExpr {
-                            kind: Times,
-                            operand_1: BinaryExpr {
-                                kind: Divide,
-                                operand_1: Int {
-                                    value: 1,
-                                },
-                                operand_2: Int {
-                                    value: 2,
-                                },
-                            },
-                            operand_2: Int {
-                                value: 3,
-                            },
-                        },
-                        BinaryExpr {
-                            kind: Mod,
-                            operand_1: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: Times,
-                                operand_1: Int {
-                                    value: 1,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Divide,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 95..96,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 99..100,
+                                        },
+                                    },
+                                    position: 97..98,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 103..104,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
-                            },
+                            position: 101..102,
                         },
-                        BinaryExpr {
-                            kind: Divide,
-                            operand_1: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: Mod,
-                                operand_1: Int {
-                                    value: 1,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Times,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 115..116,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 119..120,
+                                        },
+                                    },
+                                    position: 117..118,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 123..124,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
+                            position: 121..122,
+                        },
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: Divide,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Mod,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 135..136,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 139..140,
+                                        },
+                                    },
+                                    position: 137..138,
+                                },
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 143..144,
+                                },
                             },
+                            position: 141..142,
                         },
                     ],
                 },
@@ -140,48 +245,90 @@ fn test_arithmetic_left_associative_2() {
             Program {
                 body: Block {
                     exprs: [
-                        Let {
-                            id: "a",
-                            type_reference: "int",
-                            init_expr: BinaryExpr {
-                                kind: Minus,
-                                operand_1: BinaryExpr {
-                                    kind: Minus,
-                                    operand_1: Int {
-                                        value: 32,
-                                    },
-                                    operand_2: BinaryExpr {
-                                        kind: Divide,
-                                        operand_1: BinaryExpr {
-                                            kind: Times,
-                                            operand_1: Int {
-                                                value: 2,
-                                            },
-                                            operand_2: BinaryExpr {
-                                                kind: Plus,
-                                                operand_1: Int {
-                                                    value: 3,
+                        Expr {
+                            kind: Let {
+                                id: "a",
+                                type_reference: "int",
+                                init_expr: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Minus,
+                                        operand_1: Expr {
+                                            kind: BinaryExpr {
+                                                kind: Minus,
+                                                operand_1: Expr {
+                                                    kind: Int {
+                                                        value: 32,
+                                                    },
+                                                    position: 13..15,
                                                 },
-                                                operand_2: Int {
-                                                    value: 4,
+                                                operand_2: Expr {
+                                                    kind: BinaryExpr {
+                                                        kind: Divide,
+                                                        operand_1: Expr {
+                                                            kind: BinaryExpr {
+                                                                kind: Times,
+                                                                operand_1: Expr {
+                                                                    kind: Int {
+                                                                        value: 2,
+                                                                    },
+                                                                    position: 18..19,
+                                                                },
+                                                                operand_2: Expr {
+                                                                    kind: BinaryExpr {
+                                                                        kind: Plus,
+                                                                        operand_1: Expr {
+                                                                            kind: Int {
+                                                                                value: 3,
+                                                                            },
+                                                                            position: 23..24,
+                                                                        },
+                                                                        operand_2: Expr {
+                                                                            kind: Int {
+                                                                                value: 4,
+                                                                            },
+                                                                            position: 29..30,
+                                                                        },
+                                                                    },
+                                                                    position: 25..26,
+                                                                },
+                                                            },
+                                                            position: 20..21,
+                                                        },
+                                                        operand_2: Expr {
+                                                            kind: Int {
+                                                                value: 5,
+                                                            },
+                                                            position: 36..37,
+                                                        },
+                                                    },
+                                                    position: 34..35,
                                                 },
                                             },
+                                            position: 16..17,
                                         },
-                                        operand_2: Int {
-                                            value: 5,
+                                        operand_2: Expr {
+                                            kind: BinaryExpr {
+                                                kind: Mod,
+                                                operand_1: Expr {
+                                                    kind: Int {
+                                                        value: 3,
+                                                    },
+                                                    position: 40..41,
+                                                },
+                                                operand_2: Expr {
+                                                    kind: Int {
+                                                        value: 2,
+                                                    },
+                                                    position: 44..45,
+                                                },
+                                            },
+                                            position: 42..43,
                                         },
                                     },
-                                },
-                                operand_2: BinaryExpr {
-                                    kind: Mod,
-                                    operand_1: Int {
-                                        value: 3,
-                                    },
-                                    operand_2: Int {
-                                        value: 2,
-                                    },
+                                    position: 38..39,
                                 },
                             },
+                            position: 7..10,
                         },
                     ],
                 },

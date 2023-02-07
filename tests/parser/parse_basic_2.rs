@@ -20,52 +20,97 @@ fn test_multiple_expressions() {
             Program {
                 body: Block {
                     exprs: [
-                        Let {
-                            id: "a",
-                            type_reference: "int",
-                            init_expr: Int {
-                                value: 32,
-                            },
-                        },
-                        Let {
-                            id: "b",
-                            type_reference: "int",
-                            init_expr: UnaryExpr {
-                                kind: Negative,
-                                operand: Int {
-                                    value: 123,
+                        Expr {
+                            kind: Let {
+                                id: "a",
+                                type_reference: "int",
+                                init_expr: Expr {
+                                    kind: Int {
+                                        value: 32,
+                                    },
+                                    position: 24..26,
                                 },
                             },
+                            position: 18..21,
                         },
-                        Id {
-                            value: "a",
-                        },
-                        Id {
-                            value: "b",
-                        },
-                        BinaryExpr {
-                            kind: EqualsEquals,
-                            operand_1: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Int {
-                                    value: 2,
+                        Expr {
+                            kind: Let {
+                                id: "b",
+                                type_reference: "int",
+                                init_expr: Expr {
+                                    kind: UnaryExpr {
+                                        kind: Negative,
+                                        operand: Expr {
+                                            kind: Int {
+                                                value: 123,
+                                            },
+                                            position: 51..54,
+                                        },
+                                    },
+                                    position: 50..51,
                                 },
-                                operand_2: Int {
-                                    value: 43,
+                            },
+                            position: 44..47,
+                        },
+                        Expr {
+                            kind: Id {
+                                value: "a",
+                            },
+                            position: 65..66,
+                        },
+                        Expr {
+                            kind: Id {
+                                value: "b",
+                            },
+                            position: 77..78,
+                        },
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: EqualsEquals,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Plus,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 89..90,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 43,
+                                            },
+                                            position: 93..95,
+                                        },
+                                    },
+                                    position: 91..92,
+                                },
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 45,
+                                    },
+                                    position: 99..101,
                                 },
                             },
-                            operand_2: Int {
-                                value: 45,
-                            },
+                            position: 96..98,
                         },
-                        BinaryExpr {
-                            kind: EqualsEquals,
-                            operand_1: Bool {
-                                value: true,
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: EqualsEquals,
+                                operand_1: Expr {
+                                    kind: Bool {
+                                        value: true,
+                                    },
+                                    position: 112..116,
+                                },
+                                operand_2: Expr {
+                                    kind: Bool {
+                                        value: false,
+                                    },
+                                    position: 120..125,
+                                },
                             },
-                            operand_2: Bool {
-                                value: false,
-                            },
+                            position: 117..119,
                         },
                     ],
                 },
@@ -83,43 +128,79 @@ fn test_multiple_expressions() {
             Program {
                 body: Block {
                     exprs: [
-                        Let {
-                            id: "a",
-                            type_reference: "int",
-                            init_expr: Int {
-                                value: 32,
-                            },
-                        },
-                        Let {
-                            id: "b",
-                            type_reference: "int",
-                            init_expr: UnaryExpr {
-                                kind: Negative,
-                                operand: Int {
-                                    value: 123,
+                        Expr {
+                            kind: Let {
+                                id: "a",
+                                type_reference: "int",
+                                init_expr: Expr {
+                                    kind: Int {
+                                        value: 32,
+                                    },
+                                    position: 24..26,
                                 },
                             },
+                            position: 18..21,
                         },
-                        Id {
-                            value: "a",
-                        },
-                        Id {
-                            value: "b",
-                        },
-                        BinaryExpr {
-                            kind: EqualsEquals,
-                            operand_1: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Int {
-                                    value: 2,
-                                },
-                                operand_2: Int {
-                                    value: 43,
+                        Expr {
+                            kind: Let {
+                                id: "b",
+                                type_reference: "int",
+                                init_expr: Expr {
+                                    kind: UnaryExpr {
+                                        kind: Negative,
+                                        operand: Expr {
+                                            kind: Int {
+                                                value: 123,
+                                            },
+                                            position: 41..44,
+                                        },
+                                    },
+                                    position: 40..41,
                                 },
                             },
-                            operand_2: Int {
-                                value: 45,
+                            position: 34..37,
+                        },
+                        Expr {
+                            kind: Id {
+                                value: "a",
                             },
+                            position: 55..56,
+                        },
+                        Expr {
+                            kind: Id {
+                                value: "b",
+                            },
+                            position: 57..58,
+                        },
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: EqualsEquals,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: Plus,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 59..60,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 43,
+                                            },
+                                            position: 73..75,
+                                        },
+                                    },
+                                    position: 61..62,
+                                },
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 45,
+                                    },
+                                    position: 89..91,
+                                },
+                            },
+                            position: 76..78,
                         },
                     ],
                 },

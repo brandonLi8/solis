@@ -18,65 +18,125 @@ fn test_comparison_left_associative_1() {
             Program {
                 body: Block {
                     exprs: [
-                        BinaryExpr {
-                            kind: LessThan,
-                            operand_1: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: LessThan,
-                                operand_1: Int {
-                                    value: 1,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: LessThan,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 11..12,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 15..16,
+                                        },
+                                    },
+                                    position: 13..14,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 19..20,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
-                            },
+                            position: 17..18,
                         },
-                        BinaryExpr {
-                            kind: LessThan,
-                            operand_1: Int {
-                                value: 1,
-                            },
-                            operand_2: BinaryExpr {
+                        Expr {
+                            kind: BinaryExpr {
                                 kind: LessThan,
-                                operand_1: Int {
-                                    value: 2,
+                                operand_1: Expr {
+                                    kind: Int {
+                                        value: 1,
+                                    },
+                                    position: 31..32,
                                 },
-                                operand_2: Int {
-                                    value: 3,
+                                operand_2: Expr {
+                                    kind: BinaryExpr {
+                                        kind: LessThan,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 36..37,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 3,
+                                            },
+                                            position: 40..41,
+                                        },
+                                    },
+                                    position: 38..39,
                                 },
                             },
+                            position: 33..34,
                         },
-                        BinaryExpr {
-                            kind: MoreThan,
-                            operand_1: BinaryExpr {
-                                kind: EqualsEquals,
-                                operand_1: Int {
-                                    value: 1,
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: MoreThan,
+                                operand_1: Expr {
+                                    kind: BinaryExpr {
+                                        kind: EqualsEquals,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 1,
+                                            },
+                                            position: 53..54,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 58..59,
+                                        },
+                                    },
+                                    position: 55..57,
                                 },
-                                operand_2: Int {
-                                    value: 2,
+                                operand_2: Expr {
+                                    kind: Int {
+                                        value: 3,
+                                    },
+                                    position: 62..63,
                                 },
                             },
-                            operand_2: Int {
-                                value: 3,
-                            },
+                            position: 60..61,
                         },
-                        BinaryExpr {
-                            kind: LessThanOrEquals,
-                            operand_1: Int {
-                                value: 1,
-                            },
-                            operand_2: BinaryExpr {
-                                kind: NotEquals,
-                                operand_1: Int {
-                                    value: 2,
+                        Expr {
+                            kind: BinaryExpr {
+                                kind: LessThanOrEquals,
+                                operand_1: Expr {
+                                    kind: Int {
+                                        value: 1,
+                                    },
+                                    position: 74..75,
                                 },
-                                operand_2: Int {
-                                    value: 3,
+                                operand_2: Expr {
+                                    kind: BinaryExpr {
+                                        kind: NotEquals,
+                                        operand_1: Expr {
+                                            kind: Int {
+                                                value: 2,
+                                            },
+                                            position: 80..81,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 3,
+                                            },
+                                            position: 85..86,
+                                        },
+                                    },
+                                    position: 82..84,
                                 },
                             },
+                            position: 76..78,
                         },
                     ],
                 },
@@ -92,54 +152,102 @@ fn test_comparison_left_associative_2() {
             Program {
                 body: Block {
                     exprs: [
-                        Let {
-                            id: "a",
-                            type_reference: "bool",
-                            init_expr: BinaryExpr {
-                                kind: EqualsEquals,
-                                operand_1: BinaryExpr {
-                                    kind: NotEquals,
-                                    operand_1: BinaryExpr {
-                                        kind: MoreThanOrEquals,
-                                        operand_1: BinaryExpr {
-                                            kind: LessThanOrEquals,
-                                            operand_1: BinaryExpr {
-                                                kind: LessThan,
-                                                operand_1: Int {
-                                                    value: 32,
+                        Expr {
+                            kind: Let {
+                                id: "a",
+                                type_reference: "bool",
+                                init_expr: Expr {
+                                    kind: BinaryExpr {
+                                        kind: EqualsEquals,
+                                        operand_1: Expr {
+                                            kind: BinaryExpr {
+                                                kind: NotEquals,
+                                                operand_1: Expr {
+                                                    kind: BinaryExpr {
+                                                        kind: MoreThanOrEquals,
+                                                        operand_1: Expr {
+                                                            kind: BinaryExpr {
+                                                                kind: LessThanOrEquals,
+                                                                operand_1: Expr {
+                                                                    kind: BinaryExpr {
+                                                                        kind: LessThan,
+                                                                        operand_1: Expr {
+                                                                            kind: Int {
+                                                                                value: 32,
+                                                                            },
+                                                                            position: 14..16,
+                                                                        },
+                                                                        operand_2: Expr {
+                                                                            kind: Int {
+                                                                                value: 2,
+                                                                            },
+                                                                            position: 19..20,
+                                                                        },
+                                                                    },
+                                                                    position: 17..18,
+                                                                },
+                                                                operand_2: Expr {
+                                                                    kind: BinaryExpr {
+                                                                        kind: Divide,
+                                                                        operand_1: Expr {
+                                                                            kind: BinaryExpr {
+                                                                                kind: MoreThan,
+                                                                                operand_1: Expr {
+                                                                                    kind: Int {
+                                                                                        value: 3,
+                                                                                    },
+                                                                                    position: 25..26,
+                                                                                },
+                                                                                operand_2: Expr {
+                                                                                    kind: Int {
+                                                                                        value: 4,
+                                                                                    },
+                                                                                    position: 31..32,
+                                                                                },
+                                                                            },
+                                                                            position: 27..28,
+                                                                        },
+                                                                        operand_2: Expr {
+                                                                            kind: Int {
+                                                                                value: 5,
+                                                                            },
+                                                                            position: 38..39,
+                                                                        },
+                                                                    },
+                                                                    position: 36..37,
+                                                                },
+                                                            },
+                                                            position: 21..23,
+                                                        },
+                                                        operand_2: Expr {
+                                                            kind: Int {
+                                                                value: 3,
+                                                            },
+                                                            position: 43..44,
+                                                        },
+                                                    },
+                                                    position: 40..42,
                                                 },
-                                                operand_2: Int {
-                                                    value: 2,
+                                                operand_2: Expr {
+                                                    kind: Int {
+                                                        value: 2,
+                                                    },
+                                                    position: 48..49,
                                                 },
                                             },
-                                            operand_2: BinaryExpr {
-                                                kind: Divide,
-                                                operand_1: BinaryExpr {
-                                                    kind: MoreThan,
-                                                    operand_1: Int {
-                                                        value: 3,
-                                                    },
-                                                    operand_2: Int {
-                                                        value: 4,
-                                                    },
-                                                },
-                                                operand_2: Int {
-                                                    value: 5,
-                                                },
+                                            position: 45..47,
+                                        },
+                                        operand_2: Expr {
+                                            kind: Int {
+                                                value: 2,
                                             },
-                                        },
-                                        operand_2: Int {
-                                            value: 3,
+                                            position: 53..54,
                                         },
                                     },
-                                    operand_2: Int {
-                                        value: 2,
-                                    },
-                                },
-                                operand_2: Int {
-                                    value: 2,
+                                    position: 50..52,
                                 },
                             },
+                            position: 7..11,
                         },
                     ],
                 },

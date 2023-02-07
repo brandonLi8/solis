@@ -11,7 +11,7 @@
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
 use error_messages::compilation_error;
-use parser::ast::{Block, Expr, Program};
+use parser::ast::{Block, Expr, ExprKind, Program};
 use parser::parse_expr::parse_expr;
 use parser::tokens_cursor::TokensCursor;
 use tokenizer::tokenizer::{Token, TokenKind};
@@ -49,9 +49,18 @@ fn parse_program(tokens_cursor: &mut TokensCursor) -> Program {
 pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.next();
     match &next_token.kind {
-        TokenKind::Id(id) => Expr::Id { value: id.to_string() },
-        TokenKind::Int(int) => Expr::Int { value: *int },
-        TokenKind::Bool(b) => Expr::Bool { value: *b },
+        TokenKind::Id(id) => Expr {
+            kind: ExprKind::Id { value: id.to_string() },
+            position: next_token.position.clone(),
+        },
+        TokenKind::Int(int) => Expr {
+            kind: ExprKind::Int { value: *int },
+            position: next_token.position.clone(),
+        },
+        TokenKind::Bool(b) => Expr {
+            kind: ExprKind::Bool { value: *b },
+            position: next_token.position.clone(),
+        },
         _ => compilation_error(
             tokens_cursor.file,
             &next_token.position,

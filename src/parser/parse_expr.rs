@@ -3,7 +3,7 @@
 //! Defines the functions for parsing various types of expressions.
 
 use error_messages::internal_compiler_error;
-use parser::ast::Expr;
+use parser::ast::{Expr, ExprKind};
 use parser::parse_infix::parse_infix_expr;
 use parser::tokens_cursor::TokensCursor;
 use tokenizer::tokenizer::{Token, TokenKind};
@@ -37,18 +37,21 @@ pub fn parse_let_expr(tokens_cursor: &mut TokensCursor) -> Expr {
 
     // Consume the type reference identifier
     tokens_cursor.consume_token(TokenKind::Id("type reference".to_string()));
-    let type_reference_token_kind = &tokens_cursor.prev().kind;
+    let type_reference_token = tokens_cursor.prev();
 
     tokens_cursor.consume_token(TokenKind::Equals);
 
     // Binding initial expression
     let init_expr = parse_expr(tokens_cursor);
 
-    if let (TokenKind::Id(id), TokenKind::Id(type_reference)) = (id_token_kind, type_reference_token_kind) {
-        Expr::Let {
-            id: id.to_string(),
-            type_reference: type_reference.to_string(),
-            init_expr: Box::new(init_expr),
+    if let (TokenKind::Id(id), TokenKind::Id(type_reference)) = (id_token_kind, &type_reference_token.kind) {
+        Expr {
+            kind: ExprKind::Let {
+                id: id.to_string(),
+                type_reference: type_reference.to_string(),
+                init_expr: Box::new(init_expr),
+            },
+            position: type_reference_token.position.clone(),
         }
     } else {
         internal_compiler_error("Unable to get id or type_reference. Should have been consumed.")

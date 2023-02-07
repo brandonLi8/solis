@@ -42,7 +42,7 @@
 //! is converting the parse tree "on the fly" into a left associative structure!
 
 use error_messages::internal_compiler_error;
-use parser::ast::{BinaryExprKind, Expr, UnaryExprKind};
+use parser::ast::{BinaryExprKind, Expr, ExprKind, UnaryExprKind};
 use parser::parse_expr::parse_expr;
 use parser::parser::parse_terminal;
 use parser::tokens_cursor::TokensCursor;
@@ -64,19 +64,23 @@ fn parse_arithmetic_expr(tokens_cursor: &mut TokensCursor) -> Expr {
 fn parse_arithmetic_1_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.peek();
 
-    if let Some(Token { kind: kind @ (TokenKind::Plus | TokenKind::Minus), .. }) = next_token {
+    if let Some(Token { kind: kind @ (TokenKind::Plus | TokenKind::Minus), position }) = next_token {
         tokens_cursor.advance();
 
         let arithmetic_1_operand = parse_arithmetic_1_operand(tokens_cursor);
-        left_operand = Expr::BinaryExpr {
-            kind: match kind {
-                TokenKind::Plus => BinaryExprKind::Plus,
-                TokenKind::Minus => BinaryExprKind::Minus,
-                _ => internal_compiler_error("Could not match +/- on inner match"),
+        left_operand = Expr {
+            kind: ExprKind::BinaryExpr {
+                kind: match kind {
+                    TokenKind::Plus => BinaryExprKind::Plus,
+                    TokenKind::Minus => BinaryExprKind::Minus,
+                    _ => internal_compiler_error("Could not match +/- on inner match"),
+                },
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(arithmetic_1_operand),
             },
-            operand_1: Box::new(left_operand),
-            operand_2: Box::new(arithmetic_1_operand),
+            position: position.clone(),
         };
+
         parse_arithmetic_1_rest(left_operand, tokens_cursor)
     } else {
         left_operand
@@ -95,21 +99,25 @@ fn parse_arithmetic_2_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCur
     let (next_token, tokens_cursor) = tokens_cursor.peek();
 
     if let Some(Token {
-        kind: kind @ (TokenKind::Times | TokenKind::Divide | TokenKind::Mod), ..
+        kind: kind @ (TokenKind::Times | TokenKind::Divide | TokenKind::Mod),
+        position,
     }) = next_token
     {
         tokens_cursor.advance();
 
         let arithmetic_2_operand = parse_arithmetic_2_operand(tokens_cursor);
-        left_operand = Expr::BinaryExpr {
-            kind: match kind {
-                TokenKind::Times => BinaryExprKind::Times,
-                TokenKind::Divide => BinaryExprKind::Divide,
-                TokenKind::Mod => BinaryExprKind::Mod,
-                _ => internal_compiler_error("Could not match */%// on inner match"),
+        left_operand = Expr {
+            kind: ExprKind::BinaryExpr {
+                kind: match kind {
+                    TokenKind::Times => BinaryExprKind::Times,
+                    TokenKind::Divide => BinaryExprKind::Divide,
+                    TokenKind::Mod => BinaryExprKind::Mod,
+                    _ => internal_compiler_error("Could not match */%// on inner match"),
+                },
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(arithmetic_2_operand),
             },
-            operand_1: Box::new(left_operand),
-            operand_2: Box::new(arithmetic_2_operand),
+            position: position.clone(),
         };
 
         parse_arithmetic_2_rest(left_operand, tokens_cursor)
@@ -142,24 +150,27 @@ fn parse_comparison_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCurso
             | TokenKind::MoreThanOrEquals
             | TokenKind::EqualsEquals
             | TokenKind::NotEquals),
-        ..
+        position,
     }) = next_token
     {
         tokens_cursor.advance();
 
         let comparison_operand = parse_arithmetic_expr(tokens_cursor);
-        left_operand = Expr::BinaryExpr {
-            kind: match kind {
-                TokenKind::LessThan => BinaryExprKind::LessThan,
-                TokenKind::LessThanOrEquals => BinaryExprKind::LessThanOrEquals,
-                TokenKind::MoreThan => BinaryExprKind::MoreThan,
-                TokenKind::MoreThanOrEquals => BinaryExprKind::MoreThanOrEquals,
-                TokenKind::EqualsEquals => BinaryExprKind::EqualsEquals,
-                TokenKind::NotEquals => BinaryExprKind::NotEquals,
-                _ => internal_compiler_error("Could not match comparison operator on inner match"),
+        left_operand = Expr {
+            kind: ExprKind::BinaryExpr {
+                kind: match kind {
+                    TokenKind::LessThan => BinaryExprKind::LessThan,
+                    TokenKind::LessThanOrEquals => BinaryExprKind::LessThanOrEquals,
+                    TokenKind::MoreThan => BinaryExprKind::MoreThan,
+                    TokenKind::MoreThanOrEquals => BinaryExprKind::MoreThanOrEquals,
+                    TokenKind::EqualsEquals => BinaryExprKind::EqualsEquals,
+                    TokenKind::NotEquals => BinaryExprKind::NotEquals,
+                    _ => internal_compiler_error("Could not match comparison operator on inner match"),
+                },
+                operand_1: Box::new(left_operand),
+                operand_2: Box::new(comparison_operand),
             },
-            operand_1: Box::new(left_operand),
-            operand_2: Box::new(comparison_operand),
+            position: position.clone(),
         };
 
         parse_comparison_rest(left_operand, tokens_cursor)
@@ -187,7 +198,11 @@ fn parse_factor(tokens_cursor: &mut TokensCursor) -> Expr {
 fn parse_prefix_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.peek();
 
-    if let Some(Token { kind: kind @ (TokenKind::Plus | TokenKind::Minus | TokenKind::Not), .. }) = next_token {
+    if let Some(Token {
+        kind: kind @ (TokenKind::Plus | TokenKind::Minus | TokenKind::Not),
+        position,
+    }) = next_token
+    {
         tokens_cursor.advance();
 
         let operand = parse_factor(tokens_cursor);
@@ -195,13 +210,16 @@ fn parse_prefix_expr(tokens_cursor: &mut TokensCursor) -> Expr {
         if let TokenKind::Plus = kind {
             operand
         } else {
-            Expr::UnaryExpr {
-                kind: match kind {
-                    TokenKind::Minus => UnaryExprKind::Negative,
-                    TokenKind::Not => UnaryExprKind::Not,
-                    _ => internal_compiler_error("Could not match prefix operator on inner match"),
+            Expr {
+                kind: ExprKind::UnaryExpr {
+                    kind: match kind {
+                        TokenKind::Minus => UnaryExprKind::Negative,
+                        TokenKind::Not => UnaryExprKind::Not,
+                        _ => internal_compiler_error("Could not match prefix operator on inner match"),
+                    },
+                    operand: Box::new(operand),
                 },
-                operand: Box::new(operand),
+                position: position.clone(),
             }
         }
     } else {

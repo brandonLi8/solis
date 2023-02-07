@@ -28,19 +28,31 @@ fn test_basic() {
             Program {
                 body: Block {
                     exprs: [
-                        Let {
-                            id: "varName",
-                            type_reference: "int",
-                            init_expr: Int {
-                                value: 32,
+                        Expr {
+                            kind: Let {
+                                id: "varName",
+                                type_reference: "int",
+                                init_expr: Expr {
+                                    kind: Int {
+                                        value: 32,
+                                    },
+                                    position: 19..21,
+                                },
                             },
+                            position: 13..16,
                         },
-                        Let {
-                            id: "varName2",
-                            type_reference: "bool",
-                            init_expr: Bool {
-                                value: true,
+                        Expr {
+                            kind: Let {
+                                id: "varName2",
+                                type_reference: "bool",
+                                init_expr: Expr {
+                                    kind: Bool {
+                                        value: true,
+                                    },
+                                    position: 52..56,
+                                },
                             },
+                            position: 45..49,
                         },
                     ],
                 },

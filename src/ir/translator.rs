@@ -31,21 +31,21 @@ fn translate_block(block: ast::Block) -> ir::Block {
 // Translates a `ast::Expr` into a `ir::Expr>
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
 fn translate_expr(expr: ast::Expr, bindings: &mut Vec<ir::Expr>) -> ir::Expr {
-    match expr {
-        ast::Expr::Id { value } => ir::Expr::Direct { expr: ir::DirectExpr::Id { value } },
-        ast::Expr::Int { value } => ir::Expr::Direct { expr: ir::DirectExpr::Int { value } },
-        ast::Expr::Bool { value } => ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
-        ast::Expr::Let { id, init_expr, .. } => {
+    match expr.kind {
+        ast::ExprKind::Id { value } => ir::Expr::Direct { expr: ir::DirectExpr::Id { value } },
+        ast::ExprKind::Int { value } => ir::Expr::Direct { expr: ir::DirectExpr::Int { value } },
+        ast::ExprKind::Bool { value } => ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
+        ast::ExprKind::Let { id, init_expr, .. } => {
             ir::Expr::Let { id, init_expr: Box::new(translate_expr(*init_expr, bindings)) }
         }
-        ast::Expr::UnaryExpr { kind, operand } => ir::Expr::UnaryExpr {
+        ast::ExprKind::UnaryExpr { kind, operand } => ir::Expr::UnaryExpr {
             kind: match kind {
                 ast::UnaryExprKind::Not => ir::UnaryExprKind::Not,
                 ast::UnaryExprKind::Negative => ir::UnaryExprKind::Negative,
             },
             operand: Box::new(to_direct(translate_expr(*operand, bindings), bindings)),
         },
-        ast::Expr::BinaryExpr { kind, operand_1, operand_2 } => ir::Expr::BinaryExpr {
+        ast::ExprKind::BinaryExpr { kind, operand_1, operand_2 } => ir::Expr::BinaryExpr {
             kind: match kind {
                 ast::BinaryExprKind::Plus => ir::BinaryExprKind::Plus,
                 ast::BinaryExprKind::Minus => ir::BinaryExprKind::Minus,
