@@ -78,11 +78,6 @@ pub fn main() {
     let program_ast = parser::parser::parse(&file, tokens);
     let program_ir = ir::translator::translate_program(program_ast);
 
-    println!(
-        "{:#?}",
-        register_allocation::conflict_analysis::conflict_analysis(&program_ir.body)
-    );
-
     let instructions = compiler::compiler::compile(program_ir);
 
     bootstrapper::bootstrap(instructions, destination, &name, args.run, args.clean);
