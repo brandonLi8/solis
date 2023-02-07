@@ -14,6 +14,7 @@ fn test_multiple_expressions() {
           a
           b
           2 + 43 == 45
+          true == false
         ",
         expect![[r#"
             Program {
@@ -55,6 +56,15 @@ fn test_multiple_expressions() {
                             },
                             operand_2: Int {
                                 value: 45,
+                            },
+                        },
+                        BinaryExpr {
+                            kind: EqualsEquals,
+                            operand_1: Bool {
+                                value: true,
+                            },
+                            operand_2: Bool {
+                                value: false,
                             },
                         },
                     ],

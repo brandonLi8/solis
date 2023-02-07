@@ -17,6 +17,7 @@ fn test_basic() {
         Mov(Reg(R15), Imm(2)),
         Add(Reg(R15), Imm(2)),
         Sub(Reg(R15), Imm(2)),
+        Mul(Reg(R15), Imm(2)),
         Cmp(Reg(R15), Imm(2)),
         And(Reg(R15), Imm(2)),
         Or(Reg(R15), Imm(2)),

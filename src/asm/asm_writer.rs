@@ -74,6 +74,7 @@ fn instruction_to_string(instruction: Instruction) -> String {
         Mov(dest, src) => format!("\tmov {}, {}", operand_to_string(dest), operand_to_string(src)),
         Add(dest, src) => format!("\tadd {}, {}", operand_to_string(dest), operand_to_string(src)),
         Sub(dest, src) => format!("\tsub {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Mul(dest, src) => format!("\tmul {}, {}", operand_to_string(dest), operand_to_string(src)),
         Cmp(dest, src) => format!("\tcmp {}, {}", operand_to_string(dest), operand_to_string(src)),
         And(dest, src) => format!("\tand {}, {}", operand_to_string(dest), operand_to_string(src)),
         Or(dest, src) => format!("\tor {}, {}", operand_to_string(dest), operand_to_string(src)),

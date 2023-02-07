@@ -34,6 +34,7 @@ fn translate_expr(expr: ast::Expr, bindings: &mut Vec<ir::Expr>) -> ir::Expr {
     match expr {
         ast::Expr::Id { value } => ir::Expr::Direct { expr: ir::DirectExpr::Id { value } },
         ast::Expr::Int { value } => ir::Expr::Direct { expr: ir::DirectExpr::Int { value } },
+        ast::Expr::Bool { value } => ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
         ast::Expr::Let { id, init_expr, .. } => {
             ir::Expr::Let { id, init_expr: Box::new(translate_expr(*init_expr, bindings)) }
         }

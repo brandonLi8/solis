@@ -16,20 +16,16 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 ##
 
 
-<program> ::= <exprs>
+<program> ::= <block>
 
 <terminal> ::=
   | ID(string)
+  | BOOL(b @ "true"| "false")
   | NUM(n)
 
-<exprs> ::=                                   # Makes up the body of the program
+<block> ::=                                   # Makes up the body of the program
    | ε
-   | <expr> <exprs>
-
-<block-exprs> ::=                             # Makes up the body of a block, like a function, if statement, etc.
- | "}"
- | <expr> <block-exprs>
-
+   | <expr> <block>
 
 
 #!——————————————————————————————————————————————*!

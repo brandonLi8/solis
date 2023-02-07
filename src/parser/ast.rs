@@ -24,6 +24,9 @@ pub enum Expr {
     Int {
         value: i64,
     },
+    Bool {
+        value: bool,
+    },
     Id {
         value: String,
     },

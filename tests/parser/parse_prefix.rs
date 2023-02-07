@@ -121,4 +121,55 @@ fn test_prefix() {
                 },
             }"#]],
     );
+
+    parse_check(
+        "let name: bool = !!!!!!!!!!!true",
+        expect![[r#"
+            Program {
+                body: Block {
+                    exprs: [
+                        Let {
+                            id: "name",
+                            type_reference: "bool",
+                            init_expr: UnaryExpr {
+                                kind: Not,
+                                operand: UnaryExpr {
+                                    kind: Not,
+                                    operand: UnaryExpr {
+                                        kind: Not,
+                                        operand: UnaryExpr {
+                                            kind: Not,
+                                            operand: UnaryExpr {
+                                                kind: Not,
+                                                operand: UnaryExpr {
+                                                    kind: Not,
+                                                    operand: UnaryExpr {
+                                                        kind: Not,
+                                                        operand: UnaryExpr {
+                                                            kind: Not,
+                                                            operand: UnaryExpr {
+                                                                kind: Not,
+                                                                operand: UnaryExpr {
+                                                                    kind: Not,
+                                                                    operand: UnaryExpr {
+                                                                        kind: Not,
+                                                                        operand: Bool {
+                                                                            value: true,
+                                                                        },
+                                                                    },
+                                                                },
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    );
 }

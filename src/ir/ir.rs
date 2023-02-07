@@ -76,6 +76,7 @@ pub enum Expr {
 #[derive(PartialEq, Debug)]
 pub enum DirectExpr {
     Int { value: i64 },
+    Bool { value: bool },
     Id { value: String },
 }
 

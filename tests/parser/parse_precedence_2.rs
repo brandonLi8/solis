@@ -13,6 +13,8 @@ fn test_comparison_precedence_1() {
           1 * 2 > 3
           (1 + 2) <= 3
           1 <= (2 + 3)
+          1 < 2 == true
+          false == (1 < 2)
         ",
         expect![[r#"
             Program {
@@ -75,6 +77,36 @@ fn test_comparison_precedence_1() {
                                 },
                                 operand_2: Int {
                                     value: 3,
+                                },
+                            },
+                        },
+                        BinaryExpr {
+                            kind: EqualsEquals,
+                            operand_1: BinaryExpr {
+                                kind: LessThan,
+                                operand_1: Int {
+                                    value: 1,
+                                },
+                                operand_2: Int {
+                                    value: 2,
+                                },
+                            },
+                            operand_2: Bool {
+                                value: true,
+                            },
+                        },
+                        BinaryExpr {
+                            kind: EqualsEquals,
+                            operand_1: Bool {
+                                value: false,
+                            },
+                            operand_2: BinaryExpr {
+                                kind: LessThan,
+                                operand_1: Int {
+                                    value: 1,
+                                },
+                                operand_2: Int {
+                                    value: 2,
                                 },
                             },
                         },

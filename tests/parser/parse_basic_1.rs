@@ -21,7 +21,9 @@ fn test_empty() {
 #[test]
 fn test_basic() {
     parse_check(
-        "let varName: int = 32",
+        "let varName: int = 32
+         let varName2: bool = true
+        ",
         expect![[r#"
             Program {
                 body: Block {
@@ -31,6 +33,13 @@ fn test_basic() {
                             type_reference: "int",
                             init_expr: Int {
                                 value: 32,
+                            },
+                        },
+                        Let {
+                            id: "varName2",
+                            type_reference: "bool",
+                            init_expr: Bool {
+                                value: true,
                             },
                         },
                     ],

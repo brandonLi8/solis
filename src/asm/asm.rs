@@ -37,6 +37,7 @@ pub enum Instruction {
     Mov(Operand, Operand),
     Add(Operand, Operand),
     Sub(Operand, Operand),
+    Mul(Operand, Operand),
     Cmp(Operand, Operand),
     And(Operand, Operand),
     Or(Operand, Operand),

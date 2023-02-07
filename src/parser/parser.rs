@@ -40,9 +40,9 @@ pub fn parse(file: &File, tokens: Vec<Token>) -> Program {
 
 // Corresponds to <program> rule and parses into ast::Program.
 fn parse_program(tokens_cursor: &mut TokensCursor) -> Program {
-    let exprs = parse_exprs(vec![], tokens_cursor);
+    let block = parse_block(Block { exprs: vec![] }, tokens_cursor);
 
-    Program { body: Block { exprs } }
+    Program { body: block }
 }
 
 // Corresponds to <terminal> rule and parses into ast::Id, ast::Int, etc.
@@ -51,6 +51,7 @@ pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
     match &next_token.kind {
         TokenKind::Id(id) => Expr::Id { value: id.to_string() },
         TokenKind::Int(int) => Expr::Int { value: *int },
+        TokenKind::Bool(b) => Expr::Bool { value: *b },
         _ => compilation_error(
             tokens_cursor.file,
             &next_token.position,
@@ -59,14 +60,14 @@ pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
     }
 }
 
-// Corresponds to <exprs> rule and parses into ast::Expr list.
-// * previous_exprs: in order to inexpensively parse expressions and add them to a result vector, recursively.
-fn parse_exprs(mut previous_exprs: Vec<Expr>, tokens_cursor: &mut TokensCursor) -> Vec<Expr> {
+// Corresponds to <block> rule and parses into ast::Block.
+// * block: in order to inexpensively parse expressions and add them to a result block, recursively.
+fn parse_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
     if tokens_cursor.is_end_of_file() {
-        previous_exprs
+        block
     } else {
         let next_expr = parse_expr(tokens_cursor);
-        previous_exprs.push(next_expr);
-        parse_exprs(previous_exprs, tokens_cursor)
+        block.exprs.push(next_expr);
+        parse_block(block, tokens_cursor)
     }
 }

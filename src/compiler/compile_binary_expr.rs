@@ -30,6 +30,7 @@ pub fn compile_binary_expr(
     match kind {
         BinaryExprKind::Plus => instructions.push(Add(Reg(Rax), asm_operand_2)),
         BinaryExprKind::Minus => instructions.push(Sub(Reg(Rax), asm_operand_2)),
+        BinaryExprKind::Times => instructions.push(Mul(Reg(Rax), asm_operand_2)),
         _ => todo!(),
     }
     Location::Register(Rax)

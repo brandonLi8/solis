@@ -21,7 +21,8 @@ fn test_empty() {
 #[test]
 fn test_basic() {
     translate_check(
-        "let a: int = 2 + 3\nlet b: int = a + 1 - 2 + 3 * 4",
+        "let a: int = 2 + 3
+         let b: int = a + 1 - 2 + 3 * 4",
         expect![[r#"
             Program {
                 body: Block {
@@ -90,6 +91,7 @@ fn test_basic() {
                 },
             }"#]],
     );
+
     translate_check(
         "32 - 2 * (3 + ((4))) / 5 == 3 * 2",
         expect![[r#"
@@ -163,6 +165,53 @@ fn test_basic() {
                             },
                             operand_2: Id {
                                 value: "@temp7",
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    );
+
+    translate_check(
+        "!!!(true == false)",
+        expect![[r#"
+            Program {
+                body: Block {
+                    exprs: [
+                        Let {
+                            id: "@temp8",
+                            init_expr: BinaryExpr {
+                                kind: EqualsEquals,
+                                operand_1: Bool {
+                                    value: true,
+                                },
+                                operand_2: Bool {
+                                    value: false,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp9",
+                            init_expr: UnaryExpr {
+                                kind: Not,
+                                operand: Id {
+                                    value: "@temp8",
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp10",
+                            init_expr: UnaryExpr {
+                                kind: Not,
+                                operand: Id {
+                                    value: "@temp9",
+                                },
+                            },
+                        },
+                        UnaryExpr {
+                            kind: Not,
+                            operand: Id {
+                                value: "@temp10",
                             },
                         },
                     ],

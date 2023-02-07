@@ -33,18 +33,13 @@ fn compile_block(
     let variable_assignment: Map<&String, Assignment> = allocate_registers(
         block,
         Set::from([
-        // &Rsi,
-        // &Rdi,
-        // &Rbp,
-        // &R8,
-        // &R9,
-        // &R10,
-        // &R11,
-        // &R12,
-        // &R13
-    ]),
+            // &Rsi,
+            // &Rdi,
+            // &Rbp,
+            &R8, &R9, &R10, &R11, &R12, &R13,
+        ]),
     );
-    println!("{block:#?} {variable_assignment:#?}");
+    // println!("{block:#?} {variable_assignment:#?}");
     for expr in &block.exprs {
         compile_expr(expr, symbol_table, stack_index, &variable_assignment, instructions);
     }
@@ -59,6 +54,7 @@ pub fn compile_direct(direct: &DirectExpr, symbol_table: &mut HashMap<String, Lo
     match direct {
         DirectExpr::Int { value } => Imm(*value),
         DirectExpr::Id { value } => location_to_operand(symbol_table.get(value).unwrap()),
+        DirectExpr::Bool { value } => Imm(i64::from(*value)),
     }
 }
 
