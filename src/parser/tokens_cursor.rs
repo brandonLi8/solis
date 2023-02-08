@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! A `TokensCursor` is a simple iterator for tokens for the purposes of parsing. For Solis, we are parsing a LL(1)
 //! grammar, so we are parsing from left to right and on each production rule we only need to look ahead by 1 token.

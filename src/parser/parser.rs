@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! The parser for Solis programs. A parser turns tokens into an AST representation of the program. This is the second
 //! stage of the front end of the compiler. The AST is a more "nested" representation compared to tokens, and will be

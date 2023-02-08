@@ -1,4 +1,4 @@
-# Copyright © 2022 Brandon Li. All rights reserved.
+# Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 ##
 This file describes the formal grammar for Solis. A formal grammar describes what **syntax** is and is not allowed in

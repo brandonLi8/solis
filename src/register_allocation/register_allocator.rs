@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Generally speaking, register allocation is a compiler optimization that attempts to utilize as many registers as
 //! possible for sub-expressions and variables before resorting to utilizing the stack.

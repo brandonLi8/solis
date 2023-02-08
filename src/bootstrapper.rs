@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! The bootstrapper is responsible for the entire process to create an executable for the input Solis program after
 //! compilation.  Specifically, after compiling the Solis program, we:

@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! The `register_allocation` module performs analysis needed for the register allocation optimization.
 

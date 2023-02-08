@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Transforms the in memory representation of assembly into an actual assembly file, using a buffered writer.
 

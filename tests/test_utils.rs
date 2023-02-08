@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Utility functions used in the testing module.
 
@@ -37,7 +37,10 @@ pub fn parse_check(program: &str, expect: Expect) {
 pub fn translate_check(program: &str, expect: Expect) {
     let file = File { name: String::new(), contents: program.to_string() };
 
-    expect.assert_eq(&format!("{:#?}", translate_program(parse(&file, tokenize(&file)))))
+    expect.assert_eq(&format!(
+        "{:#?}",
+        translate_program(&file, parse(&file, tokenize(&file)))
+    ))
 }
 
 /// Test function for liveness analysis of an expression.
@@ -49,7 +52,7 @@ pub fn liveness_analysis_check(
     expect_frequencies: Expect,
 ) {
     let file = File { name: String::new(), contents: expr.to_string() };
-    let program = translate_program(parse(&file, tokenize(&file)));
+    let program = translate_program(&file, parse(&file, tokenize(&file)));
 
     let mut live_variables = live_variables.clone();
     let mut variable_frequencies = variable_frequencies.clone();
@@ -66,7 +69,7 @@ pub fn liveness_analysis_check(
 /// Test function for conflict analysis of a block.
 pub fn conflict_analysis_check(block: &str, expect: Expect) {
     let file = File { name: String::new(), contents: block.to_string() };
-    let program = translate_program(parse(&file, tokenize(&file)));
+    let program = translate_program(&file, parse(&file, tokenize(&file)));
 
     expect.assert_eq(&format!("{:#?}", conflict_analysis(&program.body)));
 }
@@ -74,7 +77,7 @@ pub fn conflict_analysis_check(block: &str, expect: Expect) {
 /// Test function for conflict analysis of a block.
 pub fn register_allocator_check(block: &str, registers: Set<&Register>, expect: Expect) {
     let file = File { name: String::new(), contents: block.to_string() };
-    let program = translate_program(parse(&file, tokenize(&file)));
+    let program = translate_program(&file, parse(&file, tokenize(&file)));
 
     expect.assert_eq(&format!("{:#?}", allocate_registers(&program.body, registers)));
 }

@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! A tokenizer for Solis. A tokenizer takes in a Solis file raw string input and turns it
 //! into a vector of Tokens. This is the first stage of the front end of the compiler. Working with

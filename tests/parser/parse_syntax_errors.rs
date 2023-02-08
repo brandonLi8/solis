@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Tests parsing programs with various parsing syntax errors (as opposed to tokenizer errors).
 

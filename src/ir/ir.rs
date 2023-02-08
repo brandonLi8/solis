@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! The IR (intermediate representation) for Solis programs. In compiler design, an IR is a middle representation
 //! that is derived ("lowered"") from the AST, with a reduced set of features and is more conducive to optimizations.

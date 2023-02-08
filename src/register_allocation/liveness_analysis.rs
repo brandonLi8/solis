@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Performs variable liveness analysis. Liveness analysis calculates the lifetime of each variable within each
 //! expression in a block. A variable is live at some point if it holds a value that may be needed in the future, or

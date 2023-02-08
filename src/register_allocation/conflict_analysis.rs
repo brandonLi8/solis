@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Performs variable conflict analysis. Conflict analysis calculates a graph (called the `InterferenceGraph`) where
 //! each variable is a node and edges represents conflicts, which is when two variables cannot be assigned the same

@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! This file contains the definitions for an in memory representation of any assembly file. We work with this
 //! representation in the final code generation stage. Working with this representation will be much easier to work with

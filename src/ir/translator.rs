@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! The translator lowers the AST into the intermediate representation of the program. This is the first stage of the
 //! back end of the compiler. The IR structures are defined in `ir.rs`, where the context and rationale are documented.
@@ -8,45 +8,77 @@
 //! each operands, and substitute the identifier as a Direct into the original expression.
 
 use ir::ir;
+use ir::type_checker::{SolisType, TypeChecker};
 use parser::ast;
 use std::cell::RefCell;
+use File;
 
 /// Translates a `ast::Program` into a `ir::Program`
-pub fn translate_program(program: ast::Program) -> ir::Program {
-    ir::Program { body: translate_block(program.body) }
+pub fn translate_program(file: &File, program: ast::Program) -> ir::Program {
+    ir::Program { body: translate_block(file, program.body) }
 }
 
 // Translates a `ast::Block` into a `ir::Block`
-fn translate_block(block: ast::Block) -> ir::Block {
+fn translate_block(file: &File, block: ast::Block) -> ir::Block {
     let mut exprs = vec![];
 
+    let mut type_checker = TypeChecker::new(file);
+
     for expr in block.exprs {
-        let translated_expr = translate_expr(expr, &mut exprs);
+        let (translated_expr, _) = translate_expr(expr, &mut type_checker, &mut exprs);
         exprs.push(translated_expr);
     }
 
     ir::Block { exprs }
 }
 
-// Translates a `ast::Expr` into a `ir::Expr>
+// Translates a `ast::Expr` into a `ir::Expr`
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn translate_expr(expr: ast::Expr, bindings: &mut Vec<ir::Expr>) -> ir::Expr {
+fn translate_expr(
+    expr: ast::Expr,
+    type_checker: &mut TypeChecker,
+    bindings: &mut Vec<ir::Expr>,
+) -> (ir::Expr, SolisType) {
     match expr.kind {
-        ast::ExprKind::Id { value } => ir::Expr::Direct { expr: ir::DirectExpr::Id { value } },
-        ast::ExprKind::Int { value } => ir::Expr::Direct { expr: ir::DirectExpr::Int { value } },
-        ast::ExprKind::Bool { value } => ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
-        ast::ExprKind::Let { id, init_expr, .. } => {
-            ir::Expr::Let { id, init_expr: Box::new(translate_expr(*init_expr, bindings)) }
+        ast::ExprKind::Id { value } => (
+            ir::Expr::Direct { expr: ir::DirectExpr::Id { value: value.to_string() } },
+            type_checker.get_type(&value, &expr.position),
+        ),
+        ast::ExprKind::Int { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Int { value } }, SolisType::Int),
+        ast::ExprKind::Bool { value } => (
+            ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
+            SolisType::Bool,
+        ),
+        ast::ExprKind::Let { id, init_expr, type_reference } => {
+            let (init_expr, init_type) = translate_expr(*init_expr, type_checker, bindings);
+            type_checker.type_check_let(&id, init_type.clone(), type_reference, &expr.position);
+
+            (ir::Expr::Let { id, init_expr: Box::new(init_expr) }, init_type)
         }
-        ast::ExprKind::UnaryExpr { kind, operand } => ir::Expr::UnaryExpr {
-            kind: match kind {
+        ast::ExprKind::UnaryExpr { kind, operand } => {
+            // Translate operand
+            let (operand_ir, operand_type) = translate_expr(*operand, type_checker, bindings);
+
+            let kind = match kind {
                 ast::UnaryExprKind::Not => ir::UnaryExprKind::Not,
                 ast::UnaryExprKind::Negative => ir::UnaryExprKind::Negative,
-            },
-            operand: Box::new(to_direct(translate_expr(*operand, bindings), bindings)),
-        },
-        ast::ExprKind::BinaryExpr { kind, operand_1, operand_2 } => ir::Expr::BinaryExpr {
-            kind: match kind {
+            };
+
+            // Type check and get the result type
+            let result_type = type_checker.type_check_unary_expr(&kind, operand_type, &expr.position);
+
+            (
+                ir::Expr::UnaryExpr { kind, operand: Box::new(to_direct(operand_ir, bindings)) },
+                result_type,
+            )
+        }
+        ast::ExprKind::BinaryExpr { kind, operand_1, operand_2 } => {
+            // Translate both operands
+            let (operand_1, operand_1_type) = translate_expr(*operand_1, type_checker, bindings);
+            let (operand_2, operand_2_type) = translate_expr(*operand_2, type_checker, bindings);
+
+            // Convert ast::BinaryExprKind to ir::BinaryExprKind.
+            let kind = match kind {
                 ast::BinaryExprKind::Plus => ir::BinaryExprKind::Plus,
                 ast::BinaryExprKind::Minus => ir::BinaryExprKind::Minus,
                 ast::BinaryExprKind::Times => ir::BinaryExprKind::Times,
@@ -58,14 +90,25 @@ fn translate_expr(expr: ast::Expr, bindings: &mut Vec<ir::Expr>) -> ir::Expr {
                 ast::BinaryExprKind::MoreThanOrEquals => ir::BinaryExprKind::MoreThanOrEquals,
                 ast::BinaryExprKind::EqualsEquals => ir::BinaryExprKind::EqualsEquals,
                 ast::BinaryExprKind::NotEquals => ir::BinaryExprKind::NotEquals,
-            },
-            operand_1: Box::new(to_direct(translate_expr(*operand_1, bindings), bindings)),
-            operand_2: Box::new(to_direct(translate_expr(*operand_2, bindings), bindings)),
-        },
+            };
+
+            // Type check and get the result type
+            let result_type =
+                type_checker.type_check_binary_expr(&kind, operand_1_type, operand_2_type, &expr.position);
+
+            (
+                ir::Expr::BinaryExpr {
+                    kind,
+                    operand_1: Box::new(to_direct(operand_1, bindings)),
+                    operand_2: Box::new(to_direct(operand_2, bindings)),
+                },
+                result_type,
+            )
+        }
     }
 }
 
-// Translates a `ir::Expr` into `ir::DirectExpr>`.
+// Translates a `ir::Expr` into `ir::DirectExpr`.
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
 fn to_direct(expr: ir::Expr, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
     if let ir::Expr::Direct { expr } = expr {

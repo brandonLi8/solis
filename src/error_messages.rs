@@ -1,10 +1,12 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! This file is responsible for error messaging for compiler errors. A compiler error refers to a state when a
 //! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
+use ir::type_checker::SolisType;
 use std::backtrace::Backtrace;
+use std::fmt::{self, Display};
 use std::ops::Range;
 use File;
 
@@ -84,5 +86,16 @@ pub fn internal_compiler_error(message: &str) -> ! {
         panic!("Internal Compiler Error: {}\n{}", message, backtrace);
     } else {
         std::process::exit(exitcode::DATAERR)
+    }
+}
+
+/// For user facing, create more precise display messages for `SolisTypes` for error messaging purposes.
+impl Display for SolisType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Int => write!(f, "int"),
+            Self::Bool => write!(f, "bool"),
+            Self::Custom(s) => write!(f, "{s}"),
+        }
     }
 }

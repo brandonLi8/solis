@@ -1,4 +1,4 @@
-# Copyright © 2022 Brandon Li. All rights reserved.
+# Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 # ========================================================= #
 #  Makefile for dev workflow commands.

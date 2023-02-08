@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! An AST (abstract syntax tree) is a tree representation of the *semantics* of any Solis program.
 //! The job of the parser is to transform tokens (representation of *syntax*) into this representation (*semantics*).

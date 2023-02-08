@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! This file parses infix expressions, which is an expression that is in infix notation, where operators are between
 //! operands (like "1 + 2"). For Solis, this includes both the case where there are no operators at all (i.e. we are

@@ -1,4 +1,4 @@
-// Copyright © 2022 Brandon Li. All rights reserved.
+// Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Starting point for the code generation phase of the compiler. TODO: backend x phase, impl notes, type checking, etc.
 
