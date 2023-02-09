@@ -8,7 +8,7 @@ use test_utils::translate_check;
 #[test]
 fn test_nested_let() {
     translate_check(
-        "let a: int = let b: int = !(1 < 2 < 3)",
+        "let a: bool = let b: bool = !(1 < 2 == false)",
         expect![[r#"
             Program {
                 body: Block {
@@ -28,12 +28,12 @@ fn test_nested_let() {
                         Let {
                             id: "@temp1",
                             init_expr: BinaryExpr {
-                                kind: LessThan,
+                                kind: EqualsEquals,
                                 operand_1: Id {
                                     value: "@temp0",
                                 },
-                                operand_2: Int {
-                                    value: 3,
+                                operand_2: Bool {
+                                    value: false,
                                 },
                             },
                         },
@@ -58,7 +58,7 @@ fn test_nested_let() {
 #[test]
 fn test_nested_let_1() {
     translate_check(
-        "let a: int = (let b: int = !(1 < 2 < 3)) + 2",
+        "let a: bool = (let b: int = -(2 - 4 * 4)) == 2",
         expect![[r#"
             Program {
                 body: Block {
@@ -66,24 +66,24 @@ fn test_nested_let_1() {
                         Let {
                             id: "@temp0",
                             init_expr: BinaryExpr {
-                                kind: LessThan,
+                                kind: Times,
                                 operand_1: Int {
-                                    value: 1,
+                                    value: 4,
                                 },
                                 operand_2: Int {
-                                    value: 2,
+                                    value: 4,
                                 },
                             },
                         },
                         Let {
                             id: "@temp1",
                             init_expr: BinaryExpr {
-                                kind: LessThan,
-                                operand_1: Id {
-                                    value: "@temp0",
+                                kind: Minus,
+                                operand_1: Int {
+                                    value: 2,
                                 },
-                                operand_2: Int {
-                                    value: 3,
+                                operand_2: Id {
+                                    value: "@temp0",
                                 },
                             },
                         },
@@ -92,7 +92,7 @@ fn test_nested_let_1() {
                             init_expr: Let {
                                 id: "b",
                                 init_expr: UnaryExpr {
-                                    kind: Not,
+                                    kind: Negative,
                                     operand: Id {
                                         value: "@temp1",
                                     },
@@ -102,7 +102,7 @@ fn test_nested_let_1() {
                         Let {
                             id: "a",
                             init_expr: BinaryExpr {
-                                kind: Plus,
+                                kind: EqualsEquals,
                                 operand_1: Id {
                                     value: "@temp2",
                                 },
@@ -120,7 +120,7 @@ fn test_nested_let_1() {
 #[test]
 fn test_nested_let_2() {
     translate_check(
-        "let a: int = (let b: int = let a: int = 1 + 2 + 3) + 2",
+        "let a: int = (let b: int = let c: int = 1 + 2 + 3) + 2",
         expect![[r#"
             Program {
                 body: Block {
@@ -142,7 +142,7 @@ fn test_nested_let_2() {
                             init_expr: Let {
                                 id: "b",
                                 init_expr: Let {
-                                    id: "a",
+                                    id: "c",
                                     init_expr: BinaryExpr {
                                         kind: Plus,
                                         operand_1: Id {

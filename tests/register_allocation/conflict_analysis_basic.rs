@@ -44,8 +44,8 @@ fn test_no_variables() {
 #[test]
 fn test_only_temporaries() {
     conflict_analysis_check(
-        "1 + 2 + 3  # @temp0 = 1 + 2; @temp0 + 1
-         1 < 2 < 3  # @temp1 = 1 < 2; @temp1 + 1",
+        "1 + 2 + 3      # @temp0 = 1 + 2; @temp0 + 1
+         1 < 2 != true  # @temp1 = 1 < 2; @temp1 != true",
         expect![[r#"
             (
                 InterferenceGraph {
@@ -123,7 +123,7 @@ fn test_let_sequence_1() {
 fn test_let_sequence_2() {
     conflict_analysis_check(
         "let a: int = 1 + 2 * 3 * (2 + 3)
-         let b: int = -2 < --+-4 * 1
+         let b: bool = -2 < --+-4 * 1
          let c: int = 34
          a + c
          2
@@ -159,26 +159,22 @@ fn test_let_sequence_2() {
                         },
                         "@temp2": {},
                         "@temp3": {
-                            "@temp4",
-                            "@temp5",
-                            "@temp6",
-                            "@temp7",
                             "a",
                         },
                         "@temp4": {
-                            "@temp3",
                             "a",
                         },
                         "@temp5": {
-                            "@temp3",
+                            "@temp6",
                             "a",
                         },
                         "@temp6": {
-                            "@temp3",
+                            "@temp5",
+                            "@temp7",
                             "a",
                         },
                         "@temp7": {
-                            "@temp3",
+                            "@temp6",
                             "a",
                         },
                         "a": {

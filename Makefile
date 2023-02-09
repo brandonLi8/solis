@@ -33,7 +33,7 @@ close-ticket:          ## Merges the current ticket branch into master.
 	fi
 
 	@# Ensure that tests pass.
-	@if ! make test; then \
+	@if ! cargo test --features test; then \
 		echo ${NEWLINE} ${FAIL} Tests did not all pass; exit 1; \
 	fi
 

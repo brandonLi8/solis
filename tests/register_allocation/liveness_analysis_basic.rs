@@ -42,7 +42,8 @@ fn test_modify_inherited_literals() {
 #[test]
 fn test_empty_ids() {
     liveness_analysis_check(
-        "let a: int = d + 2",
+        "let d: int = -1;
+         let a: int = d + 2",
         Set::new(),
         Map::new(),
         expect![[r#"{"d"}"#]],
@@ -53,7 +54,8 @@ fn test_empty_ids() {
 #[test]
 fn test_modify_inherited_ids() {
     liveness_analysis_check(
-        "let a: int = d + b",
+        "let d: int = -1; let b: int = -1;
+         let a: int = d + b",
         Set::from([&"a".to_string(), &"b".to_string()]),
         Map::from([(&"a".to_string(), 1_usize), (&"b".to_string(), 0_usize)]),
         expect![[r#"{"b", "d"}"#]],
@@ -64,7 +66,8 @@ fn test_modify_inherited_ids() {
 #[test]
 fn test_keep_variable_alive() {
     liveness_analysis_check(
-        "a + c",
+        "let a: int = -1; let c: int = -1;
+         a + c",
         Set::from([&"a".to_string(), &"b".to_string()]),
         Map::from([(&"a".to_string(), 1_usize), (&"b".to_string(), 0_usize)]),
         expect![[r#"{"a", "b", "c"}"#]],
@@ -75,7 +78,8 @@ fn test_keep_variable_alive() {
 #[test]
 fn test_destroy_on_let() {
     liveness_analysis_check(
-        "let a: int = b",
+        "let b: int = -1;
+         let a: int = b",
         Set::from([&"a".to_string(), &"b".to_string()]),
         Map::from([(&"a".to_string(), 1_usize), (&"b".to_string(), 0_usize)]),
         expect![[r#"{"b"}"#]],

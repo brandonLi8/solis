@@ -67,7 +67,7 @@ impl<'a> TypeChecker<'a> {
             compilation_error(
                 self.file,
                 position,
-                &format!("Variable `{id:?}` is already declared in this scope"),
+                &format!("Variable `{id}` is already declared in this scope"),
             )
         }
     }

@@ -9,7 +9,7 @@ use test_utils::register_allocator_check;
 
 static PROGRAM_2: &str = "# Program with similar frequencies, but complex conflict graph
                           let a: int = 1 + 2 * 3 * (2 + 3)
-                          let b: int = -2 < --+-4 * 1
+                          let b: bool = -2 < --+-4 * 1
                           let c: int = 34
                           a + c
                           2
@@ -56,7 +56,7 @@ fn test_program_2_starve_4() {
                     R8,
                 ),
                 "@temp3": Register(
-                    R9,
+                    R8,
                 ),
                 "@temp4": Register(
                     R8,
@@ -65,7 +65,7 @@ fn test_program_2_starve_4() {
                     R8,
                 ),
                 "@temp6": Register(
-                    R8,
+                    R9,
                 ),
                 "@temp7": Register(
                     R8,
@@ -100,7 +100,7 @@ fn test_program_2_starve_3() {
                     R8,
                 ),
                 "@temp3": Register(
-                    R9,
+                    R8,
                 ),
                 "@temp4": Register(
                     R8,
@@ -109,7 +109,7 @@ fn test_program_2_starve_3() {
                     R8,
                 ),
                 "@temp6": Register(
-                    R8,
+                    R9,
                 ),
                 "@temp7": Register(
                     R8,
@@ -143,16 +143,14 @@ fn test_program_2_starve_2() {
                 "@temp2": Register(
                     R8,
                 ),
-                "@temp3": Spill,
+                "@temp3": Register(
+                    R8,
+                ),
                 "@temp4": Register(
                     R8,
                 ),
-                "@temp5": Register(
-                    R8,
-                ),
-                "@temp6": Register(
-                    R8,
-                ),
+                "@temp5": Spill,
+                "@temp6": Spill,
                 "@temp7": Register(
                     R8,
                 ),

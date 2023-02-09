@@ -43,21 +43,21 @@ pub fn translate_check(program: &str, expect: Expect) {
     ))
 }
 
-/// Test function for liveness analysis of an expression.
+/// Test function for liveness analysis of an expression (runs it on the last expression of the block passed in).
 pub fn liveness_analysis_check(
-    expr: &str,
+    block: &str,
     live_variables: Set<&String>,
     variable_frequencies: Map<&String, usize>,
     expect_live_variables: Expect,
     expect_frequencies: Expect,
 ) {
-    let file = File { name: String::new(), contents: expr.to_string() };
+    let file = File { name: String::new(), contents: block.to_string() };
     let program = translate_program(&file, parse(&file, tokenize(&file)));
 
     let mut live_variables = live_variables.clone();
     let mut variable_frequencies = variable_frequencies.clone();
     liveness_analysis(
-        program.body.exprs.get(0).unwrap(),
+        program.body.exprs.last().unwrap(),
         &mut live_variables,
         &mut variable_frequencies,
     );

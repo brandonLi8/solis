@@ -50,8 +50,8 @@ fn test_no_variables() {
 #[test]
 fn test_no_conflicts_1() {
     register_allocator_check(
-        "1 + 2 + 3  # @temp0 = 1 + 2; @temp0 + 1
-         1 < 2 < 3  # @temp1 = 1 < 2; @temp1 + 1",
+        "1 + 2 + 3       # @temp0 = 1 + 2; @temp0 + 1
+         1 < 2 != false  # @temp1 = 1 < 2; @temp1 != false",
         Set::from([&Register::R8, &Register::R9, &Register::R10]),
         expect![[r#"
             {
@@ -71,7 +71,7 @@ fn test_no_conflicts_2() {
         "let a: int = 1 + 2
          let b: int = 2 + 3
          let c: int = 4 + 5
-         let d: int = 6 + 7 < 9",
+         let d: bool = 6 + 7 < 9",
         Set::from([&Register::R8, &Register::R9, &Register::R10]),
         expect![[r#"
             {
