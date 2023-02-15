@@ -47,7 +47,7 @@ impl<'a> TypeChecker<'a> {
         type_reference: String,
         position: &Range<usize>,
     ) {
-        // Convert the type_reference to a SolisType. TODO check that the type exists
+        // Convert the type_reference to a SolisType. TODO check that the type exists. TODO: should do this at parse step.
         let type_reference = match type_reference.as_str() {
             "int" => SolisType::Int,
             "bool" => SolisType::Bool,

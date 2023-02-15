@@ -14,6 +14,7 @@ fn test_basic() {
         Global("some_label".to_string()),
         Extern("some_label".to_string()),
         Label("some_label".to_string()),
+        Section("text".to_string()),
         Mov(Reg(Rax), Imm(-123)),
         Mov(Reg(Rax), Reg(Rax)),
         Mov(Reg(Rsi), Reg(Rax)),
@@ -28,10 +29,19 @@ fn test_basic() {
         Mov(Reg(R13), Reg(R12)),
         Mov(Reg(R14), Reg(R13)),
         Mov(Reg(R15), Reg(R14)),
+        Mov(Reg(Rbx), Reg(R15)),
+        Mov(Reg(Rcx), Reg(Rbx)),
+        Mov(Reg(Rdx), Reg(Rcx)),
         Label("some_label2".to_string()),
+        DqLabel("some_label2".to_string()),
+        DqString("some_label2".to_string()),
+        DqInt(24),
+        Align(24),
+        LeaLabel(*Box::new(Imm(2)), "some_label2".to_string()),
         Mov(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), Reg(Rax)),
         Mov(Reg(Rax), MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1)))),
         Mov(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), *Box::new(Imm(1))),
+        MovByte(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), Reg(Rax)),
         Add(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), Reg(Rax)),
         Add(Reg(Rax), MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1)))),
         Add(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), *Box::new(Imm(1))),
@@ -47,6 +57,16 @@ fn test_basic() {
         Or(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), Reg(Rax)),
         Or(Reg(Rax), MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1)))),
         Or(MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))), *Box::new(Imm(1))),
+        Div(Imm(-2)),
+        Mul(Imm(-2), Imm(-2)),
+        Cqo,
+        Shl(Imm(-2), Imm(-2)),
+        Shr(Imm(-2), Imm(-2)),
+        Sar(Imm(-2), Imm(-2)),
+        Setz(Reg(Rax)),
+        Setl(Reg(Rax)),
+        Setle(Reg(Rax)),
+        Setnz(Reg(Rax)),
         Jmp("some_label".to_string()),
         Je("some_label".to_string()),
         Jne("some_label".to_string()),
@@ -54,6 +74,7 @@ fn test_basic() {
         Jnl("some_label".to_string()),
         Jg("some_label".to_string()),
         Jng("some_label".to_string()),
+        ComputedJmp(Imm(128)),
         Ret,
         Push(Reg(Rax)),
         Pop(Imm(2)),
@@ -67,6 +88,7 @@ fn test_basic() {
         global _some_label
         extern _some_label
         _some_label:
+        	section .text
         	mov rax, -123
         	mov rax, rax
         	mov rsi, rax
@@ -81,10 +103,19 @@ fn test_basic() {
         	mov r13, r12
         	mov r14, r13
         	mov r15, r14
+        	mov rbx, r15
+        	mov rcx, rbx
+        	mov rdx, rcx
         _some_label2:
+        	dq _some_label2
+        	dq `some_label2`, 0
+        	dq 24
+        align 24
+        	lea 2, [_some_label2]
         	mov QWORD [rax + 1], rax
         	mov rax, QWORD [rax + 1]
         	mov QWORD [rax + 1], 1
+        	mov BYTE [rax + 1], al
         	add QWORD [rax + 1], rax
         	add rax, QWORD [rax + 1]
         	add QWORD [rax + 1], 1
@@ -100,6 +131,16 @@ fn test_basic() {
         	or QWORD [rax + 1], rax
         	or rax, QWORD [rax + 1]
         	or QWORD [rax + 1], 1
+        	idiv -2
+        	imul -2, -2
+        	cqo
+        	shl -2, -2
+        	shr -2, -2
+        	sar -2, -2
+        	setz al
+        	setl al
+        	setle al
+        	setnz al
         	jmp _some_label
         	je _some_label
         	jne _some_label
@@ -107,6 +148,7 @@ fn test_basic() {
         	jnl _some_label
         	jg _some_label
         	jng _some_label
+        	jmp 128
         	ret
         	push rax
         	pop 2

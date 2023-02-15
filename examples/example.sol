@@ -13,6 +13,6 @@ b
 c
 d
 e
-let h: int = 234 - a - b - c - d- e -f -g
+let h: int = 234 - a
 a b c d e f g h
 a + b + c + d + e + f + g + h

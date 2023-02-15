@@ -45,28 +45,28 @@ fn test_binary_type_reference_mismatch_numerical_1() {
 
 #[test]
 #[should_panic(
-    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 57..58"
+    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 61..62"
 )]
 fn test_binary_type_reference_mismatch_numerical_2() {
     translate_check(
         "
-      let a: bool = 1 < 2;
-      let b: int = 1 + 2 - 3 * a
-      ",
+        let a: bool = 1 < 2;
+        let b: int = 1 + 2 - 3 * a
+        ",
         expect![[]],
     )
 }
 
 #[test]
 #[should_panic(
-    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 57..58"
+    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 61..62"
 )]
 fn test_binary_type_reference_mismatch_numerical_3() {
     translate_check(
         "
-      let a: bool = 1 < 2;
-      let b: int = 1 + 2 - 3 * a
-      ",
+        let a: bool = 1 < 2;
+        let b: int = 1 + 2 - 3 * a
+        ",
         expect![[]],
     )
 }
@@ -81,15 +81,15 @@ fn test_binary_type_reference_mismatch_comparison_1() {
 
 #[test]
 #[should_panic(
-    expected = "Mismatched types. `MoreThanOrEquals` operator expected `int` and `int`, but found `int` and `bool` at 76..78"
+    expected = "Mismatched types. `MoreThanOrEquals` operator expected `int` and `int`, but found `int` and `bool` at 82..84"
 )]
 fn test_binary_type_reference_mismatch_comparison_2() {
     translate_check(
         "
-      let a: bool = 1 < 2;
-      let b: int = 2 * 23;
-      let c: int = b >= a
-      ",
+        let a: bool = 1 < 2;
+        let b: int = 2 * 23;
+        let c: int = b >= a
+        ",
         expect![[]],
     )
 }
@@ -101,14 +101,14 @@ fn test_binary_type_reference_mismatch_equality_1() {
 }
 
 #[test]
-#[should_panic(expected = "Mismatched types. `NotEquals` cannot be used with `int` and `bool` at 76..78")]
+#[should_panic(expected = "Mismatched types. `NotEquals` cannot be used with `int` and `bool` at 82..84")]
 fn test_binary_type_reference_mismatch_equality_2() {
     translate_check(
         "
-      let a: bool = 1 < 2;
-      let b: int = 2 * 23;
-      let c: int = b != a
-      ",
+        let a: bool = 1 < 2;
+        let b: int = 2 * 23;
+        let c: int = b != a
+        ",
         expect![[]],
     )
 }
