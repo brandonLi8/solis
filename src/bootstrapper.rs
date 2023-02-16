@@ -65,7 +65,6 @@ pub fn bootstrap(instructions: Vec<Instruction>, directory: &Path, name: &str, r
 
     // Optionally run (load) the executable.
     if run {
-        println!("run");
         let output = Command::new(executable_file_path)
             .output()
             .expect("failed to execute process");

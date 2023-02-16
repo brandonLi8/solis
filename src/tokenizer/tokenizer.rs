@@ -138,7 +138,6 @@ lazy_static! {
 }
 
 /// Tokenize the input file into a vector of tokens
-/// TODO: can we "stream" the file in, and "stream" the tokens out?
 pub fn tokenize(file: &File) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
 

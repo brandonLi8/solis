@@ -8,7 +8,7 @@
 
 default: help
 
-close-ticket:          ## Merges the current ticket branch into master.
+close-ticket:           ## Merges the current ticket branch into master.
 	@echo ${INFO} Merging ${BRANCH}... ${NEWLINE}
 
 	@# Check that the current branch is a ticket branch.
@@ -33,7 +33,7 @@ close-ticket:          ## Merges the current ticket branch into master.
 	fi
 
 	@# Ensure that tests pass.
-	@if ! cargo test --features test; then \
+	@if ! make test; then \
 		echo ${NEWLINE} ${FAIL} Tests did not all pass; exit 1; \
 	fi
 
@@ -94,34 +94,40 @@ lint:                   ## Runs the clippy linter with the configuration defined
 	fi
 
 
-test:                   ## Runs all unit and integration tests. Alias of cargo test\n
-                        ## Usage:
-                        ## make test fix={true|""}\n
+test:                   ## Runs all unit and integration tests
 	@echo ${INFO} Running tests... ${NEWLINE}
-	@if [[ '$(fix)' =~ ^(true)$$ ]]; then \
-			if env UPDATE_EXPECT=1 cargo test --features test; then \
-				echo ${DONE}; \
-			else \
-				echo ${FAIL}; exit 1; \
-			fi \
+	@make unit-test integration-test
+
+unit-test:              ## Runs all unit tests
+	@echo ${INFO} Running unit tests... ${NEWLINE}
+	@if cargo test --features test -- --skip integration; then \
+		echo ${DONE}; \
 	else \
-			if cargo test --features test; then \
-				echo ${DONE}; \
-			else \
-				echo ${FAIL}; \
-			fi \
+		echo ${FAIL}; exit 1; \
 	fi
 
-fmt:                    ## Alias of cargo fmt\n
+integration-test:       ## Runs all integration tests
+	@echo ${INFO} Running integration tests... ${NEWLINE}
+	@rm -rf ./build/solis_tests
+	@if cargo test --features test -- integration; then \
+		echo ${DONE}; \
+	else \
+		echo ${FAIL}; exit 1; \
+	fi
+
+fix-unit-test:          ## Runs all unit tests, with UPDATE_EXPECT env variable set
+		@env UPDATE_EXPECT=1 make unit-test
+
+fmt:                    ## Alias of cargo fmt
 	@echo ${INFO} Formatting... ${NEWLINE}
 	@if cargo fmt; then \
 		echo ${DONE}; \
 	else \
-		echo ${FAIL}; \
+		echo ${FAIL}; exit 1; \
 	fi
 
 
-update-copyright:       ## Updates the copyright statements of every file in the project.\n
+update-copyright:       ## Updates the copyright statements of every file in the project.
 	@echo ${INFO} Updating copyrights... ${NEWLINE}
 
 	@#Loop through files that aren't in git-ignore

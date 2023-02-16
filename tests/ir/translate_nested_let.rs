@@ -38,14 +38,19 @@ fn test_nested_let() {
                             },
                         },
                         Let {
+                            id: "b",
+                            init_expr: UnaryExpr {
+                                kind: Not,
+                                operand: Id {
+                                    value: "@temp1",
+                                },
+                            },
+                        },
+                        Let {
                             id: "a",
-                            init_expr: Let {
-                                id: "b",
-                                init_expr: UnaryExpr {
-                                    kind: Not,
-                                    operand: Id {
-                                        value: "@temp1",
-                                    },
+                            init_expr: Direct {
+                                expr: Id {
+                                    value: "b",
                                 },
                             },
                         },
@@ -88,14 +93,11 @@ fn test_nested_let_1() {
                             },
                         },
                         Let {
-                            id: "@temp2",
-                            init_expr: Let {
-                                id: "b",
-                                init_expr: UnaryExpr {
-                                    kind: Negative,
-                                    operand: Id {
-                                        value: "@temp1",
-                                    },
+                            id: "b",
+                            init_expr: UnaryExpr {
+                                kind: Negative,
+                                operand: Id {
+                                    value: "@temp1",
                                 },
                             },
                         },
@@ -104,7 +106,7 @@ fn test_nested_let_1() {
                             init_expr: BinaryExpr {
                                 kind: EqualsEquals,
                                 operand_1: Id {
-                                    value: "@temp2",
+                                    value: "b",
                                 },
                                 operand_2: Int {
                                     value: 2,
@@ -138,20 +140,22 @@ fn test_nested_let_2() {
                             },
                         },
                         Let {
-                            id: "@temp1",
-                            init_expr: Let {
-                                id: "b",
-                                init_expr: Let {
-                                    id: "c",
-                                    init_expr: BinaryExpr {
-                                        kind: Plus,
-                                        operand_1: Id {
-                                            value: "@temp0",
-                                        },
-                                        operand_2: Int {
-                                            value: 3,
-                                        },
-                                    },
+                            id: "c",
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: Id {
+                                    value: "@temp0",
+                                },
+                                operand_2: Int {
+                                    value: 3,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "b",
+                            init_expr: Direct {
+                                expr: Id {
+                                    value: "c",
                                 },
                             },
                         },
@@ -160,7 +164,7 @@ fn test_nested_let_2() {
                             init_expr: BinaryExpr {
                                 kind: Plus,
                                 operand_1: Id {
-                                    value: "@temp1",
+                                    value: "b",
                                 },
                                 operand_2: Int {
                                     value: 2,

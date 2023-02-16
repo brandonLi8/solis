@@ -5,7 +5,7 @@
 //! the number of instructions for each operation as much as possible.
 
 use asm::asm::{Instruction, Instruction::*, Operand::*, Register::*};
-use compiler::compiler::compile_direct;
+use compiler::compiler::{compile_direct, mov_instruction_safe};
 use compiler::symbol_table::{Location, SymbolTable};
 use ir::ir::{DirectExpr, UnaryExprKind};
 
@@ -49,14 +49,8 @@ pub fn compile_unary_expr(
             instructions.push(Setz(location.to_operand()));
         }
         UnaryExprKind::Negative => {
-            // The location and the operand cannot both be MemOffset.
-            if matches!(location.to_operand(), MemOffset(..)) && matches!(asm_operand, MemOffset(..)) {
-                instructions.push(Mov(Reg(R14), asm_operand));
-                asm_operand = Reg(R14);
-            }
-
             // No temporary registers are needed since asm_operand is not modified.
-            instructions.push(Mov(location.to_operand(), asm_operand));
+            mov_instruction_safe(location.to_operand(), asm_operand, instructions, R14);
             instructions.push(Neg(location.to_operand()));
         }
     }

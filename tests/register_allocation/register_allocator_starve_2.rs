@@ -65,16 +65,16 @@ fn test_program_2_starve_4() {
                     R8,
                 ),
                 "@temp6": Register(
-                    R9,
+                    R10,
                 ),
                 "@temp7": Register(
                     R8,
                 ),
                 "a": Register(
-                    R10,
+                    R9,
                 ),
                 "b": Register(
-                    R9,
+                    R8,
                 ),
                 "c": Register(
                     R8,
@@ -109,16 +109,16 @@ fn test_program_2_starve_3() {
                     R8,
                 ),
                 "@temp6": Register(
-                    R9,
+                    R10,
                 ),
                 "@temp7": Register(
                     R8,
                 ),
                 "a": Register(
-                    R10,
+                    R9,
                 ),
                 "b": Register(
-                    R9,
+                    R8,
                 ),
                 "c": Register(
                     R8,
@@ -144,22 +144,24 @@ fn test_program_2_starve_2() {
                     R8,
                 ),
                 "@temp3": Register(
-                    R8,
+                    R9,
                 ),
                 "@temp4": Register(
-                    R8,
+                    R9,
                 ),
                 "@temp5": Spill,
                 "@temp6": Spill,
                 "@temp7": Register(
-                    R8,
-                ),
-                "a": Spill,
-                "b": Register(
                     R9,
                 ),
-                "c": Register(
+                "a": Register(
                     R8,
+                ),
+                "b": Register(
+                    R8,
+                ),
+                "c": Register(
+                    R9,
                 ),
             }"#]],
     );
@@ -185,7 +187,9 @@ fn test_program_2_starve_1() {
                 "@temp6": Spill,
                 "@temp7": Spill,
                 "a": Spill,
-                "b": Spill,
+                "b": Register(
+                    R8,
+                ),
                 "c": Register(
                     R8,
                 ),

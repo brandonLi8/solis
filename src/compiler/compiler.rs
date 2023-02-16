@@ -10,7 +10,7 @@
 //!                  Or equivalently, `stack_index + 8` represents where the bottom of the stack is.
 //! These objects are kept and tracked while traveling through the IR.
 
-use asm::asm::{Instruction, Instruction::*, Operand, Operand::*, Register::*};
+use asm::asm::{Instruction, Instruction::*, Operand, Operand::*, Register, Register::*};
 use compiler::compile_binary_expr::compile_binary_expr;
 use compiler::compile_unary_expr::compile_unary_expr;
 use compiler::symbol_table::{Location, SymbolTable};
@@ -77,10 +77,13 @@ pub fn compile_expr(
         Expr::Direct { expr } => {
             // If location is None, we can safely ignore the Direct as the result is not needed. This happens for
             // for example when a identifier appears in the top level of the block, like `let a: int = 0; a; ...`
-            // TODO: for these useless top level directs, we should remove them at IR step so they don't affect
-            // register allocation.
             if let Some(location) = location {
-                instructions.push(Mov(location.to_operand(), compile_direct(expr, symbol_table)));
+                mov_instruction_safe(
+                    location.to_operand(),
+                    compile_direct(expr, symbol_table),
+                    instructions,
+                    R14,
+                );
             }
         }
         Expr::Let { id, init_expr } => {
@@ -105,7 +108,12 @@ pub fn compile_expr(
 
             // Move the result of the init_expr to location if it is set.
             if let Some(location) = location {
-                instructions.push(Mov(location.to_operand(), assignment_location.to_operand()));
+                mov_instruction_safe(
+                    location.to_operand(),
+                    assignment_location.to_operand(),
+                    instructions,
+                    R14,
+                );
             }
 
             // Add the identifier to the symbol_table, *after* compiling the init_expr.
@@ -132,7 +140,7 @@ pub fn compile_direct(direct: &DirectExpr, symbol_table: &mut SymbolTable) -> Op
         DirectExpr::Int { value } => Imm(*value),
         DirectExpr::Id { value } => symbol_table
             .get(value)
-            .unwrap_or_else(|| internal_compiler_error("symbol not in symbol_table"))
+            .unwrap_or_else(|| internal_compiler_error(&format!("symbol `{value}` not in symbol_table")))
             .to_operand(),
         DirectExpr::Bool { value } => Imm(i64::from(*value)),
     }
@@ -141,4 +149,20 @@ pub fn compile_direct(direct: &DirectExpr, symbol_table: &mut SymbolTable) -> Op
 /// Converts a stack index into a assembly operand.
 pub fn stack_address(stack_index: i64) -> Operand {
     MemOffset(Box::new(Reg(Rsp)), Box::new(Imm(stack_index)))
+}
+
+/// Same as adding a `Mov(asm_operand_1, asm_operand_2)`, but ensures that both operands are not `MemOffset`.
+/// If both are, the second operand is moved to the `backup_temporary_register`.
+pub fn mov_instruction_safe(
+    asm_operand_1: Operand,
+    asm_operand_2: Operand,
+    instructions: &mut Vec<Instruction>,
+    backup_temporary_register: Register,
+) {
+    if matches!(asm_operand_1, MemOffset(..)) && matches!(asm_operand_2, MemOffset(..)) {
+        instructions.push(Mov(Reg(backup_temporary_register), asm_operand_2));
+        instructions.push(Mov(asm_operand_1, Reg(backup_temporary_register)));
+    } else {
+        instructions.push(Mov(asm_operand_1, asm_operand_2));
+    }
 }

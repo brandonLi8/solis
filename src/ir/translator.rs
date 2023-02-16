@@ -26,7 +26,11 @@ fn translate_block(file: &File, block: ast::Block) -> ir::Block {
 
     for expr in block.exprs {
         let (translated_expr, _) = translate_expr(expr, &mut type_checker, &mut exprs);
-        exprs.push(translated_expr);
+
+        // Ignore top-level directs
+        if !matches!(translated_expr, ir::Expr::Direct { .. }) {
+            exprs.push(translated_expr);
+        }
     }
 
     ir::Block { exprs }
@@ -53,7 +57,9 @@ fn translate_expr(
             let (init_expr, init_type) = translate_expr(*init_expr, type_checker, bindings);
             type_checker.type_check_let(&id, init_type.clone(), type_reference, &expr.position);
 
-            (ir::Expr::Let { id, init_expr: Box::new(init_expr) }, init_type)
+            // Flatten out let bindings inside sub expressions as well.
+            bindings.push(ir::Expr::Let { id: id.clone(), init_expr: Box::new(init_expr) });
+            (ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id } }, init_type)
         }
         ast::ExprKind::UnaryExpr { kind, operand } => {
             // Translate operand

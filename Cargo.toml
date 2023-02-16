@@ -18,6 +18,7 @@ cc = "1.0.78"
 clap = { version = "4.1.4", features = ["derive"] }
 
 [dev-dependencies]
+assert_cmd = "2.0.8"
 expect-test = "1.4.0"
 
 [lib]

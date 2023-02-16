@@ -56,7 +56,7 @@ fn test_program_3_starve_3() {
                     R8,
                 ),
                 "b": Register(
-                    R9,
+                    R8,
                 ),
                 "c": Register(
                     R8,
@@ -88,7 +88,7 @@ fn test_program_3_starve_2() {
                     R8,
                 ),
                 "b": Register(
-                    R9,
+                    R8,
                 ),
                 "c": Register(
                     R8,
@@ -119,8 +119,12 @@ fn test_program_3_starve_1() {
                 "a": Register(
                     R8,
                 ),
-                "b": Spill,
-                "c": Spill,
+                "b": Register(
+                    R8,
+                ),
+                "c": Register(
+                    R8,
+                ),
                 "d": Register(
                     R8,
                 ),
