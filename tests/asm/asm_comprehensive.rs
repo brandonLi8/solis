@@ -3,7 +3,7 @@
 //! Unit tests for the `asm_writer`.
 
 use expect_test::expect;
-use solis::asm::asm::{Instruction::*, Operand::*, Register::*};
+use solis::asm::asm::{FloatRegister::*, Instruction::*, Operand::*, Register::*};
 use solis::asm::asm_writer::write_instructions_to_file;
 use std::fs;
 use std::path::Path;
@@ -79,10 +79,23 @@ fn test_basic() {
         Push(Reg(Rax)),
         Pop(Imm(2)),
         Call("some_label".to_string()),
+        Movq(FloatReg(Xmm0), FloatReg(Xmm1)),
+        Movq(FloatReg(Xmm1), FloatReg(Xmm2)),
+        Movq(Reg(Rax), FloatImm(3.141_592_653_589_793)),
+        Cvttsd2si(Reg(Rax), FloatReg(Xmm2)),
         Comment("some comment".to_string()),
+        Annotate(Box::new(Mov(Reg(Rdx), Reg(Rcx))), "some comment".to_string()),
+        Annotate(
+            Box::new(Mov(Reg(Rax), MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))))),
+            "some comment2".to_string(),
+        ),
+        Annotate(
+            Box::new(Movq(Reg(Rax), FloatImm(3.141_592_653_589_793))),
+            "comment".to_string(),
+        ),
     ];
 
-    let temporary_file = "./build/tmp.s";
+    let temporary_file = "./build/solis_tests/asm_writer_test.s";
     write_instructions_to_file(instructions, Path::new(temporary_file));
     expect![[r#"
         global _some_label
@@ -153,7 +166,14 @@ fn test_basic() {
         	push rax
         	pop 2
         	call _some_label
+        	movq xmm0, xmm1
+        	movq xmm1, xmm2
+        	movq rax, __?float64?__(3.141592653589793)
+        	cvttsd2si rax, xmm2
         ; some comment
+        	mov rdx, rcx                            ; some comment
+        	mov rax, QWORD [rax + 1]                ; some comment2
+        	movq rax, __?float64?__(3.141592653589793) ; comment
     "#]]
     .assert_eq(&fs::read_to_string(temporary_file).unwrap());
 }

@@ -2,7 +2,9 @@
 
 //! Transforms the in memory representation of assembly into an actual assembly file, using a buffered writer.
 
-use asm::asm::{Instruction, Instruction::*, Operand, Operand::*, Register, Register::*};
+use asm::asm::{
+    FloatRegister, FloatRegister::*, Instruction, Instruction::*, Operand, Operand::*, Register, Register::*,
+};
 use error_messages::internal_compiler_error;
 use std::fs::{create_dir_all, File};
 use std::io::{BufWriter, Write};
@@ -69,6 +71,29 @@ fn byte_register_to_string(register: Register) -> String {
     .to_string()
 }
 
+// Converts a Float Register to a string
+fn float_register_to_string(register: FloatRegister) -> String {
+    match register {
+        Xmm0 => "xmm0",
+        Xmm1 => "xmm1",
+        Xmm2 => "xmm2",
+        Xmm3 => "xmm3",
+        Xmm4 => "xmm4",
+        Xmm5 => "xmm5",
+        Xmm6 => "xmm6",
+        Xmm7 => "xmm7",
+        Xmm8 => "xmm8",
+        Xmm9 => "xmm9",
+        Xmm10 => "Xmm10",
+        Xmm11 => "Xmm11",
+        Xmm12 => "Xmm12",
+        Xmm13 => "Xmm13",
+        Xmm14 => "Xmm14",
+        Xmm15 => "Xmm15",
+    }
+    .to_string()
+}
+
 // Converts a Operand to a string
 fn operand_to_string(operand: Operand) -> String {
     match operand {
@@ -79,6 +104,8 @@ fn operand_to_string(operand: Operand) -> String {
             &operand_to_string(*operand_1),
             &operand_to_string(*operand_2)
         ),
+        FloatImm(imm) => format!("__?float64?__({imm})"),
+        FloatReg(reg) => float_register_to_string(reg),
     }
 }
 
@@ -91,7 +118,8 @@ fn byte_operand_to_string(operand: Operand) -> String {
             &operand_to_string(*operand_2)
         ),
         Reg(reg) => byte_register_to_string(reg),
-        Imm(imm) => imm.to_string(),
+        Imm(..) | FloatImm(..) => operand_to_string(operand),
+        FloatReg(..) => internal_compiler_error("float register as byte operand"),
     }
 }
 
@@ -123,7 +151,7 @@ fn instruction_to_string(instruction: Instruction) -> String {
         Div(src) =>               format!("\tidiv {}", operand_to_string(src)),
         Mul(dest, src) =>         format!("\timul {}, {}", operand_to_string(dest), operand_to_string(src)),
         Mul3(dest, src, con) =>   format!("\timul {}, {}, {}", operand_to_string(dest), operand_to_string(src), operand_to_string(con)),
-        Cqo =>                    "\tcqo".to_string(),
+        Cqo =>                            "\tcqo".to_string(),
         Neg(operand) =>           format!("\tneg {}", operand_to_string(operand)),
         Shl(dest, src) =>         format!("\tshl {}, {}", operand_to_string(dest), operand_to_string(src)),
         Shr(dest, src) =>         format!("\tshr {}, {}", operand_to_string(dest), operand_to_string(src)),
@@ -148,7 +176,12 @@ fn instruction_to_string(instruction: Instruction) -> String {
         Pop(operand) =>           format!("\tpop {}", operand_to_string(operand)),
         Call(dest) =>             format!("\tcall {}", label_name(dest)),
         Ret =>                            "\tret".to_string(),
+        Movq(dest, src) =>        format!("\tmovq {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Cvttsd2si(dest, src) =>   format!("\tcvttsd2si {}, {}", operand_to_string(dest), operand_to_string(src)),
         Comment(comment) =>       format!("; {comment}"),
+        Annotate(instruction, comment) => {
+            format!("{: <40} ; {comment}", instruction_to_string(*instruction))
+        },
     };
     instruction
 }

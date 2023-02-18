@@ -30,6 +30,29 @@ pub enum Operand {
     Reg(Register),
     Imm(i64),
     MemOffset(Box<Operand>, Box<Operand>),
+    FloatImm(f64),
+    FloatReg(FloatRegister),
+}
+
+/// Registers for floating point (SSE). Registers with special purposes have been annotated.
+/// See `http://csapp.cs.cmu.edu/public/waside/waside-sse.pdf`
+pub enum FloatRegister {
+    Xmm0, // Return value
+    Xmm1,
+    Xmm2,
+    Xmm3,
+    Xmm4,
+    Xmm5,
+    Xmm6,
+    Xmm7,
+    Xmm8,
+    Xmm9,
+    Xmm10,
+    Xmm11,
+    Xmm12,
+    Xmm13,
+    Xmm14, // Scratch 1
+    Xmm15, // Scratch 2
 }
 
 /// Every instruction.
@@ -74,5 +97,8 @@ pub enum Instruction {
     Push(Operand),
     Pop(Operand),
     Call(String),
-    Comment(String),
+    Movq(Operand, Operand),             // Move for float operands
+    Cvttsd2si(Operand, Operand),        // Convert Scalar Double to Signed Int
+    Comment(String),                    // Top level comment
+    Annotate(Box<Instruction>, String), // Annotated Instruction with comment
 }
