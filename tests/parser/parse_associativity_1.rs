@@ -240,7 +240,7 @@ fn test_arithmetic_left_associative_1() {
 #[test]
 fn test_arithmetic_left_associative_2() {
     parse_check(
-        "let a: int = 32 - 2 * (3 + ((4))) / 5 - 3 % 2",
+        "let a: int = 32 - 2 * (3. + ((4))) / 5 - 3 % 2.",
         expect![[r#"
             Program {
                 body: Block {
@@ -277,19 +277,19 @@ fn test_arithmetic_left_associative_2() {
                                                                     kind: BinaryExpr {
                                                                         kind: Plus,
                                                                         operand_1: Expr {
-                                                                            kind: Int {
-                                                                                value: 3,
+                                                                            kind: Float {
+                                                                                value: 3.0,
                                                                             },
-                                                                            position: 23..24,
+                                                                            position: 23..25,
                                                                         },
                                                                         operand_2: Expr {
                                                                             kind: Int {
                                                                                 value: 4,
                                                                             },
-                                                                            position: 29..30,
+                                                                            position: 30..31,
                                                                         },
                                                                     },
-                                                                    position: 25..26,
+                                                                    position: 26..27,
                                                                 },
                                                             },
                                                             position: 20..21,
@@ -298,10 +298,10 @@ fn test_arithmetic_left_associative_2() {
                                                             kind: Int {
                                                                 value: 5,
                                                             },
-                                                            position: 36..37,
+                                                            position: 37..38,
                                                         },
                                                     },
-                                                    position: 34..35,
+                                                    position: 35..36,
                                                 },
                                             },
                                             position: 16..17,
@@ -313,19 +313,19 @@ fn test_arithmetic_left_associative_2() {
                                                     kind: Int {
                                                         value: 3,
                                                     },
-                                                    position: 40..41,
+                                                    position: 41..42,
                                                 },
                                                 operand_2: Expr {
-                                                    kind: Int {
-                                                        value: 2,
+                                                    kind: Float {
+                                                        value: 2.0,
                                                     },
-                                                    position: 44..45,
+                                                    position: 45..47,
                                                 },
                                             },
-                                            position: 42..43,
+                                            position: 43..44,
                                         },
                                     },
-                                    position: 38..39,
+                                    position: 39..40,
                                 },
                             },
                             position: 7..10,

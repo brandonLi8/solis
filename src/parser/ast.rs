@@ -39,6 +39,9 @@ pub enum ExprKind {
     Bool {
         value: bool,
     },
+    Float {
+        value: f64,
+    },
     Id {
         value: String,
     },

@@ -8,7 +8,7 @@ use test_utils::tokenize_check;
 #[test]
 fn test_prefix() {
     tokenize_check(
-        "let name: +2 - -3 - - 4 + !4 !",
+        "let name: +2 - -3 - - 4.+ !4 !",
         expect![[r#"
             Token { kind: Let, position: 0..3 }
             Token { kind: Id("name"), position: 4..8 }
@@ -20,7 +20,7 @@ fn test_prefix() {
             Token { kind: Int(3), position: 16..17 }
             Token { kind: Minus, position: 18..19 }
             Token { kind: Minus, position: 20..21 }
-            Token { kind: Int(4), position: 22..23 }
+            Token { kind: Float(4.0), position: 22..24 }
             Token { kind: Plus, position: 24..25 }
             Token { kind: Not, position: 26..27 }
             Token { kind: Int(4), position: 27..28 }
@@ -29,7 +29,7 @@ fn test_prefix() {
     );
 
     tokenize_check(
-        "let a: int = --------------+++++--+- 2",
+        "let a: int = --------------+++++--+- 2.",
         expect![[r#"
             Token { kind: Let, position: 0..3 }
             Token { kind: Id("a"), position: 4..5 }
@@ -59,7 +59,7 @@ fn test_prefix() {
             Token { kind: Minus, position: 33..34 }
             Token { kind: Plus, position: 34..35 }
             Token { kind: Minus, position: 35..36 }
-            Token { kind: Int(2), position: 37..38 }
+            Token { kind: Float(2.0), position: 37..39 }
         "#]],
     );
 }

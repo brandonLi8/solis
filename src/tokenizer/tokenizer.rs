@@ -23,6 +23,7 @@ pub enum TokenKind {
     // Literals
     Int(i64),
     Bool(bool),
+    Float(f64),
 
     // Bindings
     Let,
@@ -65,21 +66,53 @@ pub struct Token {
     pub position: Range<usize>,
 }
 
-// Converts matched text to a TokenKind instance.
-type TokenKindConstructor = fn(String) -> TokenKind;
+// Struct that describes everything that is needed to to match and create a particular TokenKind.
+struct TokenPattern {
+    // Pattern to match for the token
+    pub match_regex: Regex,
 
-// Macro for creating a token pattern, which associates a regex pattern and a TokenKindConstructor as a tuple.
+    // Converts matched text to a TokenKind instance.
+    pub token_kind_constructor: fn(String) -> TokenKind,
+
+    // There can be some scenarios where we want to match a token with `match_regex`, but ensure that what is after
+    // the match is not something else (`error_match`). For example, for floating point, we want to match `1.2`, but
+    // not match `1.2.2`. This is a workaround since Rust's Regex crate does not support lookahead.
+    pub error_match: Option<Regex>,
+}
+
+// Macro for creating a `TokenPattern`
 macro_rules! token_pattern {
+    // Simple token_pattern with no arguments to the TokenKind variant
     ($token_kind:expr, $pattern:expr) => {
-        (Regex::new(&format!("^{}", $pattern)).unwrap(), |_| $token_kind)
+        TokenPattern {
+            match_regex: Regex::new(&format!("^{}", $pattern)).unwrap(),
+            token_kind_constructor: |_| $token_kind,
+            error_match: None
+        }
     };
+
+    // TokenKind variant where data is from a simple string parse, with generic error_match
+    ($token_kind:expr, $pattern:expr => $to_type:ty, $error_match:expr) => {
+        TokenPattern {
+            match_regex: Regex::new(&format!("^{}", $pattern)).unwrap(),
+            token_kind_constructor: |m| {
+                $token_kind(
+                    m.parse::<$to_type>()
+                        .unwrap_or_else(|error| internal_compiler_error(&format!("unable to parse {m}: {error}"))),
+                )
+            },
+            error_match: $error_match
+        }
+    };
+
+    // TokenKind variant where data is from a simple string parse, with no generic error_match
     ($token_kind:expr, $pattern:expr => $to_type:ty) => {
-        (Regex::new(&format!("^{}", $pattern)).unwrap(), |m| {
-            $token_kind(
-                m.parse::<$to_type>()
-                    .unwrap_or_else(|error| internal_compiler_error(&format!("unable to parse {m}: {error}"))),
-            )
-        })
+        token_pattern!($token_kind, $pattern => $to_type, None)
+    };
+
+    // TokenKind variant where data is from a simple string parse, with a error_match
+    ($token_kind:expr, $pattern:expr => $to_type:ty, error_if_next $error_match:expr) => {
+        token_pattern!($token_kind, $pattern => $to_type, Some(Regex::new(&format!("^{}", $error_match)).unwrap()))
     };
 }
 
@@ -99,10 +132,11 @@ lazy_static! {
     ];
 
     // Regex patterns for matching different types of tokens.
-    static ref TOKEN_PATTERNS: Vec<(Regex, TokenKindConstructor)> = vec![
+    static ref TOKEN_PATTERNS: Vec<TokenPattern> = vec![
         // Match literals first
-        token_pattern!(TokenKind::Int,               r"([0-9]+)\b" => i64),
         token_pattern!(TokenKind::Bool,              r"(true|false)\b" => bool),
+        token_pattern!(TokenKind::Float,             r"(([0-9]*\.[0-9]+\b)|([0-9]+\.[0-9]*))" => f64, error_if_next r"\."),
+        token_pattern!(TokenKind::Int,               r"([0-9]+)\b" => i64),
 
         // Keywords before Id
         token_pattern!(TokenKind::Let,               r"let\b"),
@@ -157,14 +191,21 @@ pub fn tokenize(file: &File) -> Vec<Token> {
         }
 
         // Find the next token at cursor
-        for (token_pattern, token_type_constructor) in &*TOKEN_PATTERNS {
-            if let Some(token_match) = token_pattern.find(file_slice) {
+        for TokenPattern { match_regex, token_kind_constructor, error_match } in &*TOKEN_PATTERNS {
+            if let Some(token_match) = match_regex.find(file_slice) {
                 tokens.push(Token {
-                    kind: token_type_constructor(token_match.as_str().to_string()),
+                    kind: token_kind_constructor(token_match.as_str().to_string()),
                     position: cursor..cursor + token_match.end(),
                 });
 
                 cursor += token_match.end();
+
+                if let Some(error_match) = error_match {
+                    if error_match.find(&file.contents[cursor..]).is_some() {
+                        compilation_error(file, &(cursor..cursor + 1), "Syntax Error: Invalid syntax")
+                    }
+                }
+
                 continue 'cursor_loop;
             }
         }

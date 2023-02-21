@@ -61,6 +61,10 @@ pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
             kind: ExprKind::Bool { value: *b },
             position: next_token.position.clone(),
         },
+        TokenKind::Float(float) => Expr {
+            kind: ExprKind::Float { value: *float },
+            position: next_token.position.clone(),
+        },
         _ => compilation_error(
             tokens_cursor.file,
             &next_token.position,

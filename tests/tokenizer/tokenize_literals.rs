@@ -30,3 +30,36 @@ fn test_literals() {
         "#]],
     )
 }
+
+#[test]
+fn test_literals_floats() {
+    tokenize_check(
+        "0.0 1.0 3.141592653589793 23. .234234 -----.45 -273.15 +2.3 +.5",
+        expect![[r#"
+            Token { kind: Float(0.0), position: 0..3 }
+            Token { kind: Float(1.0), position: 4..7 }
+            Token { kind: Float(3.141592653589793), position: 8..25 }
+            Token { kind: Float(23.0), position: 26..29 }
+            Token { kind: Float(0.234234), position: 30..37 }
+            Token { kind: Minus, position: 38..39 }
+            Token { kind: Minus, position: 39..40 }
+            Token { kind: Minus, position: 40..41 }
+            Token { kind: Minus, position: 41..42 }
+            Token { kind: Minus, position: 42..43 }
+            Token { kind: Float(0.45), position: 43..46 }
+            Token { kind: Minus, position: 47..48 }
+            Token { kind: Float(273.15), position: 48..54 }
+            Token { kind: Plus, position: 55..56 }
+            Token { kind: Float(2.3), position: 56..59 }
+            Token { kind: Plus, position: 60..61 }
+            Token { kind: Float(0.5), position: 61..63 }
+        "#]],
+    );
+}
+
+// Tests that just dot is not a float. TODO: when dot operator is added, can remove this test
+#[test]
+#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 0..1")]
+fn test_syntax_error_dot() {
+    tokenize_check(".", expect![]);
+}

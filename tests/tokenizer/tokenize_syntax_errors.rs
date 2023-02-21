@@ -22,3 +22,21 @@ fn test_syntax_error_basic_2() {
 fn test_syntax_error_whitespace() {
     tokenize_check("\n  \nlet name:     \nint [= 32 \n\n  ", expect![]);
 }
+
+#[test]
+#[should_panic(expected = "Syntax Error: Invalid syntax at 3..4")]
+fn test_syntax_error_double_dot() {
+    tokenize_check("2.5.2", expect![]);
+}
+
+#[test]
+#[should_panic(expected = "Syntax Error: Invalid syntax at 2..3")]
+fn test_syntax_error_double_dot_2() {
+    tokenize_check("1..2", expect![]);
+}
+
+#[test]
+#[should_panic(expected = "Syntax Error: Invalid syntax at 2..3")]
+fn test_syntax_error_double_dot_3() {
+    tokenize_check(".2.", expect![]);
+}

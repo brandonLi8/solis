@@ -12,7 +12,7 @@ fn test_comparison_left_associative_1() {
           1 < 2 < 3
           1 < (2 < 3)
           1 == 2 > 3
-          1 <= (2 != 3)
+          1. <= (2.3 != 3)
         ",
         expect![[r#"
             Program {
@@ -112,31 +112,31 @@ fn test_comparison_left_associative_1() {
                             kind: BinaryExpr {
                                 kind: LessThanOrEquals,
                                 operand_1: Expr {
-                                    kind: Int {
-                                        value: 1,
+                                    kind: Float {
+                                        value: 1.0,
                                     },
-                                    position: 74..75,
+                                    position: 74..76,
                                 },
                                 operand_2: Expr {
                                     kind: BinaryExpr {
                                         kind: NotEquals,
                                         operand_1: Expr {
-                                            kind: Int {
-                                                value: 2,
+                                            kind: Float {
+                                                value: 2.3,
                                             },
-                                            position: 80..81,
+                                            position: 81..84,
                                         },
                                         operand_2: Expr {
                                             kind: Int {
                                                 value: 3,
                                             },
-                                            position: 85..86,
+                                            position: 88..89,
                                         },
                                     },
-                                    position: 82..84,
+                                    position: 85..87,
                                 },
                             },
-                            position: 76..78,
+                            position: 77..79,
                         },
                     ],
                 },

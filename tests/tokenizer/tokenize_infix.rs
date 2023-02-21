@@ -8,32 +8,32 @@ use test_utils::tokenize_check;
 #[test]
 fn test_infix() {
     tokenize_check(
-        "let name: int = 32 - 2 + 3 * 4 / 5 % 1 + 2 * (3 + 1)",
+        "let name: float = 32.4 - 2 + 3 * 4 / 5 % 1 + 2 * (3 + 1)",
         expect![[r#"
             Token { kind: Let, position: 0..3 }
             Token { kind: Id("name"), position: 4..8 }
             Token { kind: Colon, position: 8..9 }
-            Token { kind: Id("int"), position: 10..13 }
-            Token { kind: Equals, position: 14..15 }
-            Token { kind: Int(32), position: 16..18 }
-            Token { kind: Minus, position: 19..20 }
-            Token { kind: Int(2), position: 21..22 }
-            Token { kind: Plus, position: 23..24 }
-            Token { kind: Int(3), position: 25..26 }
-            Token { kind: Times, position: 27..28 }
-            Token { kind: Int(4), position: 29..30 }
-            Token { kind: Divide, position: 31..32 }
-            Token { kind: Int(5), position: 33..34 }
-            Token { kind: Mod, position: 35..36 }
-            Token { kind: Int(1), position: 37..38 }
-            Token { kind: Plus, position: 39..40 }
-            Token { kind: Int(2), position: 41..42 }
-            Token { kind: Times, position: 43..44 }
-            Token { kind: OpenParen, position: 45..46 }
-            Token { kind: Int(3), position: 46..47 }
-            Token { kind: Plus, position: 48..49 }
-            Token { kind: Int(1), position: 50..51 }
-            Token { kind: CloseParen, position: 51..52 }
+            Token { kind: Id("float"), position: 10..15 }
+            Token { kind: Equals, position: 16..17 }
+            Token { kind: Float(32.4), position: 18..22 }
+            Token { kind: Minus, position: 23..24 }
+            Token { kind: Int(2), position: 25..26 }
+            Token { kind: Plus, position: 27..28 }
+            Token { kind: Int(3), position: 29..30 }
+            Token { kind: Times, position: 31..32 }
+            Token { kind: Int(4), position: 33..34 }
+            Token { kind: Divide, position: 35..36 }
+            Token { kind: Int(5), position: 37..38 }
+            Token { kind: Mod, position: 39..40 }
+            Token { kind: Int(1), position: 41..42 }
+            Token { kind: Plus, position: 43..44 }
+            Token { kind: Int(2), position: 45..46 }
+            Token { kind: Times, position: 47..48 }
+            Token { kind: OpenParen, position: 49..50 }
+            Token { kind: Int(3), position: 50..51 }
+            Token { kind: Plus, position: 52..53 }
+            Token { kind: Int(1), position: 54..55 }
+            Token { kind: CloseParen, position: 55..56 }
         "#]],
     );
 

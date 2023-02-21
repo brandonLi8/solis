@@ -23,6 +23,7 @@ fn test_basic() {
     parse_check(
         "let varName: int = 32
          let varName2: bool = true
+         let varName3: float = 2.
         ",
         expect![[r#"
             Program {
@@ -53,6 +54,19 @@ fn test_basic() {
                                 },
                             },
                             position: 45..49,
+                        },
+                        Expr {
+                            kind: Let {
+                                id: "varName3",
+                                type_reference: "float",
+                                init_expr: Expr {
+                                    kind: Float {
+                                        value: 2.0,
+                                    },
+                                    position: 88..90,
+                                },
+                            },
+                            position: 80..85,
                         },
                     ],
                 },
