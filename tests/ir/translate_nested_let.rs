@@ -54,6 +54,11 @@ fn test_nested_let() {
                                 },
                             },
                         },
+                        Direct {
+                            expr: Id {
+                                value: "a",
+                            },
+                        },
                     ],
                 },
             }"#]],
@@ -113,6 +118,11 @@ fn test_nested_let_1() {
                                 },
                             },
                         },
+                        Direct {
+                            expr: Id {
+                                value: "a",
+                            },
+                        },
                     ],
                 },
             }"#]],
@@ -169,6 +179,11 @@ fn test_nested_let_2() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                            },
+                        },
+                        Direct {
+                            expr: Id {
+                                value: "a",
                             },
                         },
                     ],

@@ -77,6 +77,7 @@ pub enum Expr {
 pub enum DirectExpr {
     Int { value: i64 },
     Bool { value: bool },
+    Float { value: f64 },
     Id { value: String },
 }
 

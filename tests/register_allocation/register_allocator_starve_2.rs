@@ -65,16 +65,16 @@ fn test_program_2_starve_4() {
                     R8,
                 ),
                 "@temp6": Register(
-                    R10,
+                    R9,
                 ),
                 "@temp7": Register(
                     R8,
                 ),
                 "a": Register(
-                    R9,
+                    R10,
                 ),
                 "b": Register(
-                    R8,
+                    R9,
                 ),
                 "c": Register(
                     R8,
@@ -109,16 +109,16 @@ fn test_program_2_starve_3() {
                     R8,
                 ),
                 "@temp6": Register(
-                    R10,
+                    R9,
                 ),
                 "@temp7": Register(
                     R8,
                 ),
                 "a": Register(
-                    R9,
+                    R10,
                 ),
                 "b": Register(
-                    R8,
+                    R9,
                 ),
                 "c": Register(
                     R8,
@@ -144,24 +144,22 @@ fn test_program_2_starve_2() {
                     R8,
                 ),
                 "@temp3": Register(
-                    R9,
+                    R8,
                 ),
                 "@temp4": Register(
-                    R9,
+                    R8,
                 ),
                 "@temp5": Spill,
                 "@temp6": Spill,
                 "@temp7": Register(
-                    R9,
-                ),
-                "a": Register(
                     R8,
                 ),
+                "a": Spill,
                 "b": Register(
-                    R8,
+                    R9,
                 ),
                 "c": Register(
-                    R9,
+                    R8,
                 ),
             }"#]],
     );
@@ -187,9 +185,7 @@ fn test_program_2_starve_1() {
                 "@temp6": Spill,
                 "@temp7": Spill,
                 "a": Spill,
-                "b": Register(
-                    R8,
-                ),
+                "b": Spill,
                 "c": Register(
                     R8,
                 ),

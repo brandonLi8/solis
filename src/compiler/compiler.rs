@@ -143,6 +143,7 @@ pub fn compile_direct(direct: &DirectExpr, symbol_table: &mut SymbolTable) -> Op
             .unwrap_or_else(|| internal_compiler_error(&format!("symbol `{value}` not in symbol_table")))
             .to_operand(),
         DirectExpr::Bool { value } => Imm(i64::from(*value)),
+        DirectExpr::Float { .. } => todo!(),
     }
 }
 

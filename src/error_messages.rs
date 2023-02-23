@@ -95,6 +95,7 @@ impl Display for SolisType {
         match self {
             Self::Int => write!(f, "int"),
             Self::Bool => write!(f, "bool"),
+            Self::Float => write!(f, "float"),
             Self::Custom(s) => write!(f, "{s}"),
         }
     }

@@ -20,15 +20,16 @@ pub fn translate_program(file: &File, program: ast::Program) -> ir::Program {
 
 // Translates a `ast::Block` into a `ir::Block`
 fn translate_block(file: &File, block: ast::Block) -> ir::Block {
+    let num_exprs = block.exprs.len();
     let mut exprs = vec![];
 
     let mut type_checker = TypeChecker::new(file);
 
-    for expr in block.exprs {
+    for (i, expr) in block.exprs.into_iter().enumerate() {
         let (translated_expr, _) = translate_expr(expr, &mut type_checker, &mut exprs);
 
-        // Ignore top-level directs
-        if !matches!(translated_expr, ir::Expr::Direct { .. }) {
+        // Ignore top-level directs, unless it is the last expression in the block
+        if i == num_exprs - 1 || !matches!(translated_expr, ir::Expr::Direct { .. }) {
             exprs.push(translated_expr);
         }
     }
@@ -53,6 +54,19 @@ fn translate_expr(
             ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
             SolisType::Bool,
         ),
+        ast::ExprKind::Float { value } => {
+            let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value } };
+
+            // There are no such things as float immediates for x86. Instead, we must make each float a variable
+            // binding (in the compiler, there must be a `Location` for floats). For example `let a: float = 1.2 + 2.3`
+            // should translate to `let temp1 = 1.2; let temp2 = 2.3; let a = temp1 + temp2`.
+            let identifier = gen_temp_identifier();
+            bindings.push(ir::Expr::Let { id: identifier.to_string(), init_expr: Box::new(float_expr) });
+            (
+                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: identifier } },
+                SolisType::Float,
+            )
+        }
         ast::ExprKind::Let { id, init_expr, type_reference } => {
             let (init_expr, init_type) = translate_expr(*init_expr, type_checker, bindings);
             type_checker.type_check_let(&id, init_type.clone(), type_reference, &expr.position);
@@ -111,7 +125,6 @@ fn translate_expr(
                 result_type,
             )
         }
-        ast::ExprKind::Float { .. } => todo!(),
     }
 }
 

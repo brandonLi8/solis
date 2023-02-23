@@ -20,6 +20,7 @@ use File;
 pub enum SolisType {
     Int,
     Bool,
+    Float,
     Custom(String),
 }
 
@@ -51,6 +52,7 @@ impl<'a> TypeChecker<'a> {
         let type_reference = match type_reference.as_str() {
             "int" => SolisType::Int,
             "bool" => SolisType::Bool,
+            "float" => SolisType::Float,
             _ => SolisType::Custom(type_reference),
         };
 
@@ -94,16 +96,16 @@ impl<'a> TypeChecker<'a> {
             }
 
             ir::UnaryExprKind::Negative => {
-                if operand_type != SolisType::Int {
+                if operand_type != SolisType::Int && operand_type != SolisType::Float {
                     compilation_error(
                         self.file,
                         position,
                         &format!(
-                            "Mismatched types. `{unary_expr_kind:?}` operator expected `int`, found `{operand_type}`"
+                            "Mismatched types. `{unary_expr_kind:?}` operator expected `int` or `float`, found `{operand_type}`"
                         ),
                     )
                 }
-                SolisType::Int
+                operand_type
             }
         }
     }
@@ -117,32 +119,41 @@ impl<'a> TypeChecker<'a> {
         position: &Range<usize>,
     ) -> SolisType {
         match binary_expr_kind {
-            // For numerical operators, ensure both operands are integers (TODO: float?)
+            // For numerical operators, ensure both operands are integers
             ir::BinaryExprKind::Plus
             | ir::BinaryExprKind::Minus
             | ir::BinaryExprKind::Times
             | ir::BinaryExprKind::Divide
             | ir::BinaryExprKind::Mod => {
-                if operand_1_type != SolisType::Int || operand_2_type != SolisType::Int {
+                if !matches!(operand_1_type, SolisType::Int | SolisType::Float)
+                    || !matches!(operand_2_type, SolisType::Int | SolisType::Float)
+                {
                     compilation_error(
                       self.file,
                       position,
-                      &format!("Mismatched types. `{binary_expr_kind:?}` operator expected `int` and `int`, but found `{operand_1_type}` and `{operand_2_type}`")
+                      &format!("Bad operand types for `{binary_expr_kind:?}` operator: `{operand_1_type}` and `{operand_2_type}`")
                     )
                 }
-                SolisType::Int
+
+                if operand_1_type == SolisType::Float || operand_2_type == SolisType::Float {
+                    SolisType::Float
+                } else {
+                    SolisType::Int
+                }
             }
 
-            // For comparison operators, ensure both operands are integers (TODO: float?)
+            // For comparison operators, ensure both operands are integers
             ir::BinaryExprKind::LessThan
             | ir::BinaryExprKind::LessThanOrEquals
             | ir::BinaryExprKind::MoreThan
             | ir::BinaryExprKind::MoreThanOrEquals => {
-                if operand_1_type != SolisType::Int || operand_2_type != SolisType::Int {
+                if !matches!(operand_1_type, SolisType::Int | SolisType::Float)
+                    || !matches!(operand_2_type, SolisType::Int | SolisType::Float)
+                {
                     compilation_error(
                       self.file,
                       position,
-                      &format!("Mismatched types. `{binary_expr_kind:?}` operator expected `int` and `int`, but found `{operand_1_type}` and `{operand_2_type}`")
+                      &format!("Bad operand types for `{binary_expr_kind:?}` operator: `{operand_1_type}` and `{operand_2_type}`")
                     )
                 }
                 SolisType::Bool

@@ -19,6 +19,60 @@ fn test_empty() {
 }
 
 #[test]
+fn test_direct() {
+    translate_check(
+        "2",
+        expect![[r#"
+            Program {
+                body: Block {
+                    exprs: [
+                        Direct {
+                            expr: Int {
+                                value: 2,
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    )
+}
+
+#[test]
+fn test_direct_2() {
+    translate_check(
+        "let a: float = 2.; a",
+        expect![[r#"
+            Program {
+                body: Block {
+                    exprs: [
+                        Let {
+                            id: "@temp0",
+                            init_expr: Direct {
+                                expr: Float {
+                                    value: 2.0,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "a",
+                            init_expr: Direct {
+                                expr: Id {
+                                    value: "@temp0",
+                                },
+                            },
+                        },
+                        Direct {
+                            expr: Id {
+                                value: "a",
+                            },
+                        },
+                    ],
+                },
+            }"#]],
+    )
+}
+
+#[test]
 fn test_basic() {
     translate_check(
         "let a: int = 2 + 3
@@ -85,6 +139,11 @@ fn test_basic() {
                                 operand_2: Id {
                                     value: "@temp2",
                                 },
+                            },
+                        },
+                        Direct {
+                            expr: Id {
+                                value: "b",
                             },
                         },
                     ],

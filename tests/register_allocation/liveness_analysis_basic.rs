@@ -12,8 +12,8 @@ fn test_empty_literals() {
         "let a: int = 1 + 2",
         Set::new(),
         Map::new(),
-        expect!["{}"],
-        expect![[r#"{"a": 0}"#]],
+        expect![[r#"{"a"}"#]],
+        expect![[r#"{"a": 1}"#]],
     );
 }
 
@@ -23,8 +23,8 @@ fn test_inherited_literals() {
         "let a: int = 1 + 2",
         Set::from([&String::from("a")]),
         Map::from([(&String::from("b"), 0_usize)]),
-        expect!["{}"],
-        expect![[r#"{"a": 0, "b": 0}"#]],
+        expect![[r#"{"a"}"#]],
+        expect![[r#"{"a": 1, "b": 0}"#]],
     );
 }
 
@@ -34,8 +34,8 @@ fn test_modify_inherited_literals() {
         "let a: int = 1 + 2",
         Set::from([&"a".to_string(), &"b".to_string()]),
         Map::from([(&"a".to_string(), 1_usize), (&"b".to_string(), 0_usize)]),
-        expect![[r#"{"b"}"#]],
-        expect![[r#"{"a": 1, "b": 0}"#]],
+        expect![[r#"{"a", "b"}"#]],
+        expect![[r#"{"a": 2, "b": 0}"#]],
     );
 }
 
@@ -46,8 +46,8 @@ fn test_empty_ids() {
          let a: int = d + 2",
         Set::new(),
         Map::new(),
-        expect![[r#"{"d"}"#]],
-        expect![[r#"{"a": 0, "d": 1}"#]],
+        expect![[r#"{"a"}"#]],
+        expect![[r#"{"a": 1}"#]],
     );
 }
 
@@ -58,8 +58,8 @@ fn test_modify_inherited_ids() {
          let a: int = d + b",
         Set::from([&"a".to_string(), &"b".to_string()]),
         Map::from([(&"a".to_string(), 1_usize), (&"b".to_string(), 0_usize)]),
-        expect![[r#"{"b", "d"}"#]],
-        expect![[r#"{"a": 1, "b": 1, "d": 1}"#]],
+        expect![[r#"{"a", "b"}"#]],
+        expect![[r#"{"a": 2, "b": 0}"#]],
     );
 }
 
@@ -82,7 +82,7 @@ fn test_destroy_on_let() {
          let a: int = b",
         Set::from([&"a".to_string(), &"b".to_string()]),
         Map::from([(&"a".to_string(), 1_usize), (&"b".to_string(), 0_usize)]),
-        expect![[r#"{"b"}"#]],
-        expect![[r#"{"a": 1, "b": 1}"#]],
+        expect![[r#"{"a", "b"}"#]],
+        expect![[r#"{"a": 2, "b": 0}"#]],
     );
 }

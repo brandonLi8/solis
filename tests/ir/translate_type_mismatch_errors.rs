@@ -30,23 +30,19 @@ fn test_unary_type_reference_mismatch_1() {
 }
 
 #[test]
-#[should_panic(expected = "Mismatched types. `Negative` operator expected `int`, found `bool` at 17..18")]
+#[should_panic(expected = "Mismatched types. `Negative` operator expected `int` or `float`, found `bool` at 17..18")]
 fn test_unary_type_reference_mismatch_2() {
     translate_check("let b: int = -----false", expect![[]])
 }
 
 #[test]
-#[should_panic(
-    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 23..24"
-)]
+#[should_panic(expected = "Bad operand types for `Times` operator: `int` and `bool` at 24..25")]
 fn test_binary_type_reference_mismatch_numerical_1() {
-    translate_check("let b: int = 1 + 2 - 3 * false", expect![[]])
+    translate_check("let b: int = 1 + 2. - 3 * false", expect![[]])
 }
 
 #[test]
-#[should_panic(
-    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 61..62"
-)]
+#[should_panic(expected = "Bad operand types for `Times` operator: `int` and `bool` at 61..62")]
 fn test_binary_type_reference_mismatch_numerical_2() {
     translate_check(
         "
@@ -58,9 +54,7 @@ fn test_binary_type_reference_mismatch_numerical_2() {
 }
 
 #[test]
-#[should_panic(
-    expected = "Mismatched types. `Times` operator expected `int` and `int`, but found `int` and `bool` at 61..62"
-)]
+#[should_panic(expected = "Bad operand types for `Times` operator: `int` and `bool` at 61..62")]
 fn test_binary_type_reference_mismatch_numerical_3() {
     translate_check(
         "
@@ -72,17 +66,13 @@ fn test_binary_type_reference_mismatch_numerical_3() {
 }
 
 #[test]
-#[should_panic(
-    expected = "Mismatched types. `LessThanOrEquals` operator expected `int` and `int`, but found `int` and `bool` at 24..26"
-)]
+#[should_panic(expected = "Bad operand types for `LessThanOrEquals` operator: `int` and `bool` at 24..26")]
 fn test_binary_type_reference_mismatch_comparison_1() {
     translate_check("let b: bool = 1 + 2 - 3 <= false", expect![[]])
 }
 
 #[test]
-#[should_panic(
-    expected = "Mismatched types. `MoreThanOrEquals` operator expected `int` and `int`, but found `int` and `bool` at 82..84"
-)]
+#[should_panic(expected = "Bad operand types for `MoreThanOrEquals` operator: `int` and `bool` at 82..84")]
 fn test_binary_type_reference_mismatch_comparison_2() {
     translate_check(
         "
