@@ -43,6 +43,9 @@
 //!   Working with directs means that the operator does not have to do any more computation (naively would have to store
 //!   results on the stack).
 
+use ir::type_checker::SolisType;
+use Map;
+
 #[derive(PartialEq, Debug)]
 pub struct Program {
     pub body: Block,
@@ -51,6 +54,7 @@ pub struct Program {
 #[derive(PartialEq, Debug)]
 pub struct Block {
     pub exprs: Vec<Expr>,
+    pub identifier_types: Map<String, SolisType>,
 }
 
 #[derive(PartialEq, Debug)]

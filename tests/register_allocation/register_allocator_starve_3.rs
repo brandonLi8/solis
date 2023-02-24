@@ -4,7 +4,7 @@
 
 use expect_test::expect;
 use solis::asm::asm::Register;
-use solis::register_allocation::register_allocator::Set;
+use solis::Set;
 use test_utils::register_allocator_check;
 
 static PROGRAM_3: &str = "# Program with different frequencies
@@ -41,6 +41,7 @@ fn test_program_3_starve_3() {
     register_allocator_check(
         PROGRAM_3,
         Set::from([&Register::R8, &Register::R9, &Register::R10]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Register(
@@ -73,6 +74,7 @@ fn test_program_3_starve_2() {
     register_allocator_check(
         PROGRAM_3,
         Set::from([&Register::R8, &Register::R9]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Register(
@@ -105,6 +107,7 @@ fn test_program_3_starve_1() {
     register_allocator_check(
         PROGRAM_3,
         Set::from([&Register::R8]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Register(
@@ -136,6 +139,7 @@ fn test_program_3_starve_1() {
 fn test_program_3_starve_0() {
     register_allocator_check(
         PROGRAM_3,
+        Set::new(),
         Set::new(),
         expect![[r#"
             {

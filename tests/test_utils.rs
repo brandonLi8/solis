@@ -6,15 +6,14 @@ extern crate expect_test;
 extern crate solis;
 
 use expect_test::Expect;
-use solis::asm::asm::Register;
+use solis::asm::asm::{FloatRegister, Register};
 use solis::ir::translator::translate_program;
 use solis::parser::parser::parse;
 use solis::register_allocation::conflict_analysis::conflict_analysis;
 use solis::register_allocation::liveness_analysis::liveness_analysis;
 use solis::register_allocation::register_allocator::allocate_registers;
-use solis::register_allocation::register_allocator::{Map, Set};
 use solis::tokenizer::tokenizer::tokenize;
-use solis::File;
+use solis::{File, Map, Set};
 
 /// Test function for tokenizing a program.
 pub fn tokenize_check(program: &str, expect: Expect) {
@@ -75,9 +74,17 @@ pub fn conflict_analysis_check(block: &str, expect: Expect) {
 }
 
 /// Test function for conflict analysis of a block.
-pub fn register_allocator_check(block: &str, registers: Set<&Register>, expect: Expect) {
+pub fn register_allocator_check(
+    block: &str,
+    registers: Set<&Register>,
+    float_registers: Set<&FloatRegister>,
+    expect: Expect,
+) {
     let file = File { name: String::new(), contents: block.to_string() };
     let program = translate_program(&file, parse(&file, tokenize(&file)));
 
-    expect.assert_eq(&format!("{:#?}", allocate_registers(&program.body, registers)));
+    expect.assert_eq(&format!(
+        "{:#?}",
+        allocate_registers(&program.body, registers, float_registers)
+    ));
 }

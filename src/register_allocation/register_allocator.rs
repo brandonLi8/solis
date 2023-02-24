@@ -14,81 +14,114 @@
 //! is when both variable's lifetimes intersect at some point, meaning they cannot be assigned the same register. Then,
 //! we k-color the graph to achieve an assignment where neighboring edges have different assignments.
 
-use asm::asm::Register;
+use asm::asm::{FloatRegister, Register};
 use error_messages::internal_compiler_error;
 use ir::ir::Block;
-use register_allocation::conflict_analysis::conflict_analysis;
+use register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
+use {Map, Set};
 
 /// An assignment of where to evaluate an expression.
 #[derive(Debug)]
 pub enum Assignment {
     Register(Register),
+    FloatRegister(FloatRegister),
     Spill,
 }
 
 /// Creates an assignment of registers for each variable in the block.
 /// * block - the block to create the allocation for
 /// * registers - the pool of registers to assign variables to
+/// * `float_registers` - the pool of float registers to assign float variables to
 /// Returns a map of variable names to the corresponding assignment.
-pub fn allocate_registers<'a>(block: &'a Block, registers: Set<&'a Register>) -> Map<&'a String, Assignment> {
-    // Create a interference graph and frequency map
-    let (mut interference_graph, mut variable_frequencies) = conflict_analysis(block);
+pub fn allocate_registers<'a>(
+    block: &'a Block,
+    registers: Set<&'a Register>,
+    float_registers: Set<&'a FloatRegister>,
+) -> Map<&'a String, Assignment> {
+    // Create a common type of register (base register)
+    #[derive(Eq, Hash, PartialEq, Ord, PartialOrd)]
+    enum X86Register {
+        Register(Register),
+        FloatRegister(FloatRegister),
+    }
+    let registers = registers.into_iter().map(|r| X86Register::Register(*r)).collect();
+    let float_registers = float_registers
+        .into_iter()
+        .map(|r| X86Register::FloatRegister(*r))
+        .collect();
 
-    // A stack that contains variables that are color-able. Please see
-    // https://stackoverflow.com/questions/14399608/chaitin-briggs-algorithm-explanation for an overview of the
-    // algorithm.
-    let mut colorable_nodes_stack: Vec<&String> = vec![];
+    // Create a interference graph and frequency map
+    let (interference_graph, float_interference_graph, mut variable_frequencies) = conflict_analysis(block);
 
     // Result allocation.
     let mut allocation = Map::new();
 
-    while interference_graph.size() > 0 {
-        // Find a node N with degree less than R = registers.length
-        if let Some((node, _)) = interference_graph
-            .nodes
-            .iter()
-            .find(|(_, neighbors)| neighbors.len() < registers.len())
-        {
-            // Remove N and its associated edges from G and push N on a stack S
-            variable_frequencies.remove(node);
-            colorable_nodes_stack.push(node);
-            interference_graph.remove_node(node);
-        } else {
-            // Otherwise the graph cannot be colored with R colors. Simplify the graph G by choosing a variable to
-            // spill and remove its node N from G.
-            // We spill the node that has the minimum heuristic.
-            let (&spilled_node, _) = variable_frequencies
+    // Creates an assignment of registers for each variable in the block, for a given interference graph
+    let mut allocate_registers_internal = |mut interference_graph: InterferenceGraph<'a>,
+                                           registers: Set<X86Register>| {
+        // A stack that contains variables that are color-able. Please see
+        // https://stackoverflow.com/questions/14399608/chaitin-briggs-algorithm-explanation for an overview of the
+        // algorithm.
+        let mut colorable_nodes_stack: Vec<&String> = vec![];
+
+        while interference_graph.size() > 0 {
+            // Find a node N with degree less than R = registers.length
+            if let Some((node, _)) = interference_graph
+                .nodes
                 .iter()
-                .min_by_key(|(_, frequency)| spill_heuristic(**frequency))
-                .unwrap_or_else(|| internal_compiler_error("no variable to spill"));
+                .find(|(_, neighbors)| neighbors.len() < registers.len())
+            {
+                // Remove N and its associated edges from G and push N on a stack S
+                variable_frequencies.remove(node);
+                colorable_nodes_stack.push(node);
+                interference_graph.remove_node(node);
+            } else {
+                // Otherwise the graph cannot be colored with R colors. Simplify the graph G by choosing a variable to
+                // spill and remove its node N from G.
+                // We spill the node that has the minimum heuristic.
+                let (&spilled_node, _) = interference_graph
+                    .nodes
+                    .iter()
+                    .min_by_key(|(node, _)| spill_heuristic(variable_frequencies[*node]))
+                    .unwrap_or_else(|| internal_compiler_error("no variable to spill"));
 
-            // Remove the spilled node.
-            interference_graph.remove_node(spilled_node);
-            variable_frequencies.remove(&spilled_node);
+                // Remove the spilled node.
+                interference_graph.remove_node(spilled_node);
+                variable_frequencies.remove(&spilled_node);
 
-            allocation.insert(spilled_node, Assignment::Spill);
-        }
-    }
-
-    // While stack S contains a node N, Add N to graph G and assign it a color from the R colors
-    while let Some(node) = colorable_nodes_stack.pop() {
-        // Set of the registers that it's neighbors were assigned to.
-        let mut neighbor_registers = Set::new();
-
-        for neighbor in interference_graph.neighbors_when_removed(node) {
-            if let Some(Assignment::Register(register)) = allocation.get(neighbor) {
-                neighbor_registers.insert(register);
+                allocation.insert(spilled_node, Assignment::Spill);
             }
         }
 
-        // Assign the node any register in the available pool (all registers - neighbor registers)
-        let register = **registers
-            .difference(&neighbor_registers)
-            .next()
-            .unwrap_or_else(|| internal_compiler_error("no available register for color-able node"));
-        allocation.insert(node, Assignment::Register(register));
-    }
+        // While stack S contains a node N, Add N to graph G and assign it a color from the R colors
+        while let Some(node) = colorable_nodes_stack.pop() {
+            // Set of the registers that it's neighbors were assigned to.
+            let mut neighbor_registers = Set::new();
 
+            for neighbor in interference_graph.neighbors_when_removed(node) {
+                if let Some(Assignment::Register(register)) = allocation.get(neighbor) {
+                    neighbor_registers.insert(X86Register::Register(*register));
+                }
+                if let Some(Assignment::FloatRegister(register)) = allocation.get(neighbor) {
+                    neighbor_registers.insert(X86Register::FloatRegister(*register));
+                }
+            }
+
+            // Assign the node any register in the available pool (all registers - neighbor registers)
+            let register = registers
+                .difference(&neighbor_registers)
+                .next()
+                .unwrap_or_else(|| internal_compiler_error("no available register for color-able node"));
+
+            match register {
+                X86Register::Register(register) => allocation.insert(node, Assignment::Register(*register)),
+                X86Register::FloatRegister(register) => allocation.insert(node, Assignment::FloatRegister(*register)),
+            };
+        }
+    };
+
+    allocate_registers_internal(interference_graph, registers);
+    allocate_registers_internal(float_interference_graph, float_registers);
     allocation
 }
 
@@ -99,17 +132,3 @@ const fn spill_heuristic(frequency: usize) -> usize {
     // adding a weighted sum of the frequency (normalized) and the inverse degree of the variable.
     frequency
 }
-
-// For the compiler, we want to use Hash tables for performance. However for testing, we need the result of the
-// register allocation (steps) to be deterministic. Create an aliased type that is stubbed based on the test environment
-#[cfg(not(feature = "test"))]
-pub type Set<T> = std::collections::HashSet<T>;
-
-#[cfg(feature = "test")]
-pub type Set<T> = std::collections::BTreeSet<T>;
-
-#[cfg(not(feature = "test"))]
-pub type Map<K, V> = std::collections::HashMap<K, V>;
-
-#[cfg(feature = "test")]
-pub type Map<K, V> = std::collections::BTreeMap<K, V>;

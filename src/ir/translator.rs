@@ -34,7 +34,7 @@ fn translate_block(file: &File, block: ast::Block) -> ir::Block {
         }
     }
 
-    ir::Block { exprs }
+    ir::Block { exprs, identifier_types: type_checker.identifier_types }
 }
 
 // Translates a `ast::Expr` into a `ir::Expr`
@@ -62,6 +62,10 @@ fn translate_expr(
             // should translate to `let temp1 = 1.2; let temp2 = 2.3; let a = temp1 + temp2`.
             let identifier = gen_temp_identifier();
             bindings.push(ir::Expr::Let { id: identifier.to_string(), init_expr: Box::new(float_expr) });
+            type_checker
+                .identifier_types
+                .insert(identifier.to_string(), SolisType::Float);
+
             (
                 ir::Expr::Direct { expr: ir::DirectExpr::Id { value: identifier } },
                 SolisType::Float,
@@ -85,10 +89,13 @@ fn translate_expr(
             };
 
             // Type check and get the result type
-            let result_type = type_checker.type_check_unary_expr(&kind, operand_type, &expr.position);
+            let result_type = type_checker.type_check_unary_expr(&kind, operand_type.clone(), &expr.position);
 
             (
-                ir::Expr::UnaryExpr { kind, operand: Box::new(to_direct(operand_ir, bindings)) },
+                ir::Expr::UnaryExpr {
+                    kind,
+                    operand: Box::new(to_direct(operand_ir, operand_type, type_checker, bindings)),
+                },
                 result_type,
             )
         }
@@ -113,14 +120,18 @@ fn translate_expr(
             };
 
             // Type check and get the result type
-            let result_type =
-                type_checker.type_check_binary_expr(&kind, operand_1_type, operand_2_type, &expr.position);
+            let result_type = type_checker.type_check_binary_expr(
+                &kind,
+                operand_1_type.clone(),
+                operand_2_type.clone(),
+                &expr.position,
+            );
 
             (
                 ir::Expr::BinaryExpr {
                     kind,
-                    operand_1: Box::new(to_direct(operand_1, bindings)),
-                    operand_2: Box::new(to_direct(operand_2, bindings)),
+                    operand_1: Box::new(to_direct(operand_1, operand_1_type, type_checker, bindings)),
+                    operand_2: Box::new(to_direct(operand_2, operand_2_type, type_checker, bindings)),
                 },
                 result_type,
             )
@@ -130,12 +141,21 @@ fn translate_expr(
 
 // Translates a `ir::Expr` into `ir::DirectExpr`.
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn to_direct(expr: ir::Expr, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
+fn to_direct(
+    expr: ir::Expr,
+    expr_type: SolisType,
+    type_checker: &mut TypeChecker,
+    bindings: &mut Vec<ir::Expr>,
+) -> ir::DirectExpr {
     if let ir::Expr::Direct { expr } = expr {
         expr
     } else {
         let direct_identifier = gen_temp_identifier();
         bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(expr) });
+        type_checker
+            .identifier_types
+            .insert(direct_identifier.to_string(), expr_type);
+
         ir::DirectExpr::Id { value: direct_identifier }
     }
 }

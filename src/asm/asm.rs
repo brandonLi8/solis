@@ -36,6 +36,7 @@ pub enum Operand {
 
 /// Registers for floating point (SSE). Registers with special purposes have been annotated.
 /// See `http://csapp.cs.cmu.edu/public/waside/waside-sse.pdf`
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 pub enum FloatRegister {
     Xmm0, // Return value
     Xmm1,

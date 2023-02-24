@@ -55,6 +55,12 @@ fn test_float_basic() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Float,
+                        "@temp1": Float,
+                        "@temp2": Float,
+                        "a": Float,
+                    },
                 },
             }"#]],
     )
@@ -123,6 +129,13 @@ fn test_float_complex() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Float,
+                        "@temp1": Bool,
+                        "@temp2": Bool,
+                        "a": Bool,
+                        "b": Bool,
+                    },
                 },
             }"#]],
     )

@@ -11,8 +11,9 @@
 
 use error_messages::internal_compiler_error;
 use ir::ir::Block;
+use ir::type_checker::SolisType;
 use register_allocation::liveness_analysis::liveness_analysis;
-use register_allocation::register_allocator::{Map, Set};
+use {Map, Set};
 
 /// Struct representing the interference (conflict) graph. Nodes can only be added and removed once.
 #[derive(Debug)]
@@ -49,8 +50,13 @@ impl<'a> InterferenceGraph<'a> {
 
     /// Removes a node from the graph. Once a node has been removed, it cannot be re-added.
     pub fn remove_node(&mut self, variable: &'a String) {
-        self.removed_nodes
-            .insert(variable, self.nodes.remove(variable).unwrap());
+        self.removed_nodes.insert(
+            variable,
+            self.nodes
+                .remove(variable)
+                .unwrap_or_else(|| internal_compiler_error(&format!("node {variable} not found"))),
+        );
+
         for node in self.nodes.values_mut() {
             node.remove(variable);
         }
@@ -70,28 +76,42 @@ impl<'a> InterferenceGraph<'a> {
 }
 
 /// Performs conflict analysis for the passed in block. Returns the `InterferenceGraph` and the variable frequencies map.
-pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, Map<&String, usize>) {
+pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph, Map<&String, usize>) {
     let mut live_variables = Set::<&String>::new();
     let mut variable_frequencies = Map::<&String, usize>::new();
     let mut interference_graph = InterferenceGraph::new();
+
+    // Create a separate interference graph for floating point ids, since floats use a different register set.
+    let mut float_interference_graph = InterferenceGraph::new();
 
     for expr in block.exprs.iter().rev() {
         liveness_analysis(expr, &mut live_variables, &mut variable_frequencies);
 
         for variable_1 in &live_variables {
             for variable_2 in &live_variables {
+                let variable_1_is_float = matches!(block.identifier_types[*variable_1], SolisType::Float);
+                let variable_2_is_float = matches!(block.identifier_types[*variable_2], SolisType::Float);
+
                 if variable_1 != variable_2 {
-                    interference_graph.add_edge(variable_1, variable_2);
+                    if !variable_1_is_float && !variable_2_is_float {
+                        interference_graph.add_edge(variable_1, variable_2);
+                    } else if variable_1_is_float && variable_2_is_float {
+                        float_interference_graph.add_edge(variable_1, variable_2);
+                    }
                 }
             }
         }
     }
 
-    // Add each node in variable_frequencies, which ensures that every variable in the block is added to the
+    // Add each node in identifier_types, which ensures that every variable in the block is added to the
     // interference graph (specifically the case of variables that are not referenced after initialization).
-    for variable in variable_frequencies.keys() {
-        interference_graph.add_node(variable);
+    for (variable, variable_type) in &block.identifier_types {
+        if let SolisType::Float = variable_type {
+            float_interference_graph.add_node(variable);
+        } else {
+            interference_graph.add_node(variable);
+        }
     }
 
-    (interference_graph, variable_frequencies)
+    (interference_graph, float_interference_graph, variable_frequencies)
 }

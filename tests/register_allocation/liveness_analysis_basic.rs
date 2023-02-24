@@ -3,7 +3,7 @@
 //! Basic tests for liveness analysis correctness.
 
 use expect_test::expect;
-use solis::register_allocation::register_allocator::{Map, Set};
+use solis::{Map, Set};
 use test_utils::liveness_analysis_check;
 
 #[test]
@@ -21,8 +21,8 @@ fn test_empty_literals() {
 fn test_inherited_literals() {
     liveness_analysis_check(
         "let a: int = 1 + 2",
-        Set::from([&String::from("a")]),
-        Map::from([(&String::from("b"), 0_usize)]),
+        Set::from([&"a".to_string()]),
+        Map::from([(&"b".to_string(), 0_usize)]),
         expect![[r#"{"a"}"#]],
         expect![[r#"{"a": 1, "b": 0}"#]],
     );

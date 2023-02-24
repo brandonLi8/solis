@@ -13,6 +13,7 @@ fn test_empty() {
             Program {
                 body: Block {
                     exprs: [],
+                    identifier_types: {},
                 },
             }"#]],
     )
@@ -32,6 +33,7 @@ fn test_direct() {
                             },
                         },
                     ],
+                    identifier_types: {},
                 },
             }"#]],
     )
@@ -67,6 +69,10 @@ fn test_direct_2() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Float,
+                        "a": Float,
+                    },
                 },
             }"#]],
     )
@@ -147,6 +153,13 @@ fn test_basic() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Int,
+                        "@temp1": Int,
+                        "@temp2": Int,
+                        "a": Int,
+                        "b": Int,
+                    },
                 },
             }"#]],
     );
@@ -227,6 +240,13 @@ fn test_basic() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp3": Int,
+                        "@temp4": Int,
+                        "@temp5": Int,
+                        "@temp6": Int,
+                        "@temp7": Int,
+                    },
                 },
             }"#]],
     );
@@ -274,6 +294,11 @@ fn test_basic() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp10": Bool,
+                        "@temp8": Bool,
+                        "@temp9": Bool,
+                    },
                 },
             }"#]],
     )

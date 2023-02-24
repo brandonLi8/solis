@@ -4,7 +4,7 @@
 
 use expect_test::expect;
 use solis::asm::asm::Register;
-use solis::register_allocation::register_allocator::Set;
+use solis::Set;
 use test_utils::register_allocator_check;
 
 static PROGRAM_1: &str = "# General purpose program
@@ -28,6 +28,7 @@ fn test_program_1_starve_4() {
     register_allocator_check(
         PROGRAM_1,
         Set::from([&Register::R8, &Register::R9, &Register::R10, &Register::R11]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Register(
@@ -57,6 +58,7 @@ fn test_program_1_starve_3() {
     register_allocator_check(
         PROGRAM_1,
         Set::from([&Register::R8, &Register::R9, &Register::R10]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Register(
@@ -86,6 +88,7 @@ fn test_program_1_starve_2() {
     register_allocator_check(
         PROGRAM_1,
         Set::from([&Register::R8, &Register::R9]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Spill,
@@ -113,6 +116,7 @@ fn test_program_1_starve_1() {
     register_allocator_check(
         PROGRAM_1,
         Set::from([&Register::R8]),
+        Set::new(),
         expect![[r#"
             {
                 "@temp0": Spill,
@@ -133,6 +137,7 @@ fn test_program_1_starve_1() {
 fn test_program_1_starve_0() {
     register_allocator_check(
         PROGRAM_1,
+        Set::new(),
         Set::new(),
         expect![[r#"
             {

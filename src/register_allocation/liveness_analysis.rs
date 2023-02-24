@@ -19,10 +19,11 @@
 //!     Line 1 output: {}       (remove a)
 
 use ir::ir::{DirectExpr, Expr};
-use register_allocation::register_allocator::{Map, Set};
+use {Map, Set};
 
-/// Computes the variables that are live right before the expression runs. In other words, it computes the variables that
-/// are live (needed) to execute this expression (and everything after). It does this by modifying `live_variables`.
+/// Computes the variables that are live right before the expression runs. In other words, it computes the variables
+/// that are live (needed) to execute this expression (and everything after). It does this by modifying
+/// `live_variables`.
 ///
 /// `live_variables` - the variables that are live when the next expression runs.
 /// `variable_frequencies` - maps variables to the number of times they are referenced. Modified in this function.

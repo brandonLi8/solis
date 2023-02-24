@@ -10,14 +10,15 @@
 //!                  Or equivalently, `stack_index + 8` represents where the bottom of the stack is.
 //! These objects are kept and tracked while traveling through the IR.
 
-use asm::asm::{Instruction, Instruction::*, Operand, Operand::*, Register, Register::*};
+use asm::asm::{FloatRegister::*, Instruction, Instruction::*, Operand, Operand::*, Register, Register::*};
 use compiler::compile_binary_expr::compile_binary_expr;
 use compiler::compile_unary_expr::compile_unary_expr;
 use compiler::symbol_table::{Location, SymbolTable};
 use error_messages::internal_compiler_error;
 use ir::ir::{Block, DirectExpr, Expr, Program};
 use register_allocation::register_allocator::allocate_registers;
-use register_allocation::register_allocator::{Assignment, Map, Set};
+use register_allocation::register_allocator::Assignment;
+use {Map, Set};
 
 /// Compiles a Program into assembly instructions.
 pub fn compile(program: Program) -> Vec<Instruction> {
@@ -44,8 +45,13 @@ fn compile_block(
     instructions: &mut Vec<Instruction>,
 ) {
     // Run the register allocator
-    let variable_assignment: Map<&String, Assignment> =
-        allocate_registers(block, Set::from([&R8, &R9, &R10, &R11, &R12, &R13]));
+    let variable_assignment: Map<&String, Assignment> = allocate_registers(
+        block,
+        Set::from([&R8, &R9, &R10, &R11, &R12, &R13]),
+        Set::from([
+            &Xmm1, &Xmm2, &Xmm3, &Xmm4, &Xmm5, &Xmm6, &Xmm7, &Xmm8, &Xmm9, &Xmm10, &Xmm11, &Xmm12, &Xmm13,
+        ]),
+    );
 
     // Compile each expression
     for (i, expr) in block.exprs.iter().enumerate() {
@@ -95,6 +101,7 @@ pub fn compile_expr(
                     **stack_index -= 8;
                     location
                 }
+                Assignment::FloatRegister(_) => todo!(),
             };
 
             compile_expr(

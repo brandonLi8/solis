@@ -60,6 +60,12 @@ fn test_nested_let() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Bool,
+                        "@temp1": Bool,
+                        "a": Bool,
+                        "b": Bool,
+                    },
                 },
             }"#]],
     )
@@ -124,6 +130,12 @@ fn test_nested_let_1() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Int,
+                        "@temp1": Int,
+                        "a": Bool,
+                        "b": Int,
+                    },
                 },
             }"#]],
     )
@@ -187,6 +199,12 @@ fn test_nested_let_2() {
                             },
                         },
                     ],
+                    identifier_types: {
+                        "@temp0": Int,
+                        "a": Int,
+                        "b": Int,
+                        "c": Int,
+                    },
                 },
             }"#]],
     )
