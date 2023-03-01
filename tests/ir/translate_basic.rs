@@ -97,6 +97,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -109,6 +110,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 1,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -121,6 +123,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -133,6 +136,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 4,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -145,6 +149,7 @@ fn test_basic() {
                                 operand_2: Id {
                                     value: "@temp2",
                                 },
+                                operand_type: Int,
                             },
                         },
                         Direct {
@@ -180,6 +185,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 4,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -192,6 +198,7 @@ fn test_basic() {
                                 operand_2: Id {
                                     value: "@temp3",
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -204,6 +211,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 5,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -216,6 +224,7 @@ fn test_basic() {
                                 operand_2: Id {
                                     value: "@temp5",
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -228,6 +237,7 @@ fn test_basic() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operand_type: Int,
                             },
                         },
                         BinaryExpr {
@@ -238,6 +248,7 @@ fn test_basic() {
                             operand_2: Id {
                                 value: "@temp7",
                             },
+                            operand_type: Int,
                         },
                     ],
                     identifier_types: {
@@ -267,6 +278,7 @@ fn test_basic() {
                                 operand_2: Bool {
                                     value: false,
                                 },
+                                operand_type: Bool,
                             },
                         },
                         Let {
@@ -276,6 +288,7 @@ fn test_basic() {
                                 operand: Id {
                                     value: "@temp8",
                                 },
+                                operand_type: Bool,
                             },
                         },
                         Let {
@@ -285,6 +298,7 @@ fn test_basic() {
                                 operand: Id {
                                     value: "@temp9",
                                 },
+                                operand_type: Bool,
                             },
                         },
                         UnaryExpr {
@@ -292,6 +306,7 @@ fn test_basic() {
                             operand: Id {
                                 value: "@temp10",
                             },
+                            operand_type: Bool,
                         },
                     ],
                     identifier_types: {

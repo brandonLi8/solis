@@ -56,12 +56,8 @@ fn test_program_3_starve_3() {
                 "a": Register(
                     R8,
                 ),
-                "b": Register(
-                    R8,
-                ),
-                "c": Register(
-                    R8,
-                ),
+                "b": None,
+                "c": None,
                 "d": Register(
                     R8,
                 ),
@@ -89,12 +85,8 @@ fn test_program_3_starve_2() {
                 "a": Register(
                     R8,
                 ),
-                "b": Register(
-                    R8,
-                ),
-                "c": Register(
-                    R8,
-                ),
+                "b": None,
+                "c": None,
                 "d": Register(
                     R8,
                 ),
@@ -122,12 +114,8 @@ fn test_program_3_starve_1() {
                 "a": Register(
                     R8,
                 ),
-                "b": Register(
-                    R8,
-                ),
-                "c": Register(
-                    R8,
-                ),
+                "b": None,
+                "c": None,
                 "d": Register(
                     R8,
                 ),
@@ -147,8 +135,8 @@ fn test_program_3_starve_0() {
                 "@temp1": Spill,
                 "@temp2": Spill,
                 "a": Spill,
-                "b": Spill,
-                "c": Spill,
+                "b": None,
+                "c": None,
                 "d": Spill,
             }"#]],
     );

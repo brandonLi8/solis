@@ -16,6 +16,7 @@ use compiler::compile_unary_expr::compile_unary_expr;
 use compiler::symbol_table::{Location, SymbolTable};
 use error_messages::internal_compiler_error;
 use ir::ir::{Block, DirectExpr, Expr, Program};
+use ir::type_checker::SolisType;
 use register_allocation::register_allocator::allocate_registers;
 use register_allocation::register_allocator::Assignment;
 use {Map, Set};
@@ -84,24 +85,45 @@ pub fn compile_expr(
             // If location is None, we can safely ignore the Direct as the result is not needed. This happens for
             // for example when a identifier appears in the top level of the block, like `let a: int = 0; a; ...`
             if let Some(location) = location {
-                mov_instruction_safe(
-                    location.to_operand(),
-                    compile_direct(expr, symbol_table),
-                    instructions,
-                    R14,
-                );
+                // For float registers, we must move the float immediate through a register. See #18
+                if let DirectExpr::Float { .. } = expr {
+                    instructions.push(Mov(Reg(R14), compile_direct(expr, symbol_table)));
+
+                    if let Location::FloatRegister { .. } = location {
+                        instructions.push(Movq(location.to_operand(), Reg(R14)));
+                    } else {
+                        instructions.push(Mov(location.to_operand(), Reg(R14)));
+                    }
+                } else {
+                    mov_instruction_safe(
+                        location.to_operand(),
+                        compile_direct(expr, symbol_table),
+                        instructions,
+                        R14,
+                    );
+                }
             }
         }
         Expr::Let { id, init_expr } => {
             // Convert assignment of let binding to a location
             let assignment_location = match variable_assignment.get(id).unwrap() {
                 Assignment::Register(register) => Location::Register(*register),
+                Assignment::FloatRegister(register) => Location::FloatRegister(*register),
                 Assignment::Spill => {
                     let location = Location::StackIndex(**stack_index);
                     **stack_index -= 8;
                     location
                 }
-                Assignment::FloatRegister(_) => todo!(),
+                Assignment::None => {
+                    return compile_expr(
+                        init_expr,
+                        None,
+                        symbol_table,
+                        stack_index,
+                        variable_assignment,
+                        instructions,
+                    )
+                }
             };
 
             compile_expr(
@@ -126,18 +148,58 @@ pub fn compile_expr(
             // Add the identifier to the symbol_table, *after* compiling the init_expr.
             symbol_table.insert(id.to_string(), assignment_location);
         }
-        Expr::BinaryExpr { kind, operand_1, operand_2 } => {
+        Expr::BinaryExpr { kind, operand_1, operand_2, operand_type } => {
             // If location is None, we can safely ignore the BinaryExpr as well since it *cannot induce any side
             if let Some(location) = location {
-                compile_binary_expr(kind, operand_1, operand_2, location, symbol_table, instructions);
+                compile_binary_expr(
+                    kind,
+                    operand_1,
+                    operand_2,
+                    operand_type,
+                    location,
+                    symbol_table,
+                    instructions,
+                );
             }
         }
-        Expr::UnaryExpr { kind, operand } => {
+        Expr::UnaryExpr { kind, operand, operand_type } => {
             // If location is None, we can safely ignore the BinaryExpr as well since it *cannot induce any side
             if let Some(location) = location {
-                compile_unary_expr(kind, operand, location, symbol_table, instructions);
+                compile_unary_expr(kind, operand, operand_type, location, symbol_table, instructions);
             }
         }
+        Expr::TypeCoercion { expr, from_type, to_type } => location.map_or_else(
+            || internal_compiler_error("coercion must have location"),
+            |location| compile_type_coercion(expr, location, from_type, to_type, symbol_table, instructions),
+        ),
+    }
+}
+
+/// Converts (coercion) an expression from one type to another type, pushing the results into `instructions`
+/// * expr - input expression
+/// * location - where to put the result of the expression. If None, the result is not needed in the future.
+pub fn compile_type_coercion(
+    expr: &DirectExpr,
+    location: &Location,
+    from_type: &SolisType,
+    to_type: &SolisType,
+    symbol_table: &mut SymbolTable,
+    instructions: &mut Vec<Instruction>,
+) {
+    let mut asm_operand = compile_direct(expr, symbol_table);
+
+    match (from_type, to_type) {
+        (SolisType::Int, SolisType::Float) => {
+            // The second operand of Cvtsi2sd must not be a immediate
+            if let Imm(..) = asm_operand {
+                instructions.push(Mov(Reg(R14), asm_operand));
+                asm_operand = Reg(R14);
+            }
+
+            instructions.push(Cvtsi2sd(FloatReg(Xmm14), asm_operand));
+            instructions.push(Movq(location.to_operand(), FloatReg(Xmm14)));
+        }
+        _ => internal_compiler_error("invalid type coercion"),
     }
 }
 
@@ -150,7 +212,7 @@ pub fn compile_direct(direct: &DirectExpr, symbol_table: &mut SymbolTable) -> Op
             .unwrap_or_else(|| internal_compiler_error(&format!("symbol `{value}` not in symbol_table")))
             .to_operand(),
         DirectExpr::Bool { value } => Imm(i64::from(*value)),
-        DirectExpr::Float { .. } => todo!(),
+        DirectExpr::Float { value } => FloatImm(*value),
     }
 }
 
@@ -167,10 +229,17 @@ pub fn mov_instruction_safe(
     instructions: &mut Vec<Instruction>,
     backup_temporary_register: Register,
 ) {
-    if matches!(asm_operand_1, MemOffset(..)) && matches!(asm_operand_2, MemOffset(..)) {
-        instructions.push(Mov(Reg(backup_temporary_register), asm_operand_2));
-        instructions.push(Mov(asm_operand_1, Reg(backup_temporary_register)));
+    // Use Movq for floating point operands.
+    let mov_instruction = if matches!(asm_operand_1, FloatReg(..)) || matches!(asm_operand_2, FloatReg(..)) {
+        Movq
     } else {
-        instructions.push(Mov(asm_operand_1, asm_operand_2));
+        Mov
+    };
+
+    if matches!(asm_operand_1, MemOffset(..)) && matches!(asm_operand_2, MemOffset(..)) {
+        instructions.push(mov_instruction(Reg(backup_temporary_register), asm_operand_2));
+        instructions.push(mov_instruction(asm_operand_1, Reg(backup_temporary_register)));
+    } else {
+        instructions.push(mov_instruction(asm_operand_1, asm_operand_2));
     }
 }

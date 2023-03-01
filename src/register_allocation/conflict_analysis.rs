@@ -28,7 +28,7 @@ pub struct InterferenceGraph<'a> {
 
 impl<'a> InterferenceGraph<'a> {
     /// Tokens Cursor constructor.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         InterferenceGraph { nodes: Map::new(), removed_nodes: Map::new() }
     }
 
@@ -87,9 +87,18 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
     for expr in block.exprs.iter().rev() {
         liveness_analysis(expr, &mut live_variables, &mut variable_frequencies);
 
+        // For each pair of variables that are live (at this point), add a conflict between them
         for variable_1 in &live_variables {
+            let variable_1_is_float = matches!(block.identifier_types[*variable_1], SolisType::Float);
+
+            // Add the node to ensure that it is in the conflict graph (even if it doesn't conflict with something).
+            if variable_1_is_float {
+                float_interference_graph.add_node(variable_1);
+            } else {
+                interference_graph.add_node(variable_1);
+            }
+
             for variable_2 in &live_variables {
-                let variable_1_is_float = matches!(block.identifier_types[*variable_1], SolisType::Float);
                 let variable_2_is_float = matches!(block.identifier_types[*variable_2], SolisType::Float);
 
                 if variable_1 != variable_2 {
@@ -100,16 +109,6 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
                     }
                 }
             }
-        }
-    }
-
-    // Add each node in identifier_types, which ensures that every variable in the block is added to the
-    // interference graph (specifically the case of variables that are not referenced after initialization).
-    for (variable, variable_type) in &block.identifier_types {
-        if let SolisType::Float = variable_type {
-            float_interference_graph.add_node(variable);
-        } else {
-            interference_graph.add_node(variable);
         }
     }
 

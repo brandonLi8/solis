@@ -30,6 +30,7 @@ fn test_empty_registers() {
                 "@temp3": Spill,
                 "@temp4": Spill,
                 "@temp5": Spill,
+                "@temp6": Spill,
                 "a": Spill,
                 "b": Spill,
                 "c": Spill,
@@ -86,20 +87,17 @@ fn test_no_conflicts_2() {
         expect![[r#"
             {
                 "@temp0": FloatRegister(
-                    Xmm1,
+                    Xmm2,
                 ),
                 "@temp1": Register(
                     R8,
                 ),
-                "a": Register(
-                    R8,
+                "@temp2": FloatRegister(
+                    Xmm1,
                 ),
-                "b": Register(
-                    R8,
-                ),
-                "c": Register(
-                    R8,
-                ),
+                "a": None,
+                "b": None,
+                "c": None,
                 "d": Register(
                     R8,
                 ),

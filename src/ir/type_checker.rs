@@ -35,7 +35,7 @@ pub struct TypeChecker<'a> {
 impl<'a> TypeChecker<'a> {
     /// Type Checker constructor.
     /// * file: the original Solis file
-    pub fn new(file: &'a File) -> Self {
+    pub const fn new(file: &'a File) -> Self {
         TypeChecker { file, identifier_types: Map::new() }
     }
 
@@ -73,13 +73,18 @@ impl<'a> TypeChecker<'a> {
         }
     }
 
-    /// Type checks unary expressions, returning the type of the result expression.
+    /// Type checks unary expressions
+    /// * return: (
+    ///
+    ///     - the type of the result expression,
+    ///     - the type that the operand needs to be coerced into, if at all
+    /// )
     pub fn type_check_unary_expr(
         &self,
         unary_expr_kind: &ir::UnaryExprKind,
         operand_type: SolisType,
         position: &Range<usize>,
-    ) -> SolisType {
+    ) -> (SolisType, Option<SolisType>) {
         match unary_expr_kind {
             ir::UnaryExprKind::Not => {
                 if operand_type != SolisType::Bool {
@@ -91,7 +96,7 @@ impl<'a> TypeChecker<'a> {
                         ),
                     )
                 }
-                SolisType::Bool
+                (SolisType::Bool, None)
             }
 
             ir::UnaryExprKind::Negative => {
@@ -104,21 +109,26 @@ impl<'a> TypeChecker<'a> {
                         ),
                     )
                 }
-                operand_type
+                (operand_type, None)
             }
         }
     }
 
-    /// Type checks binary expressions, returning the type of the result expression.
+    /// Type checks binary expressions.
+    /// * return: (
+    ///     - the type of the result expression,
+    ///     - the type that the `operand_1` needs to be coerced into, if at all
+    ///     - the type that the `operand_2` needs to be coerced into, if at all
+    /// )
     pub fn type_check_binary_expr(
         &self,
         binary_expr_kind: &ir::BinaryExprKind,
         operand_1_type: SolisType,
         operand_2_type: SolisType,
         position: &Range<usize>,
-    ) -> SolisType {
+    ) -> (SolisType, Option<SolisType>, Option<SolisType>) {
         match binary_expr_kind {
-            // For numerical operators, ensure both operands are integers
+            // For numerical operators, ensure both operands are integers/floats
             ir::BinaryExprKind::Plus
             | ir::BinaryExprKind::Minus
             | ir::BinaryExprKind::Times
@@ -134,14 +144,21 @@ impl<'a> TypeChecker<'a> {
                     )
                 }
 
-                if operand_1_type == SolisType::Float || operand_2_type == SolisType::Float {
-                    SolisType::Float
+                let operand_1_is_float = matches!(operand_1_type, SolisType::Float);
+                let operand_2_is_float = matches!(operand_2_type, SolisType::Float);
+
+                if operand_1_is_float || operand_2_is_float {
+                    (
+                        SolisType::Float,
+                        if operand_1_is_float { None } else { Some(SolisType::Float) },
+                        if operand_2_is_float { None } else { Some(SolisType::Float) },
+                    )
                 } else {
-                    SolisType::Int
+                    (SolisType::Int, None, None)
                 }
             }
 
-            // For comparison operators, ensure both operands are integers
+            // For comparison operators, ensure both operands are integers/Floats
             ir::BinaryExprKind::LessThan
             | ir::BinaryExprKind::LessThanOrEquals
             | ir::BinaryExprKind::MoreThan
@@ -155,7 +172,19 @@ impl<'a> TypeChecker<'a> {
                       &format!("Bad operand types for `{binary_expr_kind:?}` operator: `{operand_1_type}` and `{operand_2_type}`")
                     )
                 }
-                SolisType::Bool
+
+                let operand_1_is_float = matches!(operand_1_type, SolisType::Float);
+                let operand_2_is_float = matches!(operand_2_type, SolisType::Float);
+
+                if operand_1_is_float || operand_2_is_float {
+                    (
+                        SolisType::Bool,
+                        if operand_1_is_float { None } else { Some(SolisType::Float) },
+                        if operand_2_is_float { None } else { Some(SolisType::Float) },
+                    )
+                } else {
+                    (SolisType::Bool, None, None)
+                }
             }
 
             // For equality, ensure that both operands are the same type.
@@ -167,7 +196,7 @@ impl<'a> TypeChecker<'a> {
                       &format!("Mismatched types. `{binary_expr_kind:?}` cannot be used with `{operand_1_type}` and `{operand_2_type}`")
                     )
                 }
-                SolisType::Bool
+                (SolisType::Bool, None, None)
             }
         }
     }

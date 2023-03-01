@@ -23,6 +23,7 @@ fn test_nested_let() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -35,6 +36,7 @@ fn test_nested_let() {
                                 operand_2: Bool {
                                     value: false,
                                 },
+                                operand_type: Bool,
                             },
                         },
                         Let {
@@ -44,6 +46,7 @@ fn test_nested_let() {
                                 operand: Id {
                                     value: "@temp1",
                                 },
+                                operand_type: Bool,
                             },
                         },
                         Let {
@@ -89,6 +92,7 @@ fn test_nested_let_1() {
                                 operand_2: Int {
                                     value: 4,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -101,6 +105,7 @@ fn test_nested_let_1() {
                                 operand_2: Id {
                                     value: "@temp0",
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -110,6 +115,7 @@ fn test_nested_let_1() {
                                 operand: Id {
                                     value: "@temp1",
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -122,6 +128,7 @@ fn test_nested_let_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Direct {
@@ -159,6 +166,7 @@ fn test_nested_let_2() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -171,6 +179,7 @@ fn test_nested_let_2() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Let {
@@ -191,6 +200,7 @@ fn test_nested_let_2() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operand_type: Int,
                             },
                         },
                         Direct {

@@ -69,11 +69,20 @@ pub enum Expr {
     UnaryExpr {
         kind: UnaryExprKind,
         operand: Box<DirectExpr>,
+        operand_type: SolisType,
     },
     BinaryExpr {
         kind: BinaryExprKind,
         operand_1: Box<DirectExpr>,
         operand_2: Box<DirectExpr>,
+        operand_type: SolisType,
+    },
+
+    // Converts one type to another type. We do this in the IR layer instead of the compiler layer
+    TypeCoercion {
+        expr: Box<DirectExpr>,
+        from_type: SolisType,
+        to_type: SolisType,
     },
 }
 

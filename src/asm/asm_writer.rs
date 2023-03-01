@@ -84,12 +84,12 @@ fn float_register_to_string(register: FloatRegister) -> String {
         Xmm7 => "xmm7",
         Xmm8 => "xmm8",
         Xmm9 => "xmm9",
-        Xmm10 => "Xmm10",
-        Xmm11 => "Xmm11",
-        Xmm12 => "Xmm12",
-        Xmm13 => "Xmm13",
-        Xmm14 => "Xmm14",
-        Xmm15 => "Xmm15",
+        Xmm10 => "xmm10",
+        Xmm11 => "xmm11",
+        Xmm12 => "xmm12",
+        Xmm13 => "xmm13",
+        Xmm14 => "xmm14",
+        Xmm15 => "xmm15",
     }
     .to_string()
 }
@@ -104,7 +104,7 @@ fn operand_to_string(operand: Operand) -> String {
             &operand_to_string(*operand_1),
             &operand_to_string(*operand_2)
         ),
-        FloatImm(imm) => format!("__?float64?__({imm})"),
+        FloatImm(imm) => format!("__?float64?__({imm:#?})"),
         FloatReg(reg) => float_register_to_string(reg),
     }
 }
@@ -176,12 +176,21 @@ fn instruction_to_string(instruction: Instruction) -> String {
         Pop(operand) =>           format!("\tpop {}", operand_to_string(operand)),
         Call(dest) =>             format!("\tcall {}", label_name(dest)),
         Ret =>                            "\tret".to_string(),
+
         Movq(dest, src) =>        format!("\tmovq {}, {}", operand_to_string(dest), operand_to_string(src)),
         Cvttsd2si(dest, src) =>   format!("\tcvttsd2si {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Cvtsi2sd(dest, src) =>    format!("\tcvtsi2sd {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Xorpd(dest, src) =>       format!("\txorpd {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Addsd(dest, src) =>       format!("\taddsd {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Subsd(dest, src) =>       format!("\tsubsd {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Mulsd(dest, src) =>       format!("\tmulsd {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Divsd(dest, src) =>       format!("\tdivsd {}, {}", operand_to_string(dest), operand_to_string(src)),
+        Cmpsd(dest, src, mode) => format!("\tcmpsd {}, {}, {mode}", operand_to_string(dest), operand_to_string(src)),
+
         Comment(comment) =>       format!("; {comment}"),
         Annotate(instruction, comment) => {
             format!("{: <40} ; {comment}", instruction_to_string(*instruction))
-        },
+        }
     };
     instruction
 }

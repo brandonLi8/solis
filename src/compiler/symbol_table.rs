@@ -4,6 +4,7 @@
 //! runtime. This file contains definitions and helper functions for dealing with the symbol table.
 
 use asm::asm::{
+    FloatRegister,
     Operand::{self, *},
     Register,
 };
@@ -16,6 +17,7 @@ pub type SymbolTable = HashMap<String, Location>;
 // Where the symbol is located at run time.
 pub enum Location {
     Register(Register),
+    FloatRegister(FloatRegister),
     StackIndex(i64),
 }
 
@@ -24,6 +26,7 @@ impl Location {
     pub fn to_operand(&self) -> Operand {
         match self {
             Self::Register(register) => Reg(*register),
+            Self::FloatRegister(register) => FloatReg(*register),
             Self::StackIndex(offset) => stack_address(*offset),
         }
     }

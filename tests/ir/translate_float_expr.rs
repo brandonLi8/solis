@@ -24,19 +24,30 @@ fn test_float_plus_int_basic() {
                             },
                         },
                         Let {
+                            id: "@temp1",
+                            init_expr: TypeCoercion {
+                                expr: Int {
+                                    value: 1,
+                                },
+                                from_type: Int,
+                                to_type: Float,
+                            },
+                        },
+                        Let {
                             id: "a",
                             init_expr: BinaryExpr {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp0",
                                 },
-                                operand_2: Int {
-                                    value: 1,
+                                operand_2: Id {
+                                    value: "@temp1",
                                 },
+                                operand_type: Float,
                             },
                         },
                         Let {
-                            id: "@temp1",
+                            id: "@temp2",
                             init_expr: Direct {
                                 expr: Float {
                                     value: 1.2,
@@ -44,19 +55,30 @@ fn test_float_plus_int_basic() {
                             },
                         },
                         Let {
-                            id: "b",
-                            init_expr: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Int {
+                            id: "@temp3",
+                            init_expr: TypeCoercion {
+                                expr: Int {
                                     value: 2,
                                 },
-                                operand_2: Id {
-                                    value: "@temp1",
-                                },
+                                from_type: Int,
+                                to_type: Float,
                             },
                         },
                         Let {
-                            id: "@temp2",
+                            id: "b",
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: Id {
+                                    value: "@temp3",
+                                },
+                                operand_2: Id {
+                                    value: "@temp2",
+                                },
+                                operand_type: Float,
+                            },
+                        },
+                        Let {
+                            id: "@temp4",
                             init_expr: Direct {
                                 expr: Float {
                                     value: 2.1,
@@ -64,7 +86,7 @@ fn test_float_plus_int_basic() {
                             },
                         },
                         Let {
-                            id: "@temp3",
+                            id: "@temp5",
                             init_expr: Direct {
                                 expr: Float {
                                     value: 3.14,
@@ -76,11 +98,12 @@ fn test_float_plus_int_basic() {
                             init_expr: BinaryExpr {
                                 kind: Plus,
                                 operand_1: Id {
-                                    value: "@temp2",
+                                    value: "@temp4",
                                 },
                                 operand_2: Id {
-                                    value: "@temp3",
+                                    value: "@temp5",
                                 },
+                                operand_type: Float,
                             },
                         },
                         Direct {
@@ -94,6 +117,8 @@ fn test_float_plus_int_basic() {
                         "@temp1": Float,
                         "@temp2": Float,
                         "@temp3": Float,
+                        "@temp4": Float,
+                        "@temp5": Float,
                         "a": Float,
                         "b": Float,
                         "c": Float,
@@ -124,14 +149,25 @@ fn test_float_other_2() {
                         },
                         Let {
                             id: "@temp1",
+                            init_expr: TypeCoercion {
+                                expr: Int {
+                                    value: 3,
+                                },
+                                from_type: Int,
+                                to_type: Float,
+                            },
+                        },
+                        Let {
+                            id: "@temp2",
                             init_expr: BinaryExpr {
                                 kind: LessThan,
                                 operand_1: Id {
                                     value: "@temp0",
                                 },
-                                operand_2: Int {
-                                    value: 3,
+                                operand_2: Id {
+                                    value: "@temp1",
                                 },
+                                operand_type: Float,
                             },
                         },
                         Let {
@@ -139,15 +175,16 @@ fn test_float_other_2() {
                             init_expr: BinaryExpr {
                                 kind: EqualsEquals,
                                 operand_1: Id {
-                                    value: "@temp1",
+                                    value: "@temp2",
                                 },
                                 operand_2: Bool {
                                     value: true,
                                 },
+                                operand_type: Bool,
                             },
                         },
                         Let {
-                            id: "@temp2",
+                            id: "@temp3",
                             init_expr: Direct {
                                 expr: Float {
                                     value: 2.3,
@@ -159,12 +196,13 @@ fn test_float_other_2() {
                             init_expr: UnaryExpr {
                                 kind: Negative,
                                 operand: Id {
-                                    value: "@temp2",
+                                    value: "@temp3",
                                 },
+                                operand_type: Float,
                             },
                         },
                         Let {
-                            id: "@temp3",
+                            id: "@temp4",
                             init_expr: Direct {
                                 expr: Float {
                                     value: 1.2,
@@ -172,59 +210,36 @@ fn test_float_other_2() {
                             },
                         },
                         Let {
-                            id: "@temp4",
-                            init_expr: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Int {
+                            id: "@temp5",
+                            init_expr: TypeCoercion {
+                                expr: Int {
                                     value: 2,
                                 },
-                                operand_2: Id {
-                                    value: "@temp3",
-                                },
-                            },
-                        },
-                        Let {
-                            id: "@temp5",
-                            init_expr: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Id {
-                                    value: "@temp4",
-                                },
-                                operand_2: Int {
-                                    value: 3,
-                                },
-                            },
-                        },
-                        Let {
-                            id: "b",
-                            init_expr: BinaryExpr {
-                                kind: Plus,
-                                operand_1: Id {
-                                    value: "@temp5",
-                                },
-                                operand_2: Int {
-                                    value: 1,
-                                },
+                                from_type: Int,
+                                to_type: Float,
                             },
                         },
                         Let {
                             id: "@temp6",
                             init_expr: BinaryExpr {
                                 kind: Plus,
-                                operand_1: Int {
-                                    value: 2,
+                                operand_1: Id {
+                                    value: "@temp5",
                                 },
-                                operand_2: Int {
-                                    value: 1,
+                                operand_2: Id {
+                                    value: "@temp4",
                                 },
+                                operand_type: Float,
                             },
                         },
                         Let {
                             id: "@temp7",
-                            init_expr: Direct {
-                                expr: Float {
-                                    value: 1.2,
+                            init_expr: TypeCoercion {
+                                expr: Int {
+                                    value: 3,
                                 },
+                                from_type: Int,
+                                to_type: Float,
                             },
                         },
                         Let {
@@ -234,9 +249,77 @@ fn test_float_other_2() {
                                 operand_1: Id {
                                     value: "@temp6",
                                 },
+                                operand_2: Id {
+                                    value: "@temp7",
+                                },
+                                operand_type: Float,
+                            },
+                        },
+                        Let {
+                            id: "@temp9",
+                            init_expr: TypeCoercion {
+                                expr: Int {
+                                    value: 1,
+                                },
+                                from_type: Int,
+                                to_type: Float,
+                            },
+                        },
+                        Let {
+                            id: "b",
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: Id {
+                                    value: "@temp8",
+                                },
+                                operand_2: Id {
+                                    value: "@temp9",
+                                },
+                                operand_type: Float,
+                            },
+                        },
+                        Let {
+                            id: "@temp10",
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: Int {
+                                    value: 2,
+                                },
+                                operand_2: Int {
+                                    value: 1,
+                                },
+                                operand_type: Int,
+                            },
+                        },
+                        Let {
+                            id: "@temp11",
+                            init_expr: Direct {
+                                expr: Float {
+                                    value: 1.2,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp12",
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: Id {
+                                    value: "@temp10",
+                                },
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operand_type: Int,
+                            },
+                        },
+                        Let {
+                            id: "@temp13",
+                            init_expr: TypeCoercion {
+                                expr: Id {
+                                    value: "@temp12",
+                                },
+                                from_type: Int,
+                                to_type: Float,
                             },
                         },
                         Let {
@@ -244,11 +327,12 @@ fn test_float_other_2() {
                             init_expr: BinaryExpr {
                                 kind: Plus,
                                 operand_1: Id {
-                                    value: "@temp8",
+                                    value: "@temp13",
                                 },
                                 operand_2: Id {
-                                    value: "@temp7",
+                                    value: "@temp11",
                                 },
+                                operand_type: Float,
                             },
                         },
                         Direct {
@@ -259,14 +343,19 @@ fn test_float_other_2() {
                     ],
                     identifier_types: {
                         "@temp0": Float,
-                        "@temp1": Bool,
-                        "@temp2": Float,
+                        "@temp1": Float,
+                        "@temp10": Int,
+                        "@temp11": Float,
+                        "@temp12": Int,
+                        "@temp13": Float,
+                        "@temp2": Bool,
                         "@temp3": Float,
                         "@temp4": Float,
                         "@temp5": Float,
-                        "@temp6": Int,
+                        "@temp6": Float,
                         "@temp7": Float,
-                        "@temp8": Int,
+                        "@temp8": Float,
+                        "@temp9": Float,
                         "a": Bool,
                         "b": Float,
                         "c": Float,

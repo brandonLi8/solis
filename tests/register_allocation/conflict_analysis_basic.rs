@@ -42,12 +42,18 @@ fn test_no_variables() {
                 },
                 InterferenceGraph {
                     nodes: {
-                        "@temp0": {},
+                        "@temp0": {
+                            "@temp1",
+                        },
+                        "@temp1": {
+                            "@temp0",
+                        },
                     },
                     removed_nodes: {},
                 },
                 {
                     "@temp0": 1,
+                    "@temp1": 1,
                 },
             )"#]],
     );
@@ -97,13 +103,19 @@ fn test_only_float_temporaries() {
                 },
                 InterferenceGraph {
                     nodes: {
-                        "@temp0": {},
+                        "@temp0": {
+                            "@temp2",
+                        },
+                        "@temp2": {
+                            "@temp0",
+                        },
                     },
                     removed_nodes: {},
                 },
                 {
                     "@temp0": 1,
                     "@temp1": 1,
+                    "@temp2": 1,
                 },
             )"#]],
     );
@@ -358,7 +370,12 @@ fn test_let_sequence_3() {
                 },
                 InterferenceGraph {
                     nodes: {
-                        "@temp4": {},
+                        "@temp4": {
+                            "@temp6",
+                        },
+                        "@temp6": {
+                            "@temp4",
+                        },
                         "e": {},
                     },
                     removed_nodes: {},
@@ -370,6 +387,7 @@ fn test_let_sequence_3() {
                     "@temp3": 1,
                     "@temp4": 1,
                     "@temp5": 1,
+                    "@temp6": 1,
                     "a": 3,
                     "b": 2,
                     "c": 2,
@@ -434,21 +452,37 @@ fn test_let_sequence_4() {
                 },
                 InterferenceGraph {
                     nodes: {
-                        "@temp0": {},
-                        "@temp2": {
+                        "@temp0": {
+                            "@temp2",
+                        },
+                        "@temp10": {
                             "a",
+                            "c",
+                        },
+                        "@temp11": {
+                            "@temp12",
+                            "c",
+                        },
+                        "@temp12": {
+                            "@temp11",
+                            "c",
+                        },
+                        "@temp13": {
+                            "c",
+                        },
+                        "@temp2": {
+                            "@temp0",
                         },
                         "@temp3": {
                             "a",
-                            "c",
                         },
                         "@temp4": {
+                            "@temp5",
                             "a",
-                            "c",
                         },
                         "@temp5": {
+                            "@temp4",
                             "a",
-                            "c",
                         },
                         "@temp6": {
                             "a",
@@ -459,24 +493,29 @@ fn test_let_sequence_4() {
                             "c",
                         },
                         "@temp8": {
+                            "a",
                             "c",
                         },
                         "@temp9": {
+                            "a",
                             "c",
                         },
                         "a": {
-                            "@temp2",
+                            "@temp10",
                             "@temp3",
                             "@temp4",
                             "@temp5",
                             "@temp6",
                             "@temp7",
+                            "@temp8",
+                            "@temp9",
                             "c",
                         },
                         "c": {
-                            "@temp3",
-                            "@temp4",
-                            "@temp5",
+                            "@temp10",
+                            "@temp11",
+                            "@temp12",
+                            "@temp13",
                             "@temp6",
                             "@temp7",
                             "@temp8",
@@ -490,6 +529,10 @@ fn test_let_sequence_4() {
                 {
                     "@temp0": 1,
                     "@temp1": 1,
+                    "@temp10": 1,
+                    "@temp11": 1,
+                    "@temp12": 1,
+                    "@temp13": 1,
                     "@temp2": 1,
                     "@temp3": 1,
                     "@temp4": 1,

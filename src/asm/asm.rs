@@ -26,6 +26,7 @@ pub enum Register {
 }
 
 /// Operands for instructions.
+#[derive(Clone)]
 pub enum Operand {
     Reg(Register),
     Imm(i64),
@@ -98,8 +99,17 @@ pub enum Instruction {
     Push(Operand),
     Pop(Operand),
     Call(String),
-    Movq(Operand, Operand),             // Move for float operands
-    Cvttsd2si(Operand, Operand),        // Convert Scalar Double to Signed Int
+
+    Movq(Operand, Operand),      // Move for float operands
+    Cvttsd2si(Operand, Operand), // Convert scalar to Signed Int (r64, xmm)
+    Cvtsi2sd(Operand, Operand),  // Convert Signed Int to scalar (xmm, r/m64)
+    Xorpd(Operand, Operand),     // xor for FloatRegisters
+    Addsd(Operand, Operand),     // Add scalar floats            (xmm1, xmm2/m64)
+    Subsd(Operand, Operand),     // Subtract scalar floats       (xmm1, xmm2/m64)
+    Mulsd(Operand, Operand),     // Multiply scalar floats       (xmm1, xmm2/m64)
+    Divsd(Operand, Operand),     // Divide scalar floats         (xmm1, xmm2/m64)
+    Cmpsd(Operand, Operand, u8), // Compare scalar floats        (xmm1, xmm2) see https://c9x.me/x86/html/file_module_x86_id_39.html
+
     Comment(String),                    // Top level comment
     Annotate(Box<Instruction>, String), // Annotated Instruction with comment
 }

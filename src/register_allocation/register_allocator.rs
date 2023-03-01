@@ -20,12 +20,13 @@ use ir::ir::Block;
 use register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
 use {Map, Set};
 
-/// An assignment of where to evaluate an expression.
+/// An assignment of where to evaluate an variable.
 #[derive(Debug)]
 pub enum Assignment {
     Register(Register),
     FloatRegister(FloatRegister),
     Spill,
+    None, // Meaning to not store the result of the expression somewhere. See #41
 }
 
 /// Creates an assignment of registers for each variable in the block.
@@ -55,6 +56,13 @@ pub fn allocate_registers<'a>(
 
     // Result allocation.
     let mut allocation = Map::new();
+
+    // For variables that are never referenced after assignment, give Assignment::None. See #41
+    for (variable, frequency) in &variable_frequencies {
+        if *frequency == 0 {
+            allocation.insert(*variable, Assignment::None);
+        }
+    }
 
     // Creates an assignment of registers for each variable in the block, for a given interference graph
     let mut allocate_registers_internal = |mut interference_graph: InterferenceGraph<'a>,

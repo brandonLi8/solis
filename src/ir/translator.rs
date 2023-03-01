@@ -7,6 +7,7 @@
 //! are complex expressions (like unary or binary expressions), we add temporary variables for the translations of
 //! each operands, and substitute the identifier as a Direct into the original expression.
 
+use error_messages::internal_compiler_error;
 use ir::ir;
 use ir::type_checker::{SolisType, TypeChecker};
 use parser::ast;
@@ -89,13 +90,18 @@ fn translate_expr(
             };
 
             // Type check and get the result type
-            let result_type = type_checker.type_check_unary_expr(&kind, operand_type.clone(), &expr.position);
+            let (result_type, operand_coercion) =
+                type_checker.type_check_unary_expr(&kind, operand_type.clone(), &expr.position);
+
+            // Convert the operand to a direct
+            let operand_ir = to_direct(operand_ir, operand_type.clone(), type_checker, bindings);
+
+            // Perform type coercion, if needed
+            let (operand_ir, operand_type) =
+                coerce_type(operand_ir, operand_type, operand_coercion, type_checker, bindings);
 
             (
-                ir::Expr::UnaryExpr {
-                    kind,
-                    operand: Box::new(to_direct(operand_ir, operand_type, type_checker, bindings)),
-                },
+                ir::Expr::UnaryExpr { kind, operand: Box::new(operand_ir), operand_type },
                 result_type,
             )
         }
@@ -120,22 +126,65 @@ fn translate_expr(
             };
 
             // Type check and get the result type
-            let result_type = type_checker.type_check_binary_expr(
+            let (result_type, operand_1_coercion, operand_2_coercion) = type_checker.type_check_binary_expr(
                 &kind,
                 operand_1_type.clone(),
                 operand_2_type.clone(),
                 &expr.position,
             );
 
+            // Convert the operands to directs
+            let operand_1 = to_direct(operand_1, operand_1_type.clone(), type_checker, bindings);
+            let operand_2 = to_direct(operand_2, operand_2_type.clone(), type_checker, bindings);
+
+            // Perform type coercion, if needed
+            let (operand_1, operand_1_type) =
+                coerce_type(operand_1, operand_1_type, operand_1_coercion, type_checker, bindings);
+            let (operand_2, operand_2_type) =
+                coerce_type(operand_2, operand_2_type, operand_2_coercion, type_checker, bindings);
+
+            // For Solis, binary expressions must have operands be the same type (for now)
+            if operand_1_type != operand_2_type {
+                internal_compiler_error("operand type mismatch after coercion")
+            }
+
             (
                 ir::Expr::BinaryExpr {
                     kind,
-                    operand_1: Box::new(to_direct(operand_1, operand_1_type, type_checker, bindings)),
-                    operand_2: Box::new(to_direct(operand_2, operand_2_type, type_checker, bindings)),
+                    operand_1: Box::new(operand_1),
+                    operand_2: Box::new(operand_2),
+                    operand_type: operand_1_type,
                 },
                 result_type,
             )
         }
+    }
+}
+
+// Converts a direct to another type, if given `expr_coercion`, by adding an additional binding.
+// * return - (the (new) direct, and the type of the expression)
+fn coerce_type(
+    expr: ir::DirectExpr,
+    expr_type: SolisType,
+    expr_coercion: Option<SolisType>,
+    type_checker: &mut TypeChecker,
+    bindings: &mut Vec<ir::Expr>,
+) -> (ir::DirectExpr, SolisType) {
+    if let Some(expr_coercion) = expr_coercion {
+        let direct_identifier = gen_temp_identifier();
+        let init_expr = ir::Expr::TypeCoercion {
+            expr: Box::new(expr),
+            from_type: expr_type,
+            to_type: expr_coercion.clone(),
+        };
+        bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(init_expr) });
+        type_checker
+            .identifier_types
+            .insert(direct_identifier.to_string(), expr_coercion.clone());
+
+        (ir::DirectExpr::Id { value: direct_identifier }, expr_coercion)
+    } else {
+        (expr, expr_type)
     }
 }
 

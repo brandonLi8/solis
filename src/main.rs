@@ -44,13 +44,13 @@ fn read_file(file_name: &String) -> File {
 // For the compiler, we want to use Hash tables for performance. However, some unit tests print out the result
 // of the hash table, and need to be deterministic. Create an aliased type that is stubbed based on the test environment
 #[cfg(not(feature = "test"))]
-pub type Set<T> = std::collections::HashSet<T>;
+pub type Set<T> = std::collections::BTreeSet<T>;
 
 #[cfg(feature = "test")]
 pub type Set<T> = std::collections::BTreeSet<T>;
 
 #[cfg(not(feature = "test"))]
-pub type Map<K, V> = std::collections::HashMap<K, V>;
+pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 
 #[cfg(feature = "test")]
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;

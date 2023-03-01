@@ -52,6 +52,9 @@ pub fn liveness_analysis<'a>(
         Expr::UnaryExpr { operand, .. } => {
             liveness_analysis_direct(operand, live_variables, variable_frequencies);
         }
+        Expr::TypeCoercion { expr, .. } => {
+            liveness_analysis_direct(expr, live_variables, variable_frequencies);
+        }
     }
 }
 

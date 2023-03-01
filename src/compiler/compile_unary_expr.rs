@@ -4,10 +4,12 @@
 //! step. Unary expressions have only directs as operands because of the translator. We attempt to minimize
 //! the number of instructions for each operation as much as possible.
 
-use asm::asm::{Instruction, Instruction::*, Operand::*, Register::*};
+use asm::asm::{FloatRegister::*, Instruction, Instruction::*, Operand::*, Register::*};
 use compiler::compiler::{compile_direct, mov_instruction_safe};
 use compiler::symbol_table::{Location, SymbolTable};
+use error_messages::internal_compiler_error;
 use ir::ir::{DirectExpr, UnaryExprKind};
+use ir::type_checker::SolisType;
 
 /// Compiles a unary expression into assembly instructions, pushing the results into `instructions`
 /// * kind - the type of unary expression
@@ -24,6 +26,7 @@ use ir::ir::{DirectExpr, UnaryExprKind};
 pub fn compile_unary_expr(
     kind: &UnaryExprKind,
     operand: &DirectExpr,
+    operand_type: &SolisType,
     location: &Location,
     symbol_table: &mut SymbolTable,
     instructions: &mut Vec<Instruction>,
@@ -33,8 +36,8 @@ pub fn compile_unary_expr(
 
     instructions.push(Comment(format!("{kind:?}, {operand:?}"))); // TODO: option?
 
-    match kind {
-        UnaryExprKind::Not => {
+    match (kind, operand_type) {
+        (UnaryExprKind::Not, SolisType::Bool) => {
             // The first operand of the `Cmp` instruction must be a Reg/MemOffset
             if matches!(asm_operand, Imm(..)) {
                 instructions.push(Mov(Reg(R14), asm_operand));
@@ -48,10 +51,17 @@ pub fn compile_unary_expr(
 
             instructions.push(Setz(location.to_operand()));
         }
-        UnaryExprKind::Negative => {
-            // No temporary registers are needed since asm_operand is not modified.
+        (UnaryExprKind::Negative, SolisType::Int) => {
+            // No temporary registers are needed since, asm_operand is used, and then location is modified.
             mov_instruction_safe(location.to_operand(), asm_operand, instructions, R14);
             instructions.push(Neg(location.to_operand()));
         }
+        (UnaryExprKind::Negative, SolisType::Float) => {
+            // Floating Point negation
+            instructions.push(Xorpd(FloatReg(Xmm14), FloatReg(Xmm14)));
+            instructions.push(Subsd(FloatReg(Xmm14), asm_operand));
+            instructions.push(Movq(location.to_operand(), FloatReg(Xmm14)));
+        }
+        _ => internal_compiler_error("Invalid unary expr"),
     }
 }

@@ -83,6 +83,13 @@ fn test_basic() {
         Movq(FloatReg(Xmm1), FloatReg(Xmm2)),
         Movq(Reg(Rax), FloatImm(3.141_592_653_589_793)),
         Cvttsd2si(Reg(Rax), FloatReg(Xmm2)),
+        Cvtsi2sd(FloatReg(Xmm14), Reg(Rax)),
+        Xorpd(FloatReg(Xmm2), FloatReg(Xmm2)),
+        Addsd(FloatReg(Xmm2), FloatReg(Xmm2)),
+        Subsd(FloatReg(Xmm2), FloatReg(Xmm2)),
+        Mulsd(FloatReg(Xmm2), FloatReg(Xmm2)),
+        Divsd(FloatReg(Xmm2), FloatReg(Xmm2)),
+        Cmpsd(FloatReg(Xmm2), FloatReg(Xmm2), 6),
         Comment("some comment".to_string()),
         Annotate(Box::new(Mov(Reg(Rdx), Reg(Rcx))), "some comment".to_string()),
         Annotate(
@@ -170,6 +177,13 @@ fn test_basic() {
         	movq xmm1, xmm2
         	movq rax, __?float64?__(3.141592653589793)
         	cvttsd2si rax, xmm2
+        	cvtsi2sd xmm14, rax
+        	xorpd xmm2, xmm2
+        	addsd xmm2, xmm2
+        	subsd xmm2, xmm2
+        	mulsd xmm2, xmm2
+        	divsd xmm2, xmm2
+        	cmpsd xmm2, xmm2, 6
         ; some comment
         	mov rdx, rcx                            ; some comment
         	mov rax, QWORD [rax + 1]                ; some comment2
