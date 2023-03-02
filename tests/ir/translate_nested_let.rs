@@ -32,6 +32,7 @@ fn test_nested_let() {
                                 kind: EqualsEquals,
                                 operand_1: Id {
                                     value: "@temp0",
+                                    id_type: Bool,
                                 },
                                 operand_2: Bool {
                                     value: false,
@@ -45,6 +46,7 @@ fn test_nested_let() {
                                 kind: Not,
                                 operand: Id {
                                     value: "@temp1",
+                                    id_type: Bool,
                                 },
                                 operand_type: Bool,
                             },
@@ -54,21 +56,17 @@ fn test_nested_let() {
                             init_expr: Direct {
                                 expr: Id {
                                     value: "b",
+                                    id_type: Bool,
                                 },
                             },
                         },
                         Direct {
                             expr: Id {
                                 value: "a",
+                                id_type: Bool,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Bool,
-                        "@temp1": Bool,
-                        "a": Bool,
-                        "b": Bool,
-                    },
                 },
             }"#]],
     )
@@ -104,6 +102,7 @@ fn test_nested_let_1() {
                                 },
                                 operand_2: Id {
                                     value: "@temp0",
+                                    id_type: Int,
                                 },
                                 operand_type: Int,
                             },
@@ -114,6 +113,7 @@ fn test_nested_let_1() {
                                 kind: Negative,
                                 operand: Id {
                                     value: "@temp1",
+                                    id_type: Int,
                                 },
                                 operand_type: Int,
                             },
@@ -124,6 +124,7 @@ fn test_nested_let_1() {
                                 kind: EqualsEquals,
                                 operand_1: Id {
                                     value: "b",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 2,
@@ -134,15 +135,10 @@ fn test_nested_let_1() {
                         Direct {
                             expr: Id {
                                 value: "a",
+                                id_type: Bool,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Int,
-                        "@temp1": Int,
-                        "a": Bool,
-                        "b": Int,
-                    },
                 },
             }"#]],
     )
@@ -175,6 +171,7 @@ fn test_nested_let_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp0",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 3,
@@ -187,6 +184,7 @@ fn test_nested_let_2() {
                             init_expr: Direct {
                                 expr: Id {
                                     value: "c",
+                                    id_type: Int,
                                 },
                             },
                         },
@@ -196,6 +194,7 @@ fn test_nested_let_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "b",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 2,
@@ -206,15 +205,10 @@ fn test_nested_let_2() {
                         Direct {
                             expr: Id {
                                 value: "a",
+                                id_type: Int,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Int,
-                        "a": Int,
-                        "b": Int,
-                        "c": Int,
-                    },
                 },
             }"#]],
     )

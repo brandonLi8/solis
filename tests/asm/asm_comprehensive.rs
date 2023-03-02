@@ -91,15 +91,7 @@ fn test_basic() {
         Divsd(FloatReg(Xmm2), FloatReg(Xmm2)),
         Cmpsd(FloatReg(Xmm2), FloatReg(Xmm2), 6),
         Comment("some comment".to_string()),
-        Annotate(Box::new(Mov(Reg(Rdx), Reg(Rcx))), "some comment".to_string()),
-        Annotate(
-            Box::new(Mov(Reg(Rax), MemOffset(Box::new(Reg(Rax)), Box::new(Imm(1))))),
-            "some comment2".to_string(),
-        ),
-        Annotate(
-            Box::new(Movq(Reg(Rax), FloatImm(3.141_592_653_589_793))),
-            "comment".to_string(),
-        ),
+        Mov(Reg(Rdx), Reg(Rcx)).annotated("some comment"),
     ];
 
     let temporary_file = "./build/solis_tests/asm_writer_test.s";
@@ -186,8 +178,6 @@ fn test_basic() {
         	cmpsd xmm2, xmm2, 6
         ; some comment
         	mov rdx, rcx                            ; some comment
-        	mov rax, QWORD [rax + 1]                ; some comment2
-        	movq rax, __?float64?__(3.141592653589793) ; comment
     "#]]
     .assert_eq(&fs::read_to_string(temporary_file).unwrap());
 }

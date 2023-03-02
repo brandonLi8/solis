@@ -18,8 +18,7 @@ use error_messages::internal_compiler_error;
 use ir::ir::{Block, DirectExpr, Expr, Program};
 use ir::type_checker::SolisType;
 use register_allocation::register_allocator::allocate_registers;
-use register_allocation::register_allocator::Assignment;
-use {Map, Set};
+use register_allocation::register_allocator::{Assignment, Map, Set};
 
 /// Compiles a Program into assembly instructions.
 pub fn compile(program: Program) -> Vec<Instruction> {
@@ -207,7 +206,7 @@ pub fn compile_type_coercion(
 pub fn compile_direct(direct: &DirectExpr, symbol_table: &mut SymbolTable) -> Operand {
     match direct {
         DirectExpr::Int { value } => Imm(*value),
-        DirectExpr::Id { value } => symbol_table
+        DirectExpr::Id { value, .. } => symbol_table
             .get(value)
             .unwrap_or_else(|| internal_compiler_error(&format!("symbol `{value}` not in symbol_table")))
             .to_operand(),

@@ -11,8 +11,9 @@
 
 use error_messages::compilation_error;
 use ir::ir;
+use std::collections::HashMap;
 use std::ops::Range;
-use {File, Map};
+use File;
 
 /// Different Types for Solis
 #[derive(PartialEq, Clone, Debug)]
@@ -26,7 +27,7 @@ pub enum SolisType {
 /// Type Checker for each scope of the program.
 pub struct TypeChecker<'a> {
     /// Maps identifiers/variables that have been seen to their types.
-    pub identifier_types: Map<String, SolisType>,
+    identifier_types: HashMap<String, SolisType>,
 
     /// The original Solis input file, for error messaging purposes.
     file: &'a File,
@@ -35,8 +36,8 @@ pub struct TypeChecker<'a> {
 impl<'a> TypeChecker<'a> {
     /// Type Checker constructor.
     /// * file: the original Solis file
-    pub const fn new(file: &'a File) -> Self {
-        TypeChecker { file, identifier_types: Map::new() }
+    pub fn new(file: &'a File) -> Self {
+        TypeChecker { file, identifier_types: HashMap::new() }
     }
 
     /// Type checks a let expression.

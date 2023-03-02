@@ -8,12 +8,14 @@ extern crate solis;
 use expect_test::Expect;
 use solis::asm::asm::{FloatRegister, Register};
 use solis::ir::translator::translate_program;
+use solis::ir::type_checker::SolisType;
 use solis::parser::parser::parse;
 use solis::register_allocation::conflict_analysis::conflict_analysis;
 use solis::register_allocation::liveness_analysis::liveness_analysis;
 use solis::register_allocation::register_allocator::allocate_registers;
+use solis::register_allocation::register_allocator::{Map, Set};
 use solis::tokenizer::tokenizer::tokenize;
-use solis::{File, Map, Set};
+use solis::File;
 
 /// Test function for tokenizing a program.
 pub fn tokenize_check(program: &str, expect: Expect) {
@@ -45,7 +47,7 @@ pub fn translate_check(program: &str, expect: Expect) {
 /// Test function for liveness analysis of an expression (runs it on the last expression of the block passed in).
 pub fn liveness_analysis_check(
     block: &str,
-    live_variables: Set<&String>,
+    live_variables: Map<&String, &SolisType>,
     variable_frequencies: Map<&String, usize>,
     expect_live_variables: Expect,
     expect_frequencies: Expect,

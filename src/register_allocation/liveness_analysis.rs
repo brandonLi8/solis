@@ -19,18 +19,19 @@
 //!     Line 1 output: {}       (remove a)
 
 use ir::ir::{DirectExpr, Expr};
-use {Map, Set};
+use ir::type_checker::SolisType;
+use register_allocation::register_allocator::Map;
 
 /// Computes the variables that are live right before the expression runs. In other words, it computes the variables
 /// that are live (needed) to execute this expression (and everything after). It does this by modifying
 /// `live_variables`.
 ///
-/// `live_variables` - the variables that are live when the next expression runs.
+/// `live_variables` - the variables that are live when the next expression runs, mapped to the type of the variable.
 /// `variable_frequencies` - maps variables to the number of times they are referenced. Modified in this function.
 /// return - variables that are live (needed) to execute this expression (and everything after)
 pub fn liveness_analysis<'a>(
     expr: &'a Expr,
-    live_variables: &mut Set<&'a String>,
+    live_variables: &mut Map<&'a String, &'a SolisType>,
     variable_frequencies: &mut Map<&'a String, usize>,
 ) {
     match expr {
@@ -61,11 +62,11 @@ pub fn liveness_analysis<'a>(
 // The same as `liveness_analysis` but for a directs.
 fn liveness_analysis_direct<'a>(
     direct: &'a DirectExpr,
-    live_variables: &mut Set<&'a String>,
+    live_variables: &mut Map<&'a String, &'a SolisType>,
     variable_frequencies: &mut Map<&'a String, usize>,
 ) {
-    if let DirectExpr::Id { value } = direct {
-        live_variables.insert(value);
+    if let DirectExpr::Id { value, id_type } = direct {
+        live_variables.insert(value, id_type);
 
         if let Some(count) = variable_frequencies.get(value) {
             variable_frequencies.insert(value, count + 1);

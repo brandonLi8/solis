@@ -44,7 +44,6 @@
 //!   results on the stack).
 
 use ir::type_checker::SolisType;
-use Map;
 
 #[derive(PartialEq, Debug)]
 pub struct Program {
@@ -54,7 +53,6 @@ pub struct Program {
 #[derive(PartialEq, Debug)]
 pub struct Block {
     pub exprs: Vec<Expr>,
-    pub identifier_types: Map<String, SolisType>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -91,7 +89,7 @@ pub enum DirectExpr {
     Int { value: i64 },
     Bool { value: bool },
     Float { value: f64 },
-    Id { value: String },
+    Id { value: String, id_type: SolisType },
 }
 
 #[derive(PartialEq, Debug)]

@@ -4,7 +4,7 @@
 
 use expect_test::expect;
 use solis::asm::asm::Register;
-use solis::Set;
+use solis::register_allocation::register_allocator::Set;
 use test_utils::register_allocator_check;
 
 static PROGRAM_1: &str = "# General purpose program

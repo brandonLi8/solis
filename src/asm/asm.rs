@@ -25,16 +25,6 @@ pub enum Register {
     R15, // Scratch 2
 }
 
-/// Operands for instructions.
-#[derive(Clone)]
-pub enum Operand {
-    Reg(Register),
-    Imm(i64),
-    MemOffset(Box<Operand>, Box<Operand>),
-    FloatImm(f64),
-    FloatReg(FloatRegister),
-}
-
 /// Registers for floating point (SSE). Registers with special purposes have been annotated.
 /// See `http://csapp.cs.cmu.edu/public/waside/waside-sse.pdf`
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
@@ -57,26 +47,39 @@ pub enum FloatRegister {
     Xmm15, // Scratch 2
 }
 
-/// Every instruction.
+/// Operands for instructions.
+#[derive(Clone)]
+pub enum Operand {
+    Reg(Register),
+    FloatReg(FloatRegister),
+    Imm(i64),
+    FloatImm(f64),
+    MemOffset(Box<Operand>, Box<Operand>),
+}
+
+/// Every instruction, annotated with allowed operand combinations.
 pub enum Instruction {
     Global(String),
     Extern(String),
     Section(String),
     Label(String),
+
     DqLabel(String),
     DqString(String),
     DqInt(i64),
     Align(i64),
     LeaLabel(Operand, String),
-    Mov(Operand, Operand),
-    MovByte(Operand, Operand),
-    Add(Operand, Operand),
-    Sub(Operand, Operand),
-    Div(Operand),
-    Mul(Operand, Operand),
-    Mul3(Operand, Operand, Operand),
-    Cqo,
-    Neg(Operand),
+
+    Mov(Operand, Operand), // move                      (reg|mem, reg|mem|imm) but not (mem, mem)
+    MovByte(Operand, Operand), // move LSB                  (reg|mem, reg|mem|imm) but not (mem, mem)
+    Add(Operand, Operand), // +=                        (reg|mem, reg|mem|imm) but not (mem, mem)
+    Sub(Operand, Operand), // -=                        (reg|mem, reg|mem|imm) but not (mem, mem)
+    Div(Operand),          // / (src = rdx:rax) (IDIV)  (reg|mem)
+    Mul(Operand, Operand), // * (src = rdx:rax) (IMUL)  (reg, reg|mem|imm)
+    Mul3(Operand, Operand, Operand), // a = b * c                 (reg, reg|mem, imm)
+    Neg(Operand),          // negation                  (mem|reg)
+    Cqo,                   // sign extend rax into rdx
+
     Shl(Operand, Operand),
     Shr(Operand, Operand),
     Sar(Operand, Operand),
@@ -100,16 +103,24 @@ pub enum Instruction {
     Pop(Operand),
     Call(String),
 
-    Movq(Operand, Operand),      // Move for float operands
-    Cvttsd2si(Operand, Operand), // Convert scalar to Signed Int (r64, xmm)
-    Cvtsi2sd(Operand, Operand),  // Convert Signed Int to scalar (xmm, r/m64)
-    Xorpd(Operand, Operand),     // xor for FloatRegisters
-    Addsd(Operand, Operand),     // Add scalar floats            (xmm1, xmm2/m64)
-    Subsd(Operand, Operand),     // Subtract scalar floats       (xmm1, xmm2/m64)
-    Mulsd(Operand, Operand),     // Multiply scalar floats       (xmm1, xmm2/m64)
-    Divsd(Operand, Operand),     // Divide scalar floats         (xmm1, xmm2/m64)
-    Cmpsd(Operand, Operand, u8), // Compare scalar floats        (xmm1, xmm2) see https://c9x.me/x86/html/file_module_x86_id_39.html
+    Movq(Operand, Operand),      // move for float operands      (xmm, reg|mem) | (reg|mem, xmm)
+    Cvttsd2si(Operand, Operand), // convert scalar to Signed Int (reg, xmm)
+    Cvtsi2sd(Operand, Operand),  // convert Signed Int to scalar (xmm, r/mem)
+    Xorpd(Operand, Operand),     // xor for FloatRegisters       (xmm, xmm128/mem128)
+    Addsd(Operand, Operand),     // add scalar floats            (xmm, xmm/mem)
+    Subsd(Operand, Operand),     // subtract scalar floats       (xmm, xmm/mem)
+    Mulsd(Operand, Operand),     // multiply scalar floats       (xmm, xmm/mem)
+    Divsd(Operand, Operand),     // divide scalar floats         (xmm, xmm/mem)
+    Cmpsd(Operand, Operand, u8), // compare scalar floats        (xmm, xmm) see https://c9x.me/x86/html/file_module_x86_id_39.html
 
     Comment(String),                    // Top level comment
     Annotate(Box<Instruction>, String), // Annotated Instruction with comment
+}
+
+impl Instruction {
+    /// Creates a `Annotate` variant of an Instruction
+    #[must_use]
+    pub fn annotated(self, comment: &str) -> Self {
+        Self::Annotate(Box::new(self), comment.to_string())
+    }
 }

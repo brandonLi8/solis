@@ -13,7 +13,6 @@ fn test_empty() {
             Program {
                 body: Block {
                     exprs: [],
-                    identifier_types: {},
                 },
             }"#]],
     )
@@ -33,7 +32,6 @@ fn test_direct() {
                             },
                         },
                     ],
-                    identifier_types: {},
                 },
             }"#]],
     )
@@ -60,19 +58,17 @@ fn test_direct_2() {
                             init_expr: Direct {
                                 expr: Id {
                                     value: "@temp0",
+                                    id_type: Float,
                                 },
                             },
                         },
                         Direct {
                             expr: Id {
                                 value: "a",
+                                id_type: Float,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Float,
-                        "a": Float,
-                    },
                 },
             }"#]],
     )
@@ -106,6 +102,7 @@ fn test_basic() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "a",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 1,
@@ -119,6 +116,7 @@ fn test_basic() {
                                 kind: Minus,
                                 operand_1: Id {
                                     value: "@temp0",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 2,
@@ -145,9 +143,11 @@ fn test_basic() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp1",
+                                    id_type: Int,
                                 },
                                 operand_2: Id {
                                     value: "@temp2",
+                                    id_type: Int,
                                 },
                                 operand_type: Int,
                             },
@@ -155,16 +155,10 @@ fn test_basic() {
                         Direct {
                             expr: Id {
                                 value: "b",
+                                id_type: Int,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Int,
-                        "@temp1": Int,
-                        "@temp2": Int,
-                        "a": Int,
-                        "b": Int,
-                    },
                 },
             }"#]],
     );
@@ -197,6 +191,7 @@ fn test_basic() {
                                 },
                                 operand_2: Id {
                                     value: "@temp3",
+                                    id_type: Int,
                                 },
                                 operand_type: Int,
                             },
@@ -207,6 +202,7 @@ fn test_basic() {
                                 kind: Divide,
                                 operand_1: Id {
                                     value: "@temp4",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 5,
@@ -223,6 +219,7 @@ fn test_basic() {
                                 },
                                 operand_2: Id {
                                     value: "@temp5",
+                                    id_type: Int,
                                 },
                                 operand_type: Int,
                             },
@@ -244,20 +241,15 @@ fn test_basic() {
                             kind: EqualsEquals,
                             operand_1: Id {
                                 value: "@temp6",
+                                id_type: Int,
                             },
                             operand_2: Id {
                                 value: "@temp7",
+                                id_type: Int,
                             },
                             operand_type: Int,
                         },
                     ],
-                    identifier_types: {
-                        "@temp3": Int,
-                        "@temp4": Int,
-                        "@temp5": Int,
-                        "@temp6": Int,
-                        "@temp7": Int,
-                    },
                 },
             }"#]],
     );
@@ -287,6 +279,7 @@ fn test_basic() {
                                 kind: Not,
                                 operand: Id {
                                     value: "@temp8",
+                                    id_type: Bool,
                                 },
                                 operand_type: Bool,
                             },
@@ -297,6 +290,7 @@ fn test_basic() {
                                 kind: Not,
                                 operand: Id {
                                     value: "@temp9",
+                                    id_type: Bool,
                                 },
                                 operand_type: Bool,
                             },
@@ -305,15 +299,11 @@ fn test_basic() {
                             kind: Not,
                             operand: Id {
                                 value: "@temp10",
+                                id_type: Bool,
                             },
                             operand_type: Bool,
                         },
                     ],
-                    identifier_types: {
-                        "@temp10": Bool,
-                        "@temp8": Bool,
-                        "@temp9": Bool,
-                    },
                 },
             }"#]],
     )

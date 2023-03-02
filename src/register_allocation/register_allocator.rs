@@ -18,7 +18,6 @@ use asm::asm::{FloatRegister, Register};
 use error_messages::internal_compiler_error;
 use ir::ir::Block;
 use register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
-use {Map, Set};
 
 /// An assignment of where to evaluate an variable.
 #[derive(Debug)]
@@ -140,3 +139,17 @@ const fn spill_heuristic(frequency: usize) -> usize {
     // adding a weighted sum of the frequency (normalized) and the inverse degree of the variable.
     frequency
 }
+
+// For the compiler, we want to use Hash tables for performance. However for testing, we need the result of the
+// register allocation (steps) to be deterministic. Create an aliased type that is stubbed based on the test environment
+#[cfg(not(feature = "test"))]
+pub type Set<T> = std::collections::HashSet<T>;
+
+#[cfg(feature = "test")]
+pub type Set<T> = std::collections::BTreeSet<T>;
+
+#[cfg(not(feature = "test"))]
+pub type Map<K, V> = std::collections::HashMap<K, V>;
+
+#[cfg(feature = "test")]
+pub type Map<K, V> = std::collections::BTreeMap<K, V>;

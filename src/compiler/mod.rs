@@ -2,7 +2,8 @@
 
 //! The `compiler` module generates the assembly instructions for the input program.
 
+pub mod compiler;
+
 mod compile_binary_expr;
 mod compile_unary_expr;
-pub mod compiler;
 mod symbol_table;

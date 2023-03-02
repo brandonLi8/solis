@@ -35,9 +35,11 @@ fn test_float_basic() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp0",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp1",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -53,15 +55,10 @@ fn test_float_basic() {
                         Direct {
                             expr: Id {
                                 value: "@temp2",
+                                id_type: Float,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Float,
-                        "@temp1": Float,
-                        "@temp2": Float,
-                        "a": Float,
-                    },
                 },
             }"#]],
     )
@@ -99,9 +96,11 @@ fn test_float_complex() {
                                 kind: LessThan,
                                 operand_1: Id {
                                     value: "@temp1",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp0",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -112,6 +111,7 @@ fn test_float_complex() {
                                 kind: EqualsEquals,
                                 operand_1: Id {
                                     value: "@temp2",
+                                    id_type: Bool,
                                 },
                                 operand_2: Bool {
                                     value: false,
@@ -125,6 +125,7 @@ fn test_float_complex() {
                                 kind: Not,
                                 operand: Id {
                                     value: "@temp3",
+                                    id_type: Bool,
                                 },
                                 operand_type: Bool,
                             },
@@ -134,23 +135,17 @@ fn test_float_complex() {
                             init_expr: Direct {
                                 expr: Id {
                                     value: "b",
+                                    id_type: Bool,
                                 },
                             },
                         },
                         Direct {
                             expr: Id {
                                 value: "a",
+                                id_type: Bool,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Float,
-                        "@temp1": Float,
-                        "@temp2": Bool,
-                        "@temp3": Bool,
-                        "a": Bool,
-                        "b": Bool,
-                    },
                 },
             }"#]],
     )

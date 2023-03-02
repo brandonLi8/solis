@@ -39,9 +39,11 @@ fn test_float_plus_int_basic() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp0",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp1",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -70,9 +72,11 @@ fn test_float_plus_int_basic() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp3",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp2",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -99,9 +103,11 @@ fn test_float_plus_int_basic() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp4",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp5",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -109,20 +115,10 @@ fn test_float_plus_int_basic() {
                         Direct {
                             expr: Id {
                                 value: "c",
+                                id_type: Float,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Float,
-                        "@temp1": Float,
-                        "@temp2": Float,
-                        "@temp3": Float,
-                        "@temp4": Float,
-                        "@temp5": Float,
-                        "a": Float,
-                        "b": Float,
-                        "c": Float,
-                    },
                 },
             }"#]],
     )
@@ -163,9 +159,11 @@ fn test_float_other_2() {
                                 kind: LessThan,
                                 operand_1: Id {
                                     value: "@temp0",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp1",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -176,6 +174,7 @@ fn test_float_other_2() {
                                 kind: EqualsEquals,
                                 operand_1: Id {
                                     value: "@temp2",
+                                    id_type: Bool,
                                 },
                                 operand_2: Bool {
                                     value: true,
@@ -197,6 +196,7 @@ fn test_float_other_2() {
                                 kind: Negative,
                                 operand: Id {
                                     value: "@temp3",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -225,9 +225,11 @@ fn test_float_other_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp5",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp4",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -248,9 +250,11 @@ fn test_float_other_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp6",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp7",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -271,9 +275,11 @@ fn test_float_other_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp8",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp9",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -305,6 +311,7 @@ fn test_float_other_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp10",
+                                    id_type: Int,
                                 },
                                 operand_2: Int {
                                     value: 3,
@@ -317,6 +324,7 @@ fn test_float_other_2() {
                             init_expr: TypeCoercion {
                                 expr: Id {
                                     value: "@temp12",
+                                    id_type: Int,
                                 },
                                 from_type: Int,
                                 to_type: Float,
@@ -328,9 +336,11 @@ fn test_float_other_2() {
                                 kind: Plus,
                                 operand_1: Id {
                                     value: "@temp13",
+                                    id_type: Float,
                                 },
                                 operand_2: Id {
                                     value: "@temp11",
+                                    id_type: Float,
                                 },
                                 operand_type: Float,
                             },
@@ -338,29 +348,10 @@ fn test_float_other_2() {
                         Direct {
                             expr: Id {
                                 value: "c",
+                                id_type: Float,
                             },
                         },
                     ],
-                    identifier_types: {
-                        "@temp0": Float,
-                        "@temp1": Float,
-                        "@temp10": Int,
-                        "@temp11": Float,
-                        "@temp12": Int,
-                        "@temp13": Float,
-                        "@temp2": Bool,
-                        "@temp3": Float,
-                        "@temp4": Float,
-                        "@temp5": Float,
-                        "@temp6": Float,
-                        "@temp7": Float,
-                        "@temp8": Float,
-                        "@temp9": Float,
-                        "a": Bool,
-                        "b": Float,
-                        "c": Float,
-                        "d": Float,
-                    },
                 },
             }"#]],
     )

@@ -13,7 +13,7 @@ use error_messages::internal_compiler_error;
 use ir::ir::Block;
 use ir::type_checker::SolisType;
 use register_allocation::liveness_analysis::liveness_analysis;
-use {Map, Set};
+use register_allocation::register_allocator::{Map, Set};
 
 /// Struct representing the interference (conflict) graph. Nodes can only be added and removed once.
 #[derive(Debug)]
@@ -28,7 +28,7 @@ pub struct InterferenceGraph<'a> {
 
 impl<'a> InterferenceGraph<'a> {
     /// Tokens Cursor constructor.
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         InterferenceGraph { nodes: Map::new(), removed_nodes: Map::new() }
     }
 
@@ -77,7 +77,7 @@ impl<'a> InterferenceGraph<'a> {
 
 /// Performs conflict analysis for the passed in block. Returns the `InterferenceGraph` and the variable frequencies map.
 pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph, Map<&String, usize>) {
-    let mut live_variables = Set::<&String>::new();
+    let mut live_variables = Map::<&String, &SolisType>::new();
     let mut variable_frequencies = Map::<&String, usize>::new();
     let mut interference_graph = InterferenceGraph::new();
 
@@ -88,8 +88,8 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
         liveness_analysis(expr, &mut live_variables, &mut variable_frequencies);
 
         // For each pair of variables that are live (at this point), add a conflict between them
-        for variable_1 in &live_variables {
-            let variable_1_is_float = matches!(block.identifier_types[*variable_1], SolisType::Float);
+        for (variable_1, variable_1_type) in &live_variables {
+            let variable_1_is_float = matches!(variable_1_type, SolisType::Float);
 
             // Add the node to ensure that it is in the conflict graph (even if it doesn't conflict with something).
             if variable_1_is_float {
@@ -98,8 +98,8 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
                 interference_graph.add_node(variable_1);
             }
 
-            for variable_2 in &live_variables {
-                let variable_2_is_float = matches!(block.identifier_types[*variable_2], SolisType::Float);
+            for (variable_2, variable_2_type) in &live_variables {
+                let variable_2_is_float = matches!(variable_2_type, SolisType::Float);
 
                 if variable_1 != variable_2 {
                     if !variable_1_is_float && !variable_2_is_float {
