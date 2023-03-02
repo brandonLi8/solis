@@ -88,7 +88,7 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
         liveness_analysis(expr, &mut live_variables, &mut variable_frequencies);
 
         // For each pair of variables that are live (at this point), add a conflict between them
-        for (variable_1, variable_1_type) in &live_variables {
+        for (i, (variable_1, variable_1_type)) in live_variables.iter().enumerate() {
             let variable_1_is_float = matches!(variable_1_type, SolisType::Float);
 
             // Add the node to ensure that it is in the conflict graph (even if it doesn't conflict with something).
@@ -98,10 +98,10 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
                 interference_graph.add_node(variable_1);
             }
 
-            for (variable_2, variable_2_type) in &live_variables {
-                let variable_2_is_float = matches!(variable_2_type, SolisType::Float);
+            for (j, (variable_2, variable_2_type)) in live_variables.iter().enumerate() {
+                if i < j {
+                    let variable_2_is_float = matches!(variable_2_type, SolisType::Float);
 
-                if variable_1 != variable_2 {
                     if !variable_1_is_float && !variable_2_is_float {
                         interference_graph.add_edge(variable_1, variable_2);
                     } else if variable_1_is_float && variable_2_is_float {

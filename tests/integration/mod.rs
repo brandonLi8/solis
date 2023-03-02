@@ -37,10 +37,4 @@ macro_rules! gen_integration_tests {
     }
 }
 
-gen_integration_tests!(
-    ints_and_bools_basic_1,
-    ints_and_bools_random_1,
-    ints_and_bools_random_2,
-    ints_and_bools_random_3,
-    ints_and_bools_random_4
-);
+gen_integration_tests!(basic_1, random_1, random_2, random_3, random_4);

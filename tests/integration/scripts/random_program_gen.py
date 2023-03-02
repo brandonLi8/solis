@@ -1,6 +1,6 @@
 # Copyright © 2022-2023 Brandon Li. All rights reserved.
 
-## Python script that was used to generate the ints_and_bools_random_* integration tests.
+## Python script that was used to generate the random* integration tests.
 
 import random
 random.seed(0)
@@ -257,11 +257,11 @@ NOTE: this file was auto-generated with the `ints_and_bools_random.py` script.
 
 """
 
-  file = open('./tests/integration/ints_and_bools_random_' + i + '.sol', 'w+')
+  file = open('./tests/integration/random' + i + '.sol', 'w+')
   file.write(program + "\n".join(result))
   file.close()
 
-  expected_file = open('./tests/integration/expected/ints_and_bools_random_' + i + '.out', 'w+')
+  expected_file = open('./tests/integration/expected/random' + i + '.out', 'w+')
   expected_file.write(str(expected))
   expected_file.close()
 
