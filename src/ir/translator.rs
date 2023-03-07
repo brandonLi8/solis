@@ -160,6 +160,7 @@ fn translate_expr(
                 result_type,
             )
         }
+        ast::ExprKind::If { .. } => todo!(),
     }
 }
 

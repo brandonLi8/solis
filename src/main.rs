@@ -76,6 +76,7 @@ pub fn main() {
 
     let tokens = tokenizer::tokenizer::tokenize(&file);
     let program_ast = parser::parser::parse(&file, tokens);
+
     let program_ir = ir::translator::translate_program(&file, program_ast);
 
     let instructions = compiler::compiler::compile(program_ir);

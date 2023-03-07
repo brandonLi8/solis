@@ -35,11 +35,23 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 
 <expr> ::=
   | <let-expr>   [";"]
+  | <if-expr>    [";"]
   | <infix-expr> [";"]
 
 <let-expr> ::=
   | LET ID COLON ID EQUALS <expr>
 
+<if-expr> ::=
+  | IF <expr> "{" <if-body> <else-block>
+
+<else-block> ::=
+  | ε
+  | ELSE IF <expr> "{" <if-body> <else-block>
+  | ELSE "{" <if-body>
+
+<if-body> ::=                                 # Block that ends in RBRACE
+   | "}"
+   | <expr> <if-body>
 
 
 #!——————————————————————————————————————————————*!

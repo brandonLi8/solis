@@ -33,6 +33,11 @@ pub enum ExprKind {
         type_reference: String,
         init_expr: Box<Expr>,
     },
+    If {
+        condition: Box<Expr>,
+        then_block: Block,
+        else_block: Option<Block>,
+    },
     Int {
         value: i64,
     },

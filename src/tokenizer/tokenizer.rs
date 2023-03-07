@@ -32,6 +32,10 @@ pub enum TokenKind {
     Equals,
     Id(String),
 
+    // If
+    If,
+    Else,
+
     // Arithmetic Operators.
     Plus,  // For both unary and binary Plus
     Minus, // For both unary and binary Minus
@@ -53,6 +57,8 @@ pub enum TokenKind {
     // Other
     OpenParen,
     CloseParen,
+    OpenBrace,
+    CloseBrace,
     Semi,
 }
 
@@ -142,6 +148,8 @@ lazy_static! {
         token_pattern!(TokenKind::Let,               r"let\b"),
         token_pattern!(TokenKind::Colon,             r":"),
         token_pattern!(TokenKind::Final,             r"final\b"),
+        token_pattern!(TokenKind::If,                r"if\b"),
+        token_pattern!(TokenKind::Else,              r"else\b"),
 
         // Arithmetic
         token_pattern!(TokenKind::Plus,              r"\+"),
@@ -164,6 +172,8 @@ lazy_static! {
 
         token_pattern!(TokenKind::OpenParen,         r"\("),
         token_pattern!(TokenKind::CloseParen,        r"\)"),
+        token_pattern!(TokenKind::OpenBrace,         r"\{"),
+        token_pattern!(TokenKind::CloseBrace,        r"\}"),
         token_pattern!(TokenKind::Semi,              r";"),
 
         // Id
