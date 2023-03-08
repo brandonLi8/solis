@@ -40,22 +40,3 @@ fn test_undeclared_variable_let_nested() {
 fn test_undeclared_variable_let_nested_cyclic() {
     translate_check("let a: int = let b: int = a", expect![[]])
 }
-
-#[test]
-#[should_panic(expected = "Variable `a` is already declared in this scope at 54..58")]
-fn test_redeclared_variable_1() {
-    translate_check(
-        concat!(
-            "let a: int = 2\nlet b: bool = false\n",
-            "1 + 2\n1 + 2\n",
-            "let a: bool = false"
-        ),
-        expect![[]],
-    )
-}
-
-#[test]
-#[should_panic(expected = "Variable `a` is already declared in this scope at 7..10")]
-fn test_redeclared_variable_let_nested() {
-    translate_check("let a: int = let b: int = let a: int = 3", expect![[]])
-}

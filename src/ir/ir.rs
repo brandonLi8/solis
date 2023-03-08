@@ -64,6 +64,11 @@ pub enum Expr {
         id: String,
         init_expr: Box<Expr>,
     },
+    If {
+        condition: Box<Expr>,
+        then_block: Block,
+        else_block: Option<Block>,
+    },
     UnaryExpr {
         kind: UnaryExprKind,
         operand: Box<DirectExpr>,

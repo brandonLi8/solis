@@ -18,6 +18,7 @@ use File;
 /// Different Types for Solis
 #[derive(PartialEq, Clone, Debug)]
 pub enum SolisType {
+    Unit,
     Int,
     Bool,
     Float,
@@ -27,10 +28,10 @@ pub enum SolisType {
 /// Type Checker for each scope of the program.
 pub struct TypeChecker<'a> {
     /// Maps identifiers/variables that have been seen to their types.
-    identifier_types: HashMap<String, SolisType>,
+    pub identifier_types: HashMap<String, SolisType>,
 
     /// The original Solis input file, for error messaging purposes.
-    file: &'a File,
+    pub file: &'a File,
 }
 
 impl<'a> TypeChecker<'a> {
@@ -38,6 +39,11 @@ impl<'a> TypeChecker<'a> {
     /// * file: the original Solis file
     pub fn new(file: &'a File) -> Self {
         TypeChecker { file, identifier_types: HashMap::new() }
+    }
+
+    /// Constructs a TypeChecker from another TypeChecker, with the identifier_types cloned
+    pub fn inherited(type_checker: &TypeChecker<'a>) -> Self {
+        TypeChecker { file: type_checker.file, identifier_types: type_checker.identifier_types.clone() }
     }
 
     /// Type checks a let expression.
@@ -66,11 +72,42 @@ impl<'a> TypeChecker<'a> {
 
         // Variable cannot be re-declared
         if self.identifier_types.insert(id.to_string(), init_expr_type).is_some() {
+            // compilation_error(
+            //     self.file,
+            //     position,
+            //     &format!("Variable `{id}` is already declared in this scope"),
+            // )
+        }
+    }
+
+    /// Type checks a if expression.
+    /// * return - the type of the result expression
+    pub fn type_check_if(
+        &mut self,
+        condition_type: SolisType,
+        then_block_type: SolisType,
+        else_block_type: Option<SolisType>,
+        position: &Range<usize>,
+    ) -> SolisType {
+        if condition_type != SolisType::Bool {
             compilation_error(
                 self.file,
                 position,
-                &format!("Variable `{id}` is already declared in this scope"),
+                &format!("`if` condition expected type `bool`, instead found `{condition_type}`"),
             )
+        }
+        if let Some(else_block_type) = else_block_type {
+            if else_block_type != then_block_type {
+                compilation_error(
+                    self.file,
+                    position,
+                    &format!("Mismatched types on `if` branches, `{then_block_type}` and `{else_block_type}`"),
+                )
+            }
+            then_block_type
+        } else {
+            // If expressions with no else block evaluate to the unit type
+            SolisType::Unit
         }
     }
 

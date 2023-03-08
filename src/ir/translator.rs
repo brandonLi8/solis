@@ -16,26 +16,30 @@ use File;
 
 /// Translates a `ast::Program` into a `ir::Program`
 pub fn translate_program(file: &File, program: ast::Program) -> ir::Program {
-    ir::Program { body: translate_block(file, program.body) }
+    let mut type_checker = TypeChecker::new(file);
+    let (body, _) = translate_block(&mut type_checker, program.body);
+    ir::Program { body }
 }
 
 // Translates a `ast::Block` into a `ir::Block`
-fn translate_block(file: &File, block: ast::Block) -> ir::Block {
+// * return - the block and the type that the block evaluates to
+fn translate_block(type_checker: &mut TypeChecker, block: ast::Block) -> (ir::Block, SolisType) {
     let num_exprs = block.exprs.len();
     let mut exprs = vec![];
 
-    let mut type_checker = TypeChecker::new(file);
+    let mut result_type = SolisType::Unit;
 
     for (i, expr) in block.exprs.into_iter().enumerate() {
-        let (translated_expr, _) = translate_expr(expr, &mut type_checker, &mut exprs);
+        let (translated_expr, expr_type) = translate_expr(expr, type_checker, &mut exprs);
 
         // Ignore top-level directs, unless it is the last expression in the block
         if i == num_exprs - 1 || !matches!(translated_expr, ir::Expr::Direct { .. }) {
             exprs.push(translated_expr);
         }
+        result_type = expr_type
     }
 
-    ir::Block { exprs }
+    (ir::Block { exprs }, result_type)
 }
 
 // Translates a `ast::Expr` into a `ir::Expr`
@@ -83,6 +87,26 @@ fn translate_expr(
             (
                 ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id, id_type: init_type.clone() } },
                 init_type,
+            )
+        }
+        ast::ExprKind::If { condition, then_block, else_block } => {
+            let (condition, condition_type) = translate_expr(*condition, type_checker, bindings);
+
+            let (then_block, then_block_type) = translate_block(&mut TypeChecker::inherited(type_checker), then_block);
+
+            let (else_block, else_block_type) = if let Some(else_block) = else_block {
+                let (block, block_type) = translate_block(&mut TypeChecker::inherited(type_checker), else_block);
+                (Some(block), Some(block_type))
+            } else {
+                (None, None)
+            };
+
+            // Type check and get the result type
+            let result_type =
+                type_checker.type_check_if(condition_type, then_block_type, else_block_type, &expr.position);
+            (
+                ir::Expr::If { condition: Box::new(condition), then_block, else_block },
+                result_type,
             )
         }
         ast::ExprKind::UnaryExpr { kind, operand } => {
@@ -160,7 +184,6 @@ fn translate_expr(
                 result_type,
             )
         }
-        ast::ExprKind::If { .. } => todo!(),
     }
 }
 

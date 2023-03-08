@@ -1,16 +1,17 @@
-if a < b {
-  1 + 2;
-  2 + 3
+if let a: bool = true {
+  let b: int = 3;
+  1 + 2 + 3;
+  a == true
 }
-else if c {
-  2 + 3
+else if true {
+  false
 }
-else if d {
-  1 + 2
-}
-else if c {
-  a
+else if false {
+  2
 }
 else {
-  2 + 1
+  a
 }
+
+
+b

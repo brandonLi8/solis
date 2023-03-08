@@ -56,6 +56,7 @@ pub fn liveness_analysis<'a>(
         Expr::TypeCoercion { expr, .. } => {
             liveness_analysis_direct(expr, live_variables, variable_frequencies);
         }
+        Expr::If { .. } => todo!(),
     }
 }
 

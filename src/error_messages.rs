@@ -93,6 +93,7 @@ pub fn internal_compiler_error(message: &str) -> ! {
 impl Display for SolisType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::Unit => write!(f, "<unit>"),
             Self::Int => write!(f, "int"),
             Self::Bool => write!(f, "bool"),
             Self::Float => write!(f, "float"),
