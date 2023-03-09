@@ -43,7 +43,10 @@ impl<'a> TypeChecker<'a> {
 
     /// Constructs a TypeChecker from another TypeChecker, with the identifier_types cloned
     pub fn inherited(type_checker: &TypeChecker<'a>) -> Self {
-        TypeChecker { file: type_checker.file, identifier_types: type_checker.identifier_types.clone() }
+        TypeChecker {
+            file: type_checker.file,
+            identifier_types: type_checker.identifier_types.clone(),
+        }
     }
 
     /// Type checks a let expression.
@@ -72,11 +75,11 @@ impl<'a> TypeChecker<'a> {
 
         // Variable cannot be re-declared
         if self.identifier_types.insert(id.to_string(), init_expr_type).is_some() {
-            // compilation_error(
-            //     self.file,
-            //     position,
-            //     &format!("Variable `{id}` is already declared in this scope"),
-            // )
+            compilation_error(
+                self.file,
+                position,
+                &format!("Variable `{id}` is already declared in this scope"),
+            )
         }
     }
 

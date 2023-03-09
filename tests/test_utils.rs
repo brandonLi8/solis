@@ -11,6 +11,7 @@ use solis::ir::translator::translate_program;
 use solis::ir::type_checker::SolisType;
 use solis::parser::parser::parse;
 use solis::register_allocation::conflict_analysis::conflict_analysis;
+use solis::register_allocation::conflict_analysis::InterferenceGraph;
 use solis::register_allocation::liveness_analysis::liveness_analysis;
 use solis::register_allocation::register_allocator::allocate_registers;
 use solis::register_allocation::register_allocator::{Map, Set};
@@ -61,6 +62,8 @@ pub fn liveness_analysis_check(
         program.body.exprs.last().unwrap(),
         &mut live_variables,
         &mut variable_frequencies,
+        &mut InterferenceGraph::new(),
+        &mut InterferenceGraph::new(),
     );
 
     expect_live_variables.assert_eq(&format!("{live_variables:?}"));

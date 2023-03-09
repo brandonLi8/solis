@@ -53,18 +53,20 @@ fn compile_block(
         ]),
     );
 
-    // Compile each expression
-    for (i, expr) in block.exprs.iter().enumerate() {
-        compile_expr(
-            expr,
-            // For the last expression only, compile the result into Rax (for implicit returns).
-            if i == block.exprs.len() - 1 { Some(&Location::Register(Rax)) } else { None },
-            symbol_table,
-            stack_index,
-            &variable_assignment,
-            instructions,
-        );
-    }
+    println!("{:#?}", block);
+    println!("{:#?}", variable_assignment);
+    // // Compile each expression
+    // for (i, expr) in block.exprs.iter().enumerate() {
+    //     compile_expr(
+    //         expr,
+    //         // For the last expression only, compile the result into Rax (for implicit returns).
+    //         if i == block.exprs.len() - 1 { Some(&Location::Register(Rax)) } else { None },
+    //         symbol_table,
+    //         stack_index,
+    //         &variable_assignment,
+    //         instructions,
+    //     );
+    // }
 }
 
 /// Compiles an expression into assembly instructions, pushing the results into `instructions`

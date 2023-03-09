@@ -6,7 +6,7 @@
 //!
 //! In other words, a conflict (an edge) is when both variable's lifetimes intersect at some point, meaning they cannot
 //! be assigned the same register. This is the approach that is used to create the interference graph: by performing
-//! liveness analysis (see `liveness_analysis.rs`) on each expression in a block (in reverse order), and for the
+//! liveness analysis (see `liveness_analysis.rs`) on each expression in a block (in reverse order), and the
 //! variables that are returned in the liveness set are added to the graph as a strongly connected component.
 
 use error_messages::internal_compiler_error;
@@ -27,7 +27,7 @@ pub struct InterferenceGraph<'a> {
 }
 
 impl<'a> InterferenceGraph<'a> {
-    /// Tokens Cursor constructor.
+    /// InterferenceGraph constructor.
     pub fn new() -> Self {
         InterferenceGraph { nodes: Map::new(), removed_nodes: Map::new() }
     }
@@ -75,17 +75,50 @@ impl<'a> InterferenceGraph<'a> {
     }
 }
 
-/// Performs conflict analysis for the passed in block. Returns the `InterferenceGraph` and the variable frequencies map.
+/// Performs conflict analysis for the passed in block.
+/// * return: (
+/// *  - the `InterferenceGraph`
+/// *  - the `InterferenceGraph` for variables of type SolisType::Float
+/// *  - the variable frequencies map
+/// * )
 pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph, Map<&String, usize>) {
-    let mut live_variables = Map::<&String, &SolisType>::new();
-    let mut variable_frequencies = Map::<&String, usize>::new();
+    let mut live_variables = Map::new();
+    let mut variable_frequencies = Map::new();
     let mut interference_graph = InterferenceGraph::new();
 
-    // Create a separate interference graph for floating point ids, since floats use a different register set.
+    // Create a separate interference graph for floating point variables, since floats use a different register set.
     let mut float_interference_graph = InterferenceGraph::new();
 
+    conflict_analysis_block(
+        block,
+        &mut live_variables,
+        &mut variable_frequencies,
+        &mut interference_graph,
+        &mut float_interference_graph,
+    );
+
+    return (interference_graph, float_interference_graph, variable_frequencies);
+}
+
+/// Performs conflict analysis, given a interference graph to add onto
+/// * live_variables - starting live variables
+/// * variable_frequencies - starting variable_frequencies
+/// * interference_graph - interference graph to add onto
+pub fn conflict_analysis_block<'a>(
+    block: &'a Block,
+    live_variables: &mut Map<&'a String, &'a SolisType>,
+    variable_frequencies: &mut Map<&'a String, usize>,
+    interference_graph: &mut InterferenceGraph<'a>,
+    float_interference_graph: &mut InterferenceGraph<'a>,
+) {
     for expr in block.exprs.iter().rev() {
-        liveness_analysis(expr, &mut live_variables, &mut variable_frequencies);
+        liveness_analysis(
+            expr,
+            live_variables,
+            variable_frequencies,
+            interference_graph,
+            float_interference_graph,
+        );
 
         // For each pair of variables that are live (at this point), add a conflict between them
         for (i, (variable_1, variable_1_type)) in live_variables.iter().enumerate() {
@@ -111,6 +144,4 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
             }
         }
     }
-
-    (interference_graph, float_interference_graph, variable_frequencies)
 }
