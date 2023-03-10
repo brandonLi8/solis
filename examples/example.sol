@@ -1,5 +1,4 @@
-let a: int = if true { let a: int  = 2 } else { 2 }
-
+let a: int = let b: int = a
 
 ##
 let a: int = 0

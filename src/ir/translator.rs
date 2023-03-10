@@ -51,7 +51,7 @@ fn translate_expr(
 ) -> (ir::Expr, Type) {
     match expr.kind {
         ast::ExprKind::Id { value } => {
-            let id_type = type_checker.get_type(&value, &expr.position);
+            let id_type = type_checker.get_declared_variable_type(&value, &expr.position);
             (
                 ir::Expr::Direct { expr: ir::DirectExpr::Id { value, id_type: id_type.clone() } },
                 id_type,
@@ -86,6 +86,7 @@ fn translate_expr(
                 ast::Type::Unit => ir::Type::Unit,
             };
 
+            type_checker.register_variable_being_declared(&id, type_reference.clone(), &expr.position);
             let (init_expr, init_type) = translate_expr(*init_expr, type_checker, bindings);
             type_checker.type_check_let(&id, init_type.clone(), type_reference, &expr.position);
 

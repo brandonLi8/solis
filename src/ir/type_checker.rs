@@ -17,8 +17,11 @@ use File;
 
 /// Type Checker for each scope of the program.
 pub struct TypeChecker<'a> {
-    /// Maps identifiers/variables that have been **already declared** to their types.
-    pub identifier_types: HashMap<String, Type>,
+    /// Maps identifiers/variables that have been seen to (
+    ///  - the type of the variable
+    ///  - true if the variable is already declared (after let), false if the variable is currently being declared
+    /// )
+    pub identifier_types: HashMap<String, (Type, bool)>,
 
     /// The original Solis input file, for error messaging purposes.
     pub file: &'a File,
@@ -55,14 +58,7 @@ impl<'a> TypeChecker<'a> {
             )
         }
 
-        // Ensure that the variable has not already been declared.
-        if self.identifier_types.insert(id.to_string(), type_reference).is_some() {
-            compilation_error(
-                self.file,
-                position,
-                &format!("Variable `{id}` is already declared in this scope"),
-            )
-        }
+        self.set_declared_variable_type(id, type_reference, position);
     }
 
     /// Type checks a if expression.
@@ -223,12 +219,38 @@ impl<'a> TypeChecker<'a> {
         }
     }
 
-    /// Gets the type of variable. If the variable has not been declared, a `compilation_error` is created
-    pub fn get_type(&self, id: &String, position: &Range<usize>) -> Type {
-        let t = self.identifier_types.get(id);
-        if t.is_none() {
-            compilation_error(self.file, position, &format!("Undeclared variable `{id}`"))
+    /// Gets the type of declared variable. If the variable has not been declared, a `compilation_error` is created.
+    pub fn get_declared_variable_type(&self, id: &String, position: &Range<usize>) -> Type {
+        match self.identifier_types.get(id) {
+            None | Some((_, false)) => compilation_error(self.file, position, &format!("Undeclared variable `{id}`")),
+            Some((t, true)) => t.clone()
         }
-        t.unwrap().clone()
+    }
+
+    /// Sets the type of declared variable. If the variable has already been declared, a `compilation_error` is created.
+    pub fn set_declared_variable_type(&mut self, id: &String, id_type: Type, position: &Range<usize>) {
+        // Ensure that the variable has not already been declared.
+        match self.identifier_types.get(id) {
+            None | Some((_, false)) => self.identifier_types.insert(id.to_string(), (id_type, true)),
+            _ => compilation_error(
+                self.file,
+                position,
+                &format!("Variable `{id}` is already declared in this scope"),
+            )
+        };
+    }
+
+    /// Registers a variable currently being declared. If the variable has already been declared, a `compilation_error`
+    /// is created.
+    pub fn register_variable_being_declared(&mut self, id: &String, id_type: Type, position: &Range<usize>) {
+        // Ensure that the variable has not already been declared.
+        match self.identifier_types.get(id) {
+            None => self.identifier_types.insert(id.to_string(), (id_type, false)),
+            _ => compilation_error(
+                self.file,
+                position,
+                &format!("Variable `{id}` is already declared in this scope"),
+            )
+        };
     }
 }

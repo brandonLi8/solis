@@ -777,7 +777,7 @@ fn test_translate_use_before_declare_2() {
 }
 
 #[test]
-#[should_panic(expected = "Variable `a` is already declared in this scope at 27..28")]
+#[should_panic(expected = "Variable `a` is already declared in this scope at 41..44")]
 fn test_translate_redeclare_before_declare() {
     translate_check(
         r"
