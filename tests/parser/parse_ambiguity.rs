@@ -19,7 +19,7 @@ fn test_ambiguity_unary() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: Minus,
@@ -58,7 +58,7 @@ fn test_ambiguity_unary() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: Int {
                                         value: 1,

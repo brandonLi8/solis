@@ -8,7 +8,7 @@ extern crate solis;
 use expect_test::Expect;
 use solis::asm::asm::{FloatRegister, Register};
 use solis::ir::translator::translate_program;
-use solis::ir::type_checker::SolisType;
+use solis::ir::ir::Type;
 use solis::parser::parser::parse;
 use solis::register_allocation::conflict_analysis::conflict_analysis;
 use solis::register_allocation::conflict_analysis::InterferenceGraph;
@@ -48,7 +48,7 @@ pub fn translate_check(program: &str, expect: Expect) {
 /// Test function for liveness analysis of an expression (runs it on the last expression of the block passed in).
 pub fn liveness_analysis_check(
     block: &str,
-    live_variables: Map<&String, &SolisType>,
+    live_variables: Map<&String, &Type>,
     variable_frequencies: Map<&String, usize>,
     expect_live_variables: Expect,
     expect_frequencies: Expect,

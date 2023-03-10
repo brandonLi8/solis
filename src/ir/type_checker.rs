@@ -10,25 +10,15 @@
 //! and provides helper functions to ensure each sub result is correct.
 
 use error_messages::compilation_error;
-use ir::ir;
+use ir::ir::{self, Type};
 use std::collections::HashMap;
 use std::ops::Range;
 use File;
 
-/// Different Types for Solis
-#[derive(PartialEq, Clone, Debug)]
-pub enum SolisType {
-    Unit,
-    Int,
-    Bool,
-    Float,
-    Custom(String),
-}
-
 /// Type Checker for each scope of the program.
 pub struct TypeChecker<'a> {
-    /// Maps identifiers/variables that have been seen to their types.
-    pub identifier_types: HashMap<String, SolisType>,
+    /// Maps identifiers/variables that have been **already declared** to their types.
+    pub identifier_types: HashMap<String, Type>,
 
     /// The original Solis input file, for error messaging purposes.
     pub file: &'a File,
@@ -53,18 +43,10 @@ impl<'a> TypeChecker<'a> {
     pub fn type_check_let(
         &mut self,
         id: &String,
-        init_expr_type: SolisType,
-        type_reference: String,
+        init_expr_type: Type,
+        type_reference: Type,
         position: &Range<usize>,
     ) {
-        // Convert the type_reference to a SolisType. TODO check that the type exists. TODO: should do this at parse step.
-        let type_reference = match type_reference.as_str() {
-            "int" => SolisType::Int,
-            "bool" => SolisType::Bool,
-            "float" => SolisType::Float,
-            _ => SolisType::Custom(type_reference),
-        };
-
         if type_reference != init_expr_type {
             compilation_error(
                 self.file,
@@ -73,8 +55,8 @@ impl<'a> TypeChecker<'a> {
             )
         }
 
-        // Variable cannot be re-declared
-        if self.identifier_types.insert(id.to_string(), init_expr_type).is_some() {
+        // Ensure that the variable has not already been declared.
+        if self.identifier_types.insert(id.to_string(), type_reference).is_some() {
             compilation_error(
                 self.file,
                 position,
@@ -87,12 +69,12 @@ impl<'a> TypeChecker<'a> {
     /// * return - the type of the result expression
     pub fn type_check_if(
         &mut self,
-        condition_type: SolisType,
-        then_block_type: SolisType,
-        else_block_type: Option<SolisType>,
+        condition_type: Type,
+        then_block_type: Type,
+        else_block_type: Option<Type>,
         position: &Range<usize>,
-    ) -> SolisType {
-        if condition_type != SolisType::Bool {
+    ) -> Type {
+        if condition_type != Type::Bool {
             compilation_error(
                 self.file,
                 position,
@@ -110,25 +92,24 @@ impl<'a> TypeChecker<'a> {
             then_block_type
         } else {
             // If expressions with no else block evaluate to the unit type
-            SolisType::Unit
+            Type::Unit
         }
     }
 
     /// Type checks unary expressions
     /// * return: (
-    ///
     ///     - the type of the result expression,
     ///     - the type that the operand needs to be coerced into, if at all
     /// )
     pub fn type_check_unary_expr(
         &self,
         unary_expr_kind: &ir::UnaryExprKind,
-        operand_type: SolisType,
+        operand_type: Type,
         position: &Range<usize>,
-    ) -> (SolisType, Option<SolisType>) {
+    ) -> (Type, Option<Type>) {
         match unary_expr_kind {
             ir::UnaryExprKind::Not => {
-                if operand_type != SolisType::Bool {
+                if operand_type != Type::Bool {
                     compilation_error(
                         self.file,
                         position,
@@ -137,11 +118,11 @@ impl<'a> TypeChecker<'a> {
                         ),
                     )
                 }
-                (SolisType::Bool, None)
+                (Type::Bool, None)
             }
 
             ir::UnaryExprKind::Negative => {
-                if operand_type != SolisType::Int && operand_type != SolisType::Float {
+                if operand_type != Type::Int && operand_type != Type::Float {
                     compilation_error(
                         self.file,
                         position,
@@ -164,10 +145,10 @@ impl<'a> TypeChecker<'a> {
     pub fn type_check_binary_expr(
         &self,
         binary_expr_kind: &ir::BinaryExprKind,
-        operand_1_type: SolisType,
-        operand_2_type: SolisType,
+        operand_1_type: Type,
+        operand_2_type: Type,
         position: &Range<usize>,
-    ) -> (SolisType, Option<SolisType>, Option<SolisType>) {
+    ) -> (Type, Option<Type>, Option<Type>) {
         match binary_expr_kind {
             // For numerical operators, ensure both operands are integers/floats
             ir::BinaryExprKind::Plus
@@ -175,8 +156,8 @@ impl<'a> TypeChecker<'a> {
             | ir::BinaryExprKind::Times
             | ir::BinaryExprKind::Divide
             | ir::BinaryExprKind::Mod => {
-                if !matches!(operand_1_type, SolisType::Int | SolisType::Float)
-                    || !matches!(operand_2_type, SolisType::Int | SolisType::Float)
+                if !matches!(operand_1_type, Type::Int | Type::Float)
+                    || !matches!(operand_2_type, Type::Int | Type::Float)
                 {
                     compilation_error(
                       self.file,
@@ -185,17 +166,17 @@ impl<'a> TypeChecker<'a> {
                     )
                 }
 
-                let operand_1_is_float = matches!(operand_1_type, SolisType::Float);
-                let operand_2_is_float = matches!(operand_2_type, SolisType::Float);
+                let operand_1_is_float = matches!(operand_1_type, Type::Float);
+                let operand_2_is_float = matches!(operand_2_type, Type::Float);
 
                 if operand_1_is_float || operand_2_is_float {
                     (
-                        SolisType::Float,
-                        if operand_1_is_float { None } else { Some(SolisType::Float) },
-                        if operand_2_is_float { None } else { Some(SolisType::Float) },
+                        Type::Float,
+                        if operand_1_is_float { None } else { Some(Type::Float) },
+                        if operand_2_is_float { None } else { Some(Type::Float) },
                     )
                 } else {
-                    (SolisType::Int, None, None)
+                    (Type::Int, None, None)
                 }
             }
 
@@ -204,8 +185,8 @@ impl<'a> TypeChecker<'a> {
             | ir::BinaryExprKind::LessThanOrEquals
             | ir::BinaryExprKind::MoreThan
             | ir::BinaryExprKind::MoreThanOrEquals => {
-                if !matches!(operand_1_type, SolisType::Int | SolisType::Float)
-                    || !matches!(operand_2_type, SolisType::Int | SolisType::Float)
+                if !matches!(operand_1_type, Type::Int | Type::Float)
+                    || !matches!(operand_2_type, Type::Int | Type::Float)
                 {
                     compilation_error(
                       self.file,
@@ -214,17 +195,17 @@ impl<'a> TypeChecker<'a> {
                     )
                 }
 
-                let operand_1_is_float = matches!(operand_1_type, SolisType::Float);
-                let operand_2_is_float = matches!(operand_2_type, SolisType::Float);
+                let operand_1_is_float = matches!(operand_1_type, Type::Float);
+                let operand_2_is_float = matches!(operand_2_type, Type::Float);
 
                 if operand_1_is_float || operand_2_is_float {
                     (
-                        SolisType::Bool,
-                        if operand_1_is_float { None } else { Some(SolisType::Float) },
-                        if operand_2_is_float { None } else { Some(SolisType::Float) },
+                        Type::Bool,
+                        if operand_1_is_float { None } else { Some(Type::Float) },
+                        if operand_2_is_float { None } else { Some(Type::Float) },
                     )
                 } else {
-                    (SolisType::Bool, None, None)
+                    (Type::Bool, None, None)
                 }
             }
 
@@ -237,13 +218,13 @@ impl<'a> TypeChecker<'a> {
                       &format!("Mismatched types. `{binary_expr_kind:?}` cannot be used with `{operand_1_type}` and `{operand_2_type}`")
                     )
                 }
-                (SolisType::Bool, None, None)
+                (Type::Bool, None, None)
             }
         }
     }
 
     /// Gets the type of variable. If the variable has not been declared, a `compilation_error` is created
-    pub fn get_type(&self, id: &String, position: &Range<usize>) -> SolisType {
+    pub fn get_type(&self, id: &String, position: &Range<usize>) -> Type {
         let t = self.identifier_types.get(id);
         if t.is_none() {
             compilation_error(self.file, position, &format!("Undeclared variable `{id}`"))

@@ -4,7 +4,7 @@
 //! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
-use ir::type_checker::SolisType;
+use ir::ir::Type;
 use std::backtrace::Backtrace;
 use std::fmt::{self, Display};
 use std::ops::Range;
@@ -89,15 +89,14 @@ pub fn internal_compiler_error(message: &str) -> ! {
     }
 }
 
-/// For user facing, create more precise display messages for `SolisTypes` for error messaging purposes.
-impl Display for SolisType {
+/// For user facing, create more precise display messages for `Types` for error messaging purposes.
+impl Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Unit => write!(f, "<unit>"),
             Self::Int => write!(f, "int"),
             Self::Bool => write!(f, "bool"),
             Self::Float => write!(f, "float"),
-            Self::Custom(s) => write!(f, "{s}"),
         }
     }
 }

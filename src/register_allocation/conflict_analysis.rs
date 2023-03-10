@@ -10,8 +10,7 @@
 //! variables that are returned in the liveness set are added to the graph as a strongly connected component.
 
 use error_messages::internal_compiler_error;
-use ir::ir::Block;
-use ir::type_checker::SolisType;
+use ir::ir::{Block, Type};
 use register_allocation::liveness_analysis::liveness_analysis;
 use register_allocation::register_allocator::{Map, Set};
 
@@ -78,7 +77,7 @@ impl<'a> InterferenceGraph<'a> {
 /// Performs conflict analysis for the passed in block.
 /// * return: (
 /// *  - the `InterferenceGraph`
-/// *  - the `InterferenceGraph` for variables of type SolisType::Float
+/// *  - the `InterferenceGraph` for variables of type Type::Float
 /// *  - the variable frequencies map
 /// * )
 pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph, Map<&String, usize>) {
@@ -106,7 +105,7 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
 /// * interference_graph - interference graph to add onto
 pub fn conflict_analysis_block<'a>(
     block: &'a Block,
-    live_variables: &mut Map<&'a String, &'a SolisType>,
+    live_variables: &mut Map<&'a String, &'a Type>,
     variable_frequencies: &mut Map<&'a String, usize>,
     interference_graph: &mut InterferenceGraph<'a>,
     float_interference_graph: &mut InterferenceGraph<'a>,
@@ -122,7 +121,7 @@ pub fn conflict_analysis_block<'a>(
 
         // For each pair of variables that are live (at this point), add a conflict between them
         for (i, (variable_1, variable_1_type)) in live_variables.iter().enumerate() {
-            let variable_1_is_float = matches!(variable_1_type, SolisType::Float);
+            let variable_1_is_float = matches!(variable_1_type, Type::Float);
 
             // Add the node to ensure that it is in the conflict graph (even if it doesn't conflict with something).
             if variable_1_is_float {
@@ -133,7 +132,7 @@ pub fn conflict_analysis_block<'a>(
 
             for (j, (variable_2, variable_2_type)) in live_variables.iter().enumerate() {
                 if i < j {
-                    let variable_2_is_float = matches!(variable_2_type, SolisType::Float);
+                    let variable_2_is_float = matches!(variable_2_type, Type::Float);
 
                     if !variable_1_is_float && !variable_2_is_float {
                         interference_graph.add_edge(variable_1, variable_2);
