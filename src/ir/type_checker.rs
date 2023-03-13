@@ -43,13 +43,7 @@ impl<'a> TypeChecker<'a> {
     }
 
     /// Type checks a let expression.
-    pub fn type_check_let(
-        &mut self,
-        id: &String,
-        init_expr_type: Type,
-        type_reference: Type,
-        position: &Range<usize>,
-    ) {
+    pub fn type_check_let(&mut self, id: &String, init_expr_type: Type, type_reference: Type, position: &Range<usize>) {
         if type_reference != init_expr_type {
             compilation_error(
                 self.file,
@@ -223,7 +217,7 @@ impl<'a> TypeChecker<'a> {
     pub fn get_declared_variable_type(&self, id: &String, position: &Range<usize>) -> Type {
         match self.identifier_types.get(id) {
             None | Some((_, false)) => compilation_error(self.file, position, &format!("Undeclared variable `{id}`")),
-            Some((t, true)) => t.clone()
+            Some((t, true)) => t.clone(),
         }
     }
 
@@ -236,7 +230,7 @@ impl<'a> TypeChecker<'a> {
                 self.file,
                 position,
                 &format!("Variable `{id}` is already declared in this scope"),
-            )
+            ),
         };
     }
 
@@ -250,7 +244,7 @@ impl<'a> TypeChecker<'a> {
                 self.file,
                 position,
                 &format!("Variable `{id}` is already declared in this scope"),
-            )
+            ),
         };
     }
 }

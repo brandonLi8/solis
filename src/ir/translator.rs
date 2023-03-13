@@ -44,11 +44,7 @@ fn translate_block(type_checker: &mut TypeChecker, block: ast::Block) -> (ir::Bl
 
 // Translates a `ast::Expr` into a `ir::Expr`
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn translate_expr(
-    expr: ast::Expr,
-    type_checker: &mut TypeChecker,
-    bindings: &mut Vec<ir::Expr>,
-) -> (ir::Expr, Type) {
+fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mut Vec<ir::Expr>) -> (ir::Expr, Type) {
     match expr.kind {
         ast::ExprKind::Id { value } => {
             let id_type = type_checker.get_declared_variable_type(&value, &expr.position);
@@ -58,10 +54,7 @@ fn translate_expr(
             )
         }
         ast::ExprKind::Int { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Int { value } }, Type::Int),
-        ast::ExprKind::Bool { value } => (
-            ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
-            Type::Bool,
-        ),
+        ast::ExprKind::Bool { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } }, Type::Bool),
         ast::ExprKind::Float { value } => {
             let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value } };
 
@@ -72,9 +65,7 @@ fn translate_expr(
             bindings.push(ir::Expr::Let { id: identifier.to_string(), init_expr: Box::new(float_expr) });
 
             (
-                ir::Expr::Direct {
-                    expr: ir::DirectExpr::Id { value: identifier, id_type: Type::Float },
-                },
+                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: identifier, id_type: Type::Float } },
                 Type::Float,
             )
         }

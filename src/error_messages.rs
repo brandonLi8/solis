@@ -43,7 +43,14 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
     let line_number = newline_indicies.len();
     let column = position.start - prev_newline;
 
-    println!(
+    // Disable coloring on unit tests.
+    #[cfg(feature = "test")]
+    {
+        use colored::control::SHOULD_COLORIZE;
+        SHOULD_COLORIZE.set_override(false);
+    }
+
+    let error_message = format!(
         "{error}: {message}\n {arrow} {filename}:{line_number}:{column}\n  \
                  {bar_padding}{bar}\n\
         {display_line_number} {bar} {line}\n  \
@@ -65,8 +72,9 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
     // For testing purposes, we don't want to exit() when we want to test that certain inputs raise errors.
     // Instead, we are able to test for panics.
     if cfg!(feature = "test") {
-        panic!("{} at {:?}", message, position);
+        panic!("{}", error_message.normal());
     } else {
+        println!("{}", error_message);
         std::process::exit(exitcode::DATAERR)
     }
 }

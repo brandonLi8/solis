@@ -47,11 +47,7 @@ pub fn parse_let_expr(tokens_cursor: &mut TokensCursor) -> Expr {
 
     if let TokenKind::Id(id) = id_token_kind {
         Expr {
-            kind: ExprKind::Let {
-                id: id.to_string(),
-                type_reference,
-                init_expr: Box::new(init_expr),
-            },
+            kind: ExprKind::Let { id: id.to_string(), type_reference, init_expr: Box::new(init_expr) },
             position: type_reference_token.position.clone(),
         }
     } else {
@@ -78,7 +74,7 @@ pub fn parse_type(tokens_cursor: &mut TokensCursor) -> Type {
             tokens_cursor.consume_token(TokenKind::CloseParen);
             Type::Unit
         }
-        _ => todo!()
+        _ => todo!(),
     }
 }
 

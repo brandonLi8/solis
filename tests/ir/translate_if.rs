@@ -3,7 +3,7 @@
 //! Tests for translating if expressions.
 
 use expect_test::expect;
-use test_utils::translate_check;
+use test_utils::{translate_check, translate_error_check};
 
 #[test]
 fn test_translate_if_no_else() {
@@ -702,10 +702,9 @@ fn test_translate_nested() {
 }
 
 #[test]
-#[should_panic(expected = "Mismatched types on `if` branches, `bool` and `int` at 242..244")]
 fn test_translate_branch_type_consistency() {
-    translate_check(
-        r"
+    translate_error_check(
+        "
         let a: int = 0
         let b: int = 0
         let c: int = 0
@@ -722,16 +721,21 @@ fn test_translate_branch_type_consistency() {
         else {
           let d: int = b + c + 2
         }
-      ",
-        expect![],
+        ",
+        expect![[r#"
+            Error: Mismatched types on `if` branches, `bool` and `int`
+             --> :12:13
+               |
+            12 |         else if false {
+               |              ^^
+        "#]],
     )
 }
 
 #[test]
-#[should_panic(expected = "Undeclared variable `d` at 333..334")]
 fn test_translate_use_declared_inside_branch() {
-    translate_check(
-        r"
+    translate_error_check(
+        "
         let a: int = 0
         let b: int = 0
         let c: int = 0
@@ -749,46 +753,77 @@ fn test_translate_use_declared_inside_branch() {
           let d: int = 3
         }
         d
-      ",
-        expect![],
+        ",
+        expect![[r#"
+            Error: Undeclared variable `d`
+             --> :18:8
+               |
+            18 |         d
+               |         ^
+        "#]],
     )
 }
 
 #[test]
-#[should_panic(expected = "Undeclared variable `a` at 34..35")]
 fn test_translate_use_before_declare() {
-    translate_check(
-        r"
-          let a: int = if true { a } else { 2 }
+    translate_error_check(
+        "
+        let a: int = if true { a } else { 2 }
         ",
-        expect![],
+        expect![[r#"
+            Error: Undeclared variable `a`
+             --> :2:31
+              |
+            2 |         let a: int = if true { a } else { 2 }
+              |                                ^
+        "#]],
     )
 }
 
 #[test]
-#[should_panic(expected = "Undeclared variable `a` at 27..28")]
 fn test_translate_use_before_declare_2() {
-    translate_check(
-        r"
-          let a: int = if a < 2 { 2 } else { 2 }
+    translate_error_check(
+        "
+        let a: int = if a < 2 { 2 } else { 2 }
         ",
-        expect![]
+        expect![[r#"
+            Error: Undeclared variable `a`
+             --> :2:24
+              |
+            2 |         let a: int = if a < 2 { 2 } else { 2 }
+              |                         ^
+        "#]],
     )
 }
 
 #[test]
-#[should_panic(expected = "Variable `a` is already declared in this scope at 41..44")]
 fn test_translate_redeclare_before_declare() {
-    translate_check(
-        r"
-          let a: int = if true { let a: int = 0 } else { 0 }
+    translate_error_check(
+        "
+        let a: int = if true { let a: int = 0 } else { 0 }
         ",
-        expect![]
+        expect![[r#"
+            Error: Variable `a` is already declared in this scope
+             --> :2:38
+              |
+            2 |         let a: int = if true { let a: int = 0 } else { 0 }
+              |                                       ^^^
+        "#]],
     )
 }
 
 #[test]
-#[should_panic(expected = "Mismatched types, expected `<unit>`, but found `int` at 7..10")]
 fn test_translate_no_else_type_mismatch() {
-    translate_check("let a: int = if false { 5 }", expect![[]])
+    translate_error_check(
+        "
+        let a: int = if false { 5 }
+        ",
+        expect![[r#"
+            Error: Mismatched types, expected `<unit>`, but found `int`
+             --> :2:15
+              |
+            2 |         let a: int = if false { 5 }
+              |                ^^^
+        "#]]
+    )
 }
