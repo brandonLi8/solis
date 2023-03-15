@@ -11,5 +11,5 @@ fn test_comprehenzive() {
         r"
         ",
         expect![],
-    )
+    );
 }

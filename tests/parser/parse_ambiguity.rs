@@ -1,6 +1,6 @@
 // Copyright © 2022-2023 Brandon Li. All rights reserved.
 
-//! Tests parser correctness for https://github.com/brandonLi8/solis/issues/28
+//! Tests parser correctness for `https://github.com/brandonLi8/solis/issues/28`
 
 use expect_test::expect;
 use test_utils::parse_check;
@@ -19,7 +19,7 @@ fn test_ambiguity_unary() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: Minus,
@@ -58,7 +58,7 @@ fn test_ambiguity_unary() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: Int {
                                         value: 1,
@@ -83,5 +83,5 @@ fn test_ambiguity_unary() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

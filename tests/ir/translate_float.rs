@@ -61,7 +61,7 @@ fn test_float_basic() {
                     ],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -148,5 +148,5 @@ fn test_float_complex() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

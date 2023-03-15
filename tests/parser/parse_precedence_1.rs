@@ -174,7 +174,7 @@ fn test_arithmetic_precedence() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: Minus,
@@ -211,7 +211,7 @@ fn test_arithmetic_precedence() {
                         Expr {
                             kind: Let {
                                 id: "b",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: Minus,
@@ -248,5 +248,5 @@ fn test_arithmetic_precedence() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

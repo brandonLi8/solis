@@ -121,7 +121,7 @@ fn test_float_plus_int_basic() {
                     ],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -354,5 +354,5 @@ fn test_float_other_2() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

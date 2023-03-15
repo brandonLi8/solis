@@ -15,7 +15,7 @@ fn test_empty() {
                     exprs: [],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn test_basic() {
                         Expr {
                             kind: Let {
                                 id: "varName",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: Int {
                                         value: 32,
@@ -45,7 +45,7 @@ fn test_basic() {
                         Expr {
                             kind: Let {
                                 id: "varName2",
-                                type_reference: "bool",
+                                type_reference: Bool,
                                 init_expr: Expr {
                                     kind: Bool {
                                         value: true,
@@ -58,7 +58,7 @@ fn test_basic() {
                         Expr {
                             kind: Let {
                                 id: "varName3",
-                                type_reference: "float",
+                                type_reference: Float,
                                 init_expr: Expr {
                                     kind: Float {
                                         value: 2.0,
@@ -71,5 +71,5 @@ fn test_basic() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

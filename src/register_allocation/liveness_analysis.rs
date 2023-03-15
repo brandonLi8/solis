@@ -18,8 +18,8 @@
 //!     Line 2 output: {a}      (remove, b)
 //!     Line 1 output: {}       (remove a)
 
-use ir::ir::{DirectExpr, Expr};
-use ir::type_checker::SolisType;
+use ir::ir::{DirectExpr, Expr, Type};
+use register_allocation::conflict_analysis::{conflict_analysis_block, InterferenceGraph};
 use register_allocation::register_allocator::Map;
 
 /// Computes the variables that are live right before the expression runs. In other words, it computes the variables
@@ -28,16 +28,23 @@ use register_allocation::register_allocator::Map;
 ///
 /// `live_variables` - the variables that are live when the next expression runs, mapped to the type of the variable.
 /// `variable_frequencies` - maps variables to the number of times they are referenced. Modified in this function.
-/// return - variables that are live (needed) to execute this expression (and everything after)
 pub fn liveness_analysis<'a>(
     expr: &'a Expr,
-    live_variables: &mut Map<&'a String, &'a SolisType>,
+    live_variables: &mut Map<&'a String, &'a Type>,
     variable_frequencies: &mut Map<&'a String, usize>,
+    interference_graph: &mut InterferenceGraph<'a>,
+    float_interference_graph: &mut InterferenceGraph<'a>,
 ) {
     match expr {
         Expr::Direct { expr } => liveness_analysis_direct(expr, live_variables, variable_frequencies),
         Expr::Let { id, init_expr } => {
-            liveness_analysis(init_expr, live_variables, variable_frequencies);
+            liveness_analysis(
+                init_expr,
+                live_variables,
+                variable_frequencies,
+                interference_graph,
+                float_interference_graph,
+            );
             live_variables.remove(id);
 
             // For variables that are created but never referenced after. These variables still need to be considered
@@ -56,22 +63,61 @@ pub fn liveness_analysis<'a>(
         Expr::TypeCoercion { expr, .. } => {
             liveness_analysis_direct(expr, live_variables, variable_frequencies);
         }
+        Expr::If { condition, then_block, else_block: Some(else_block) } => {
+            // Perform conflict analysis on both branches. This allows variables that are declared in the branch
+            // to be in the interference graph with other variables used in that branch. Note that these variables
+            // are not in the set after the conflict analysis is over (since it was declared inside the block!).
+            let mut then_live_variables = live_variables.clone();
+            let mut else_live_variables = live_variables.clone();
+
+            conflict_analysis_block(
+                then_block,
+                &mut then_live_variables,
+                variable_frequencies,
+                interference_graph,
+                float_interference_graph,
+            );
+
+            conflict_analysis_block(
+                else_block,
+                &mut else_live_variables,
+                variable_frequencies,
+                interference_graph,
+                float_interference_graph,
+            );
+
+            // Add the union of then_live_variables and else_live_variables to live_variables. This means that every
+            // variable that is **still** (at the start of the block) live in either branch are in conflict with each
+            // other.
+            live_variables.extend(then_live_variables);
+            live_variables.extend(else_live_variables);
+
+            // Finally do liveness on the condition expression.
+            liveness_analysis_direct(condition, live_variables, variable_frequencies);
+        }
+        Expr::If { condition, then_block, else_block: None } => {
+            conflict_analysis_block(
+                then_block,
+                live_variables,
+                variable_frequencies,
+                interference_graph,
+                float_interference_graph,
+            );
+
+            liveness_analysis_direct(condition, live_variables, variable_frequencies);
+        }
     }
 }
 
 // The same as `liveness_analysis` but for a directs.
 fn liveness_analysis_direct<'a>(
     direct: &'a DirectExpr,
-    live_variables: &mut Map<&'a String, &'a SolisType>,
+    live_variables: &mut Map<&'a String, &'a Type>,
     variable_frequencies: &mut Map<&'a String, usize>,
 ) {
     if let DirectExpr::Id { value, id_type } = direct {
         live_variables.insert(value, id_type);
 
-        if let Some(count) = variable_frequencies.get(value) {
-            variable_frequencies.insert(value, count + 1);
-        } else {
-            variable_frequencies.insert(value, 1);
-        };
+        *variable_frequencies.entry(value).or_default() += 1;
     }
 }

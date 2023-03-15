@@ -141,7 +141,7 @@ fn test_comparison_left_associative_1() {
                     ],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -155,7 +155,7 @@ fn test_comparison_left_associative_2() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "bool",
+                                type_reference: Bool,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: EqualsEquals,

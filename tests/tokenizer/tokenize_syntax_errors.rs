@@ -3,40 +3,103 @@
 //! Tests tokenizing programs with various syntax errors.
 
 use expect_test::expect;
-use test_utils::tokenize_check;
+use test_utils::tokenize_error_check;
 
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 10..11")]
 fn test_syntax_error_basic_1() {
-    tokenize_check("let name: [int = 32", expect![]);
+    tokenize_error_check(
+        "
+        let name: [int = 32
+        ",
+        expect![[r#"
+            Error: Syntax Error: Invalid or unexpected token
+             --> :2:18
+              |
+            2 |         let name: [int = 32
+              |                   ^
+        "#]],
+    );
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 12..13")]
 fn test_syntax_error_basic_2() {
-    tokenize_check("let name: in[t = 32", expect![]);
+    tokenize_error_check(
+        "
+        let name: in[t = 32
+        ",
+        expect![[r#"
+            Error: Syntax Error: Invalid or unexpected token
+             --> :2:20
+              |
+            2 |         let name: in[t = 32
+              |                     ^
+        "#]],
+    );
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 23..24")]
 fn test_syntax_error_whitespace() {
-    tokenize_check("\n  \nlet name:     \nint [= 32 \n\n  ", expect![]);
+    tokenize_error_check(
+        "
+
+           let name:
+                  int [= 32
+
+        ",
+        expect![[r#"
+            Error: Syntax Error: Invalid or unexpected token
+             --> :4:22
+              |
+            4 |                   int [= 32
+              |                       ^
+        "#]],
+    );
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid syntax at 3..4")]
 fn test_syntax_error_double_dot() {
-    tokenize_check("2.5.2", expect![]);
+    tokenize_error_check(
+        "
+        2.5.2
+        ",
+        expect![[r#"
+            Error: Syntax Error: Invalid syntax
+             --> :2:11
+              |
+            2 |         2.5.2
+              |            ^
+        "#]],
+    );
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid syntax at 2..3")]
 fn test_syntax_error_double_dot_2() {
-    tokenize_check("1..2", expect![]);
+    tokenize_error_check(
+        "
+        1..2
+        ",
+        expect![[r#"
+            Error: Syntax Error: Invalid syntax
+             --> :2:10
+              |
+            2 |         1..2
+              |           ^
+        "#]],
+    );
 }
 
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid syntax at 2..3")]
 fn test_syntax_error_double_dot_3() {
-    tokenize_check(".2.", expect![]);
+    tokenize_error_check(
+        "
+        .2.
+        ",
+        expect![[r#"
+            Error: Syntax Error: Invalid syntax
+             --> :2:10
+              |
+            2 |         .2.
+              |           ^
+        "#]],
+    );
 }

@@ -69,7 +69,7 @@ fn test_nested_let() {
                     ],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn test_nested_let_1() {
                     ],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -211,5 +211,5 @@ fn test_nested_let_2() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

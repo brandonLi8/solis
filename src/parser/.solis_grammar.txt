@@ -39,7 +39,13 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
   | <infix-expr> [";"]
 
 <let-expr> ::=
-  | LET ID COLON ID EQUALS <expr>
+  | LET ID COLON <type> ID EQUALS <expr>
+
+<type> ::=
+  | "int"
+  | "bool"
+  | "float"
+  | "()" # unit
 
 <if-expr> ::=
   | IF <expr> "{" <if-body> <else-block>

@@ -5,49 +5,77 @@
 extern crate expect_test;
 extern crate solis;
 
-use expect_test::Expect;
+use expect_test::{expect, Expect};
 use solis::asm::asm::{FloatRegister, Register};
+use solis::ir::ir::Type;
 use solis::ir::translator::translate_program;
-use solis::ir::type_checker::SolisType;
 use solis::parser::parser::parse;
-use solis::register_allocation::conflict_analysis::conflict_analysis;
+use solis::register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
 use solis::register_allocation::liveness_analysis::liveness_analysis;
-use solis::register_allocation::register_allocator::allocate_registers;
-use solis::register_allocation::register_allocator::{Map, Set};
+use solis::register_allocation::register_allocator::{allocate_registers, Map, Set};
 use solis::tokenizer::tokenizer::tokenize;
 use solis::File;
 
-/// Test function for tokenizing a program.
+/// Tests tokenizer output on program.
 pub fn tokenize_check(program: &str, expect: Expect) {
     let tokens = tokenize(&File { name: String::new(), contents: program.to_string() });
     expect.assert_eq(
         &tokens
             .iter()
             .fold(String::new(), |acc, token| acc + &format!("{token:?}") + "\n"),
-    )
+    );
 }
 
-/// Test function for parsing a program.
+/// Tests tokenizer output on program, where a compilation error is expected.
+pub fn tokenize_error_check(program: &str, expect: Expect) {
+    expect_error(
+        || {
+            tokenize_check(program, expect![]);
+        },
+        expect,
+    );
+}
+
+/// Tests parser output on program.
 pub fn parse_check(program: &str, expect: Expect) {
     let file = File { name: String::new(), contents: program.to_string() };
-
-    expect.assert_eq(&format!("{:#?}", parse(&file, tokenize(&file))))
+    expect.assert_eq(&format!("{:#?}", parse(&file, tokenize(&file))));
 }
 
-/// Test function for translating a program.
+/// Tests parser output on program, where a compilation error is expected.
+pub fn parse_error_check(program: &str, expect: Expect) {
+    expect_error(
+        || {
+            parse_check(program, expect![]);
+        },
+        expect,
+    );
+}
+
+/// Test translator output program.
 pub fn translate_check(program: &str, expect: Expect) {
     let file = File { name: String::new(), contents: program.to_string() };
 
     expect.assert_eq(&format!(
         "{:#?}",
         translate_program(&file, parse(&file, tokenize(&file)))
-    ))
+    ));
+}
+
+/// Tests translator output on program, where a compilation error is expected.
+pub fn translate_error_check(program: &str, expect: Expect) {
+    expect_error(
+        || {
+            translate_check(program, expect![]);
+        },
+        expect,
+    );
 }
 
 /// Test function for liveness analysis of an expression (runs it on the last expression of the block passed in).
 pub fn liveness_analysis_check(
     block: &str,
-    live_variables: Map<&String, &SolisType>,
+    live_variables: Map<&String, &Type>,
     variable_frequencies: Map<&String, usize>,
     expect_live_variables: Expect,
     expect_frequencies: Expect,
@@ -61,6 +89,8 @@ pub fn liveness_analysis_check(
         program.body.exprs.last().unwrap(),
         &mut live_variables,
         &mut variable_frequencies,
+        &mut InterferenceGraph::new(),
+        &mut InterferenceGraph::new(),
     );
 
     expect_live_variables.assert_eq(&format!("{live_variables:?}"));
@@ -89,4 +119,14 @@ pub fn register_allocator_check(
         "{:#?}",
         allocate_registers(&program.body, registers, float_registers)
     ));
+}
+
+// Function the expects a panic message when calling `function`.
+fn expect_error<F>(function: F, expect: expect_test::Expect)
+where
+    F: FnOnce() + std::panic::UnwindSafe,
+{
+    let error = std::panic::catch_unwind(function).unwrap_err();
+    let message = error.downcast_ref::<String>().unwrap();
+    expect.assert_eq(message);
 }

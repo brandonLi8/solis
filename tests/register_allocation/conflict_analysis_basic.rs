@@ -395,7 +395,7 @@ fn test_let_sequence_3() {
                     "e": 1,
                 },
             )"#]],
-    )
+    );
 }
 
 #[test]

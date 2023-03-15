@@ -15,8 +15,7 @@ use compiler::compile_binary_expr::compile_binary_expr;
 use compiler::compile_unary_expr::compile_unary_expr;
 use compiler::symbol_table::{Location, SymbolTable};
 use error_messages::internal_compiler_error;
-use ir::ir::{Block, DirectExpr, Expr, Program};
-use ir::type_checker::SolisType;
+use ir::ir::{Block, DirectExpr, Expr, Program, Type};
 use register_allocation::register_allocator::allocate_registers;
 use register_allocation::register_allocator::{Assignment, Map, Set};
 
@@ -53,6 +52,8 @@ fn compile_block(
         ]),
     );
 
+    // println!("{:#?}", block);
+    // println!("{:#?}", variable_assignment);
     // Compile each expression
     for (i, expr) in block.exprs.iter().enumerate() {
         compile_expr(
@@ -171,6 +172,7 @@ pub fn compile_expr(
             || internal_compiler_error("coercion must have location"),
             |location| compile_type_coercion(expr, location, from_type, to_type, symbol_table, instructions),
         ),
+        Expr::If { .. } => todo!(),
     }
 }
 
@@ -180,15 +182,15 @@ pub fn compile_expr(
 pub fn compile_type_coercion(
     expr: &DirectExpr,
     location: &Location,
-    from_type: &SolisType,
-    to_type: &SolisType,
+    from_type: &Type,
+    to_type: &Type,
     symbol_table: &mut SymbolTable,
     instructions: &mut Vec<Instruction>,
 ) {
     let mut asm_operand = compile_direct(expr, symbol_table);
 
     match (from_type, to_type) {
-        (SolisType::Int, SolisType::Float) => {
+        (Type::Int, Type::Float) => {
             // The second operand of Cvtsi2sd must not be a immediate
             if let Imm(..) = asm_operand {
                 instructions.push(Mov(Reg(R14), asm_operand));

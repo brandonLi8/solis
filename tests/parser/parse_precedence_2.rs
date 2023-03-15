@@ -203,7 +203,7 @@ fn test_comparison_precedence_1() {
                     ],
                 },
             }"#]],
-    )
+    );
 }
 
 #[test]
@@ -212,7 +212,7 @@ fn test_comparison_precedence_2() {
         r"
           let a: bool = z + y < z
           let b: bool = 1 != 2 / 3
-          let c: invalid = 1 + (2 >= 3) # semantics wrong
+          let c: () = 1 + (2 >= 3) # semantics wrong
         ",
         expect![[r#"
             Program {
@@ -221,7 +221,7 @@ fn test_comparison_precedence_2() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "bool",
+                                type_reference: Bool,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: LessThan,
@@ -258,7 +258,7 @@ fn test_comparison_precedence_2() {
                         Expr {
                             kind: Let {
                                 id: "b",
-                                type_reference: "bool",
+                                type_reference: Bool,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: NotEquals,
@@ -295,7 +295,7 @@ fn test_comparison_precedence_2() {
                         Expr {
                             kind: Let {
                                 id: "c",
-                                type_reference: "invalid",
+                                type_reference: Unit,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: Plus,
@@ -303,7 +303,7 @@ fn test_comparison_precedence_2() {
                                             kind: Int {
                                                 value: 1,
                                             },
-                                            position: 97..98,
+                                            position: 92..93,
                                         },
                                         operand_2: Expr {
                                             kind: BinaryExpr {
@@ -312,25 +312,25 @@ fn test_comparison_precedence_2() {
                                                     kind: Int {
                                                         value: 2,
                                                     },
-                                                    position: 102..103,
+                                                    position: 97..98,
                                                 },
                                                 operand_2: Expr {
                                                     kind: Int {
                                                         value: 3,
                                                     },
-                                                    position: 107..108,
+                                                    position: 102..103,
                                                 },
                                             },
-                                            position: 104..106,
+                                            position: 99..101,
                                         },
                                     },
-                                    position: 99..100,
+                                    position: 94..95,
                                 },
                             },
-                            position: 87..94,
+                            position: 88..89,
                         },
                     ],
                 },
             }"#]],
-    )
+    );
 }

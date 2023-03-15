@@ -30,7 +30,7 @@ pub struct Expr {
 pub enum ExprKind {
     Let {
         id: String,
-        type_reference: String,
+        type_reference: Type,
         init_expr: Box<Expr>,
     },
     If {
@@ -59,6 +59,14 @@ pub enum ExprKind {
         operand_1: Box<Expr>,
         operand_2: Box<Expr>,
     },
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum Type {
+    Unit,
+    Int,
+    Bool,
+    Float,
 }
 
 #[derive(PartialEq, Debug)]

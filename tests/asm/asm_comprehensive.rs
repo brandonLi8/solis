@@ -81,7 +81,7 @@ fn test_basic() {
         Call("some_label".to_string()),
         Movq(FloatReg(Xmm0), FloatReg(Xmm1)),
         Movq(FloatReg(Xmm1), FloatReg(Xmm2)),
-        Movq(Reg(Rax), FloatImm(3.141_592_653_589_793)),
+        Movq(Reg(Rax), FloatImm(2.123_987_129_731)),
         Cvttsd2si(Reg(Rax), FloatReg(Xmm2)),
         Cvtsi2sd(FloatReg(Xmm14), Reg(Rax)),
         Xorpd(FloatReg(Xmm2), FloatReg(Xmm2)),
@@ -167,7 +167,7 @@ fn test_basic() {
         	call _some_label
         	movq xmm0, xmm1
         	movq xmm1, xmm2
-        	movq rax, __?float64?__(3.141592653589793)
+        	movq rax, __?float64?__(2.123987129731)
         	cvttsd2si rax, xmm2
         	cvtsi2sd xmm14, rax
         	xorpd xmm2, xmm2

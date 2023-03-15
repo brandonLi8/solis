@@ -49,7 +49,7 @@ impl<'a> TokensCursor<'a> {
 
     /// Advances the cursor forwards (to the right) by one, **where you are expecting there to be a next token but not
     /// fully sure** and throws a user *compilation* compiler error if not. This also returns the advanced token.
-    pub fn next(&mut self) -> (&Token, &Self) {
+    pub fn next(&mut self) -> (&Token, &mut Self) {
         if self.is_end_of_file() {
             compilation_error(self.file, &self.prev().position, "Syntax Error: unexpected end of file")
         }

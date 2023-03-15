@@ -6,6 +6,7 @@ mod translate_basic;
 mod translate_comprehensive;
 mod translate_float;
 mod translate_float_expr;
+mod translate_if;
 mod translate_nested_let;
 mod translate_type_mismatch_errors;
 mod translate_variable_errors;

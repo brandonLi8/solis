@@ -8,56 +8,53 @@
 //! each operands, and substitute the identifier as a Direct into the original expression.
 
 use error_messages::internal_compiler_error;
-use ir::ir;
-use ir::type_checker::{SolisType, TypeChecker};
+use ir::ir::{self, Type};
+use ir::type_checker::TypeChecker;
 use parser::ast;
 use std::cell::RefCell;
 use File;
 
 /// Translates a `ast::Program` into a `ir::Program`
 pub fn translate_program(file: &File, program: ast::Program) -> ir::Program {
-    ir::Program { body: translate_block(file, program.body) }
+    let mut type_checker = TypeChecker::new(file);
+    let (body, _) = translate_block(&mut type_checker, program.body);
+    ir::Program { body }
 }
 
 // Translates a `ast::Block` into a `ir::Block`
-fn translate_block(file: &File, block: ast::Block) -> ir::Block {
+// * return - the block and the type that the block evaluates to
+fn translate_block(type_checker: &mut TypeChecker, block: ast::Block) -> (ir::Block, Type) {
     let num_exprs = block.exprs.len();
     let mut exprs = vec![];
 
-    let mut type_checker = TypeChecker::new(file);
+    let mut result_type = Type::Unit;
 
     for (i, expr) in block.exprs.into_iter().enumerate() {
-        let (translated_expr, _) = translate_expr(expr, &mut type_checker, &mut exprs);
+        let (translated_expr, expr_type) = translate_expr(expr, type_checker, &mut exprs);
 
         // Ignore top-level directs, unless it is the last expression in the block
         if i == num_exprs - 1 || !matches!(translated_expr, ir::Expr::Direct { .. }) {
             exprs.push(translated_expr);
         }
+        result_type = expr_type;
     }
 
-    ir::Block { exprs }
+    (ir::Block { exprs }, result_type)
 }
 
 // Translates a `ast::Expr` into a `ir::Expr`
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn translate_expr(
-    expr: ast::Expr,
-    type_checker: &mut TypeChecker,
-    bindings: &mut Vec<ir::Expr>,
-) -> (ir::Expr, SolisType) {
+fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mut Vec<ir::Expr>) -> (ir::Expr, Type) {
     match expr.kind {
         ast::ExprKind::Id { value } => {
-            let id_type = type_checker.get_type(&value, &expr.position);
+            let id_type = type_checker.get_declared_variable_type(&value, &expr.position);
             (
                 ir::Expr::Direct { expr: ir::DirectExpr::Id { value, id_type: id_type.clone() } },
                 id_type,
             )
         }
-        ast::ExprKind::Int { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Int { value } }, SolisType::Int),
-        ast::ExprKind::Bool { value } => (
-            ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
-            SolisType::Bool,
-        ),
+        ast::ExprKind::Int { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Int { value } }, Type::Int),
+        ast::ExprKind::Bool { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } }, Type::Bool),
         ast::ExprKind::Float { value } => {
             let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value } };
 
@@ -68,13 +65,19 @@ fn translate_expr(
             bindings.push(ir::Expr::Let { id: identifier.to_string(), init_expr: Box::new(float_expr) });
 
             (
-                ir::Expr::Direct {
-                    expr: ir::DirectExpr::Id { value: identifier, id_type: SolisType::Float },
-                },
-                SolisType::Float,
+                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: identifier, id_type: Type::Float } },
+                Type::Float,
             )
         }
         ast::ExprKind::Let { id, init_expr, type_reference } => {
+            let type_reference = match type_reference {
+                ast::Type::Int => ir::Type::Int,
+                ast::Type::Bool => ir::Type::Bool,
+                ast::Type::Float => ir::Type::Float,
+                ast::Type::Unit => ir::Type::Unit,
+            };
+
+            type_checker.register_variable_being_declared(&id, type_reference.clone(), &expr.position);
             let (init_expr, init_type) = translate_expr(*init_expr, type_checker, bindings);
             type_checker.type_check_let(&id, init_type.clone(), type_reference, &expr.position);
 
@@ -83,6 +86,25 @@ fn translate_expr(
             (
                 ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id, id_type: init_type.clone() } },
                 init_type,
+            )
+        }
+        ast::ExprKind::If { condition, then_block, else_block } => {
+            let (condition, condition_type) = translate_expr(*condition, type_checker, bindings);
+            let condition = to_direct(condition, condition_type.clone(), bindings);
+
+            let (then_block, then_block_type) = translate_block(&mut TypeChecker::inherited(type_checker), then_block);
+
+            let (else_block, else_block_type) = else_block.map_or((None, None), |else_block| {
+                let (block, block_type) = translate_block(&mut TypeChecker::inherited(type_checker), else_block);
+                (Some(block), Some(block_type))
+            });
+
+            // Type check and get the result type
+            let result_type =
+                type_checker.type_check_if(condition_type, then_block_type, else_block_type, &expr.position);
+            (
+                ir::Expr::If { condition: Box::new(condition), then_block, else_block },
+                result_type,
             )
         }
         ast::ExprKind::UnaryExpr { kind, operand } => {
@@ -160,7 +182,6 @@ fn translate_expr(
                 result_type,
             )
         }
-        ast::ExprKind::If { .. } => todo!(),
     }
 }
 
@@ -168,10 +189,10 @@ fn translate_expr(
 // * return - (the (new) direct, and the type of the expression)
 fn coerce_type(
     expr: ir::DirectExpr,
-    expr_type: SolisType,
-    expr_coercion: Option<SolisType>,
+    expr_type: Type,
+    expr_coercion: Option<Type>,
     bindings: &mut Vec<ir::Expr>,
-) -> (ir::DirectExpr, SolisType) {
+) -> (ir::DirectExpr, Type) {
     if let Some(expr_coercion) = expr_coercion {
         let direct_identifier = gen_temp_identifier();
         let init_expr = ir::Expr::TypeCoercion {
@@ -192,7 +213,7 @@ fn coerce_type(
 
 // Translates a `ir::Expr` into `ir::DirectExpr`.
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn to_direct(expr: ir::Expr, expr_type: SolisType, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
+fn to_direct(expr: ir::Expr, expr_type: Type, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
     if let ir::Expr::Direct { expr } = expr {
         expr
     } else {

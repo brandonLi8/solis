@@ -56,7 +56,7 @@ fn test_prefix() {
                         Expr {
                             kind: Let {
                                 id: "name",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: UnaryExpr {
                                         kind: Negative,
@@ -102,7 +102,7 @@ fn test_prefix() {
     );
 
     parse_check(
-        "let name: unknown = +2 - -3 - -+-+-4 + !4",
+        "let name: int = +2 - -3 - -+-+-4 + !4",
         expect![[r#"
             Program {
                 body: Block {
@@ -110,7 +110,7 @@ fn test_prefix() {
                         Expr {
                             kind: Let {
                                 id: "name",
-                                type_reference: "unknown",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: BinaryExpr {
                                         kind: Plus,
@@ -124,7 +124,7 @@ fn test_prefix() {
                                                             kind: Int {
                                                                 value: 2,
                                                             },
-                                                            position: 21..22,
+                                                            position: 17..18,
                                                         },
                                                         operand_2: Expr {
                                                             kind: UnaryExpr {
@@ -133,13 +133,13 @@ fn test_prefix() {
                                                                     kind: Int {
                                                                         value: 3,
                                                                     },
-                                                                    position: 26..27,
+                                                                    position: 22..23,
                                                                 },
                                                             },
-                                                            position: 25..26,
+                                                            position: 21..22,
                                                         },
                                                     },
-                                                    position: 23..24,
+                                                    position: 19..20,
                                                 },
                                                 operand_2: Expr {
                                                     kind: UnaryExpr {
@@ -154,19 +154,19 @@ fn test_prefix() {
                                                                             kind: Int {
                                                                                 value: 4,
                                                                             },
-                                                                            position: 35..36,
+                                                                            position: 31..32,
                                                                         },
                                                                     },
-                                                                    position: 34..35,
+                                                                    position: 30..31,
                                                                 },
                                                             },
-                                                            position: 32..33,
+                                                            position: 28..29,
                                                         },
                                                     },
-                                                    position: 30..31,
+                                                    position: 26..27,
                                                 },
                                             },
-                                            position: 28..29,
+                                            position: 24..25,
                                         },
                                         operand_2: Expr {
                                             kind: UnaryExpr {
@@ -175,16 +175,16 @@ fn test_prefix() {
                                                     kind: Int {
                                                         value: 4,
                                                     },
-                                                    position: 40..41,
+                                                    position: 36..37,
                                                 },
                                             },
-                                            position: 39..40,
+                                            position: 35..36,
                                         },
                                     },
-                                    position: 37..38,
+                                    position: 33..34,
                                 },
                             },
-                            position: 10..17,
+                            position: 10..13,
                         },
                     ],
                 },
@@ -200,7 +200,7 @@ fn test_prefix() {
                         Expr {
                             kind: Let {
                                 id: "name",
-                                type_reference: "bool",
+                                type_reference: Bool,
                                 init_expr: Expr {
                                     kind: UnaryExpr {
                                         kind: Not,

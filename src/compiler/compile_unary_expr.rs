@@ -8,8 +8,7 @@ use asm::asm::{FloatRegister::*, Instruction, Instruction::*, Operand::*, Regist
 use compiler::compiler::{compile_direct, mov_instruction_safe};
 use compiler::symbol_table::{Location, SymbolTable};
 use error_messages::internal_compiler_error;
-use ir::ir::{DirectExpr, UnaryExprKind};
-use ir::type_checker::SolisType;
+use ir::ir::{DirectExpr, Type, UnaryExprKind};
 
 /// Compiles a unary expression into assembly instructions, pushing the results into `instructions`
 /// * kind - the type of unary expression
@@ -26,7 +25,7 @@ use ir::type_checker::SolisType;
 pub fn compile_unary_expr(
     kind: &UnaryExprKind,
     operand: &DirectExpr,
-    operand_type: &SolisType,
+    operand_type: &Type,
     location: &Location,
     symbol_table: &mut SymbolTable,
     instructions: &mut Vec<Instruction>,
@@ -37,7 +36,7 @@ pub fn compile_unary_expr(
     instructions.push(Comment(format!("{kind:?}, {operand:?}"))); // TODO: option?
 
     match (kind, operand_type) {
-        (UnaryExprKind::Not, SolisType::Bool) => {
+        (UnaryExprKind::Not, Type::Bool) => {
             // The first operand of the `Cmp` instruction must be a Reg/MemOffset
             if matches!(asm_operand, Imm(..)) {
                 instructions.push(Mov(Reg(R14), asm_operand));
@@ -51,12 +50,12 @@ pub fn compile_unary_expr(
 
             instructions.push(Setz(location.to_operand()));
         }
-        (UnaryExprKind::Negative, SolisType::Int) => {
+        (UnaryExprKind::Negative, Type::Int) => {
             // No temporary registers are needed since, asm_operand is used, and then location is modified.
             mov_instruction_safe(location.to_operand(), asm_operand, instructions, R14);
             instructions.push(Neg(location.to_operand()));
         }
-        (UnaryExprKind::Negative, SolisType::Float) => {
+        (UnaryExprKind::Negative, Type::Float) => {
             // Floating Point negation
             instructions.push(Xorpd(FloatReg(Xmm14), FloatReg(Xmm14)));
             instructions.push(Subsd(FloatReg(Xmm14), asm_operand));

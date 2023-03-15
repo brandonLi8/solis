@@ -66,5 +66,5 @@ fn test_infix() {
             Token { kind: MoreThan, position: 57..58 }
             Token { kind: Int(58), position: 59..61 }
         "#]],
-    )
+    );
 }

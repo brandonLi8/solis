@@ -16,8 +16,7 @@ use asm::asm::{FloatRegister::*, Instruction, Instruction::*, Operand::*, Regist
 use compiler::compiler::compile_direct;
 use compiler::symbol_table::{Location, SymbolTable};
 use error_messages::internal_compiler_error;
-use ir::ir::{BinaryExprKind, DirectExpr};
-use ir::type_checker::SolisType;
+use ir::ir::{BinaryExprKind, DirectExpr, Type};
 
 /// Compiles a binary expression into assembly instructions, pushing the results into `instructions`
 /// * `kind` - the type of binary expression
@@ -28,12 +27,12 @@ pub fn compile_binary_expr(
     kind: &BinaryExprKind,
     operand_1: &DirectExpr,
     operand_2: &DirectExpr,
-    operand_type: &SolisType,
+    operand_type: &Type,
     location: &Location,
     symbol_table: &mut SymbolTable,
     instructions: &mut Vec<Instruction>,
 ) {
-    if let SolisType::Float = operand_type {
+    if let Type::Float = operand_type {
         return compile_binary_expr_float(kind, operand_1, operand_2, location, symbol_table, instructions);
     }
 

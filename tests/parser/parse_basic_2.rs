@@ -23,7 +23,7 @@ fn test_multiple_expressions() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: Int {
                                         value: 32,
@@ -36,7 +36,7 @@ fn test_multiple_expressions() {
                         Expr {
                             kind: Let {
                                 id: "b",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: UnaryExpr {
                                         kind: Negative,
@@ -131,7 +131,7 @@ fn test_multiple_expressions() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: Int {
                                         value: 32,
@@ -144,7 +144,7 @@ fn test_multiple_expressions() {
                         Expr {
                             kind: Let {
                                 id: "b",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: UnaryExpr {
                                         kind: Negative,
@@ -205,5 +205,5 @@ fn test_multiple_expressions() {
                     ],
                 },
             }"#]],
-    )
+    );
 }

@@ -44,5 +44,5 @@ fn test_comments_ignored() {
             Token { kind: Int(2), position: 223..224 }
             Token { kind: Id("a"), position: 252..253 }
         "#]],
-    )
+    );
 }

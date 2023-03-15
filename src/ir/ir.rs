@@ -43,8 +43,6 @@
 //!   Working with directs means that the operator does not have to do any more computation (naively would have to store
 //!   results on the stack).
 
-use ir::type_checker::SolisType;
-
 #[derive(PartialEq, Debug)]
 pub struct Program {
     pub body: Block,
@@ -64,23 +62,28 @@ pub enum Expr {
         id: String,
         init_expr: Box<Expr>,
     },
+    If {
+        condition: Box<DirectExpr>,
+        then_block: Block,
+        else_block: Option<Block>,
+    },
     UnaryExpr {
         kind: UnaryExprKind,
         operand: Box<DirectExpr>,
-        operand_type: SolisType,
+        operand_type: Type,
     },
     BinaryExpr {
         kind: BinaryExprKind,
         operand_1: Box<DirectExpr>,
         operand_2: Box<DirectExpr>,
-        operand_type: SolisType,
+        operand_type: Type,
     },
 
     // Converts one type to another type. We do this in the IR layer instead of the compiler layer
     TypeCoercion {
         expr: Box<DirectExpr>,
-        from_type: SolisType,
-        to_type: SolisType,
+        from_type: Type,
+        to_type: Type,
     },
 }
 
@@ -89,7 +92,15 @@ pub enum DirectExpr {
     Int { value: i64 },
     Bool { value: bool },
     Float { value: f64 },
-    Id { value: String, id_type: SolisType },
+    Id { value: String, id_type: Type },
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum Type {
+    Unit,
+    Int,
+    Bool,
+    Float,
 }
 
 #[derive(PartialEq, Debug)]

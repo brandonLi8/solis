@@ -269,7 +269,7 @@ fn parse_if_else_chain() {
                         Expr {
                             kind: Let {
                                 id: "a",
-                                type_reference: "int",
+                                type_reference: Int,
                                 init_expr: Expr {
                                     kind: If {
                                         condition: Expr {

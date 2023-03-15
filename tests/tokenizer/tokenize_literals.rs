@@ -3,7 +3,7 @@
 //! Tests tokenizing all literals.
 
 use expect_test::expect;
-use test_utils::tokenize_check;
+use test_utils::{tokenize_check, tokenize_error_check};
 
 #[test]
 fn test_literals() {
@@ -28,7 +28,7 @@ fn test_literals() {
             Token { kind: Id("a999999"), position: 13..20 }
             Token { kind: Id("varname_true_false_1_end"), position: 21..45 }
         "#]],
-    )
+    );
 }
 
 #[test]
@@ -59,7 +59,15 @@ fn test_literals_floats() {
 
 // Tests that just dot is not a float. TODO: when dot operator is added, can remove this test
 #[test]
-#[should_panic(expected = "Syntax Error: Invalid or unexpected token at 0..1")]
 fn test_syntax_error_dot() {
-    tokenize_check(".", expect![]);
+    tokenize_error_check(
+        ".",
+        expect![[r#"
+            Error: Syntax Error: Invalid or unexpected token
+             --> :1:0
+              |
+            1 | .
+              | ^
+        "#]],
+    );
 }
