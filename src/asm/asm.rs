@@ -48,7 +48,7 @@ pub enum FloatRegister {
 }
 
 /// Operands for instructions.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Operand {
     Reg(Register),
     FloatReg(FloatRegister),
@@ -71,19 +71,19 @@ pub enum Instruction {
     LeaLabel(Operand, String),
 
     Mov(Operand, Operand), // move                      (reg|mem, reg|mem|imm) but not (mem, mem)
-    MovByte(Operand, Operand), // move LSB                  (reg|mem, reg|mem|imm) but not (mem, mem)
+    MovByte(Operand, Operand), // move LSB              (reg|mem, reg|mem|imm) but not (mem, mem)
     Add(Operand, Operand), // +=                        (reg|mem, reg|mem|imm) but not (mem, mem)
     Sub(Operand, Operand), // -=                        (reg|mem, reg|mem|imm) but not (mem, mem)
     Div(Operand),          // / (src = rdx:rax) (IDIV)  (reg|mem)
     Mul(Operand, Operand), // * (src = rdx:rax) (IMUL)  (reg, reg|mem|imm)
-    Mul3(Operand, Operand, Operand), // a = b * c                 (reg, reg|mem, imm)
+    Mul3(Operand, Operand, Operand), // a = b * c       (reg, reg|mem, imm)
     Neg(Operand),          // negation                  (mem|reg)
     Cqo,                   // sign extend rax into rdx
 
     Shl(Operand, Operand),
     Shr(Operand, Operand),
     Sar(Operand, Operand),
-    Cmp(Operand, Operand),
+    Cmp(Operand, Operand), // compare - (reg|mem, reg|mem|imm) but not (mem, mem)
     And(Operand, Operand),
     Or(Operand, Operand),
     Setz(Operand),

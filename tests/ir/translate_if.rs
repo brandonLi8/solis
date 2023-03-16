@@ -360,9 +360,18 @@ fn test_translate_if_else_chain() {
                                 else_block: Some(
                                     Block {
                                         exprs: [
+                                            Let {
+                                                id: "@temp1",
+                                                init_expr: Direct {
+                                                    expr: Id {
+                                                        value: "c",
+                                                        id_type: Bool,
+                                                    },
+                                                },
+                                            },
                                             If {
                                                 condition: Id {
-                                                    value: "c",
+                                                    value: "@temp1",
                                                     id_type: Bool,
                                                 },
                                                 then_block: Block {
@@ -382,9 +391,18 @@ fn test_translate_if_else_chain() {
                                                 else_block: Some(
                                                     Block {
                                                         exprs: [
+                                                            Let {
+                                                                id: "@temp2",
+                                                                init_expr: Direct {
+                                                                    expr: Id {
+                                                                        value: "d",
+                                                                        id_type: Bool,
+                                                                    },
+                                                                },
+                                                            },
                                                             If {
                                                                 condition: Id {
-                                                                    value: "d",
+                                                                    value: "@temp2",
                                                                     id_type: Bool,
                                                                 },
                                                                 then_block: Block {
@@ -404,9 +422,18 @@ fn test_translate_if_else_chain() {
                                                                 else_block: Some(
                                                                     Block {
                                                                         exprs: [
+                                                                            Let {
+                                                                                id: "@temp3",
+                                                                                init_expr: Direct {
+                                                                                    expr: Id {
+                                                                                        value: "c",
+                                                                                        id_type: Bool,
+                                                                                    },
+                                                                                },
+                                                                            },
                                                                             If {
                                                                                 condition: Id {
-                                                                                    value: "c",
+                                                                                    value: "@temp3",
                                                                                     id_type: Bool,
                                                                                 },
                                                                                 then_block: Block {
@@ -508,10 +535,19 @@ fn test_translate_nested() {
                             },
                         },
                         Let {
-                            id: "@temp2",
-                            init_expr: If {
-                                condition: Bool {
+                            id: "@temp0",
+                            init_expr: Direct {
+                                expr: Bool {
                                     value: true,
+                                },
+                            },
+                        },
+                        Let {
+                            id: "@temp3",
+                            init_expr: If {
+                                condition: Id {
+                                    value: "@temp0",
+                                    id_type: Bool,
                                 },
                                 then_block: Block {
                                     exprs: [
@@ -532,7 +568,7 @@ fn test_translate_nested() {
                                     Block {
                                         exprs: [
                                             Let {
-                                                id: "@temp0",
+                                                id: "@temp1",
                                                 init_expr: BinaryExpr {
                                                     kind: Plus,
                                                     operand_1: Int {
@@ -545,11 +581,11 @@ fn test_translate_nested() {
                                                 },
                                             },
                                             Let {
-                                                id: "@temp1",
+                                                id: "@temp2",
                                                 init_expr: BinaryExpr {
                                                     kind: Plus,
                                                     operand_1: Id {
-                                                        value: "@temp0",
+                                                        value: "@temp1",
                                                         id_type: Int,
                                                     },
                                                     operand_2: Int {
@@ -561,7 +597,7 @@ fn test_translate_nested() {
                                             BinaryExpr {
                                                 kind: LessThan,
                                                 operand_1: Id {
-                                                    value: "@temp1",
+                                                    value: "@temp2",
                                                     id_type: Int,
                                                 },
                                                 operand_2: Int {
@@ -578,7 +614,7 @@ fn test_translate_nested() {
                             id: "d",
                             init_expr: If {
                                 condition: Id {
-                                    value: "@temp2",
+                                    value: "@temp3",
                                     id_type: Bool,
                                 },
                                 then_block: Block {
@@ -601,10 +637,19 @@ fn test_translate_nested() {
                                     Block {
                                         exprs: [
                                             Let {
-                                                id: "@temp3",
-                                                init_expr: If {
-                                                    condition: Bool {
+                                                id: "@temp4",
+                                                init_expr: Direct {
+                                                    expr: Bool {
                                                         value: false,
+                                                    },
+                                                },
+                                            },
+                                            Let {
+                                                id: "@temp5",
+                                                init_expr: If {
+                                                    condition: Id {
+                                                        value: "@temp4",
+                                                        id_type: Bool,
                                                     },
                                                     then_block: Block {
                                                         exprs: [
@@ -630,7 +675,7 @@ fn test_translate_nested() {
                                             },
                                             If {
                                                 condition: Id {
-                                                    value: "@temp3",
+                                                    value: "@temp5",
                                                     id_type: Bool,
                                                 },
                                                 then_block: Block {
@@ -646,7 +691,7 @@ fn test_translate_nested() {
                                                     Block {
                                                         exprs: [
                                                             Let {
-                                                                id: "@temp4",
+                                                                id: "@temp6",
                                                                 init_expr: BinaryExpr {
                                                                     kind: Plus,
                                                                     operand_1: Id {
@@ -665,7 +710,7 @@ fn test_translate_nested() {
                                                                 init_expr: BinaryExpr {
                                                                     kind: Plus,
                                                                     operand_1: Id {
-                                                                        value: "@temp4",
+                                                                        value: "@temp6",
                                                                         id_type: Int,
                                                                     },
                                                                     operand_2: Int {

@@ -57,15 +57,11 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
         ast::ExprKind::Bool { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } }, Type::Bool),
         ast::ExprKind::Float { value } => {
             let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value } };
-
-            // There are no such things as float immediates for x86. Instead, we must make each float a variable
-            // binding (in the compiler, there must be a `Location` for floats). For example `let a: float = 1.2 + 2.3`
-            // should translate to `let temp1 = 1.2; let temp2 = 2.3; let a = temp1 + temp2`.
-            let identifier = gen_temp_identifier();
-            bindings.push(ir::Expr::Let { id: identifier.to_string(), init_expr: Box::new(float_expr) });
-
             (
-                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: identifier, id_type: Type::Float } },
+                // There are no such things as float immediates for x86. Instead, we must make each float a variable
+                // binding (in the compiler, there must be a `Location` for floats). For example `let a: float = 1.2 + 2.3`
+                // should translate to `let temp1 = 1.2; let temp2 = 2.3; let a = temp1 + temp2`.
+                ir::Expr::Direct { expr: to_binding(float_expr, Type::Float, bindings) },
                 Type::Float,
             )
         }
@@ -90,7 +86,7 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
         }
         ast::ExprKind::If { condition, then_block, else_block } => {
             let (condition, condition_type) = translate_expr(*condition, type_checker, bindings);
-            let condition = to_direct(condition, condition_type.clone(), bindings);
+            let condition = to_binding(condition, condition_type.clone(), bindings);
 
             let (then_block, then_block_type) = translate_block(&mut TypeChecker::inherited(type_checker), then_block);
 
@@ -217,10 +213,15 @@ fn to_direct(expr: ir::Expr, expr_type: Type, bindings: &mut Vec<ir::Expr>) -> i
     if let ir::Expr::Direct { expr } = expr {
         expr
     } else {
-        let direct_identifier = gen_temp_identifier();
-        bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(expr) });
-        ir::DirectExpr::Id { value: direct_identifier, id_type: expr_type }
+        to_binding(expr, expr_type, bindings)
     }
+}
+
+// Translates a `ir::Expr` into `ir::DirectExpr::Id` by adding a temporary let-binding.
+fn to_binding(expr: ir::Expr, expr_type: Type, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
+    let direct_identifier = gen_temp_identifier();
+    bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(expr) });
+    ir::DirectExpr::Id { value: direct_identifier, id_type: expr_type }
 }
 
 // Ensures that the variable name of temporary variables are unique and can't conflict any source code names.

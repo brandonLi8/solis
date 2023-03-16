@@ -214,6 +214,11 @@ fn compile_binary_expr_float(
         | BinaryExprKind::MoreThanOrEquals
         | BinaryExprKind::EqualsEquals
         | BinaryExprKind::NotEquals => {
+            // Make the first operand Xmm14
+            if !matches!(asm_operand_1, FloatReg(Xmm14)) {
+                instructions.push(Movq(FloatReg(Xmm14), asm_operand_1));
+            }
+
             // If the second operand is a MemOffSet, place it Xmm15
             if let MemOffset(..) = asm_operand_2 {
                 instructions.push(Movq(FloatReg(Xmm15), asm_operand_2));
@@ -234,7 +239,7 @@ fn compile_binary_expr_float(
             });
 
             // Move the result back to the location
-            instructions.push(Movq(location.to_operand(), FloatReg(Xmm15)));
+            instructions.push(Movq(location.to_operand(), FloatReg(Xmm14)));
 
             // For Comparison, remove the mask of 1's and only set the last bit
             instructions.push(And(location.to_operand(), Imm(0b1)));

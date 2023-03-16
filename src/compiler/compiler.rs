@@ -18,6 +18,7 @@ use error_messages::internal_compiler_error;
 use ir::ir::{Block, DirectExpr, Expr, Program, Type};
 use register_allocation::register_allocator::allocate_registers;
 use register_allocation::register_allocator::{Assignment, Map, Set};
+use std::cell::RefCell;
 
 /// Compiles a Program into assembly instructions.
 pub fn compile(program: Program) -> Vec<Instruction> {
@@ -30,7 +31,23 @@ pub fn compile(program: Program) -> Vec<Instruction> {
     let mut symbol_table = SymbolTable::new();
     let mut stack_index = Box::new(-8);
 
-    compile_block(&program.body, &mut symbol_table, &mut stack_index, &mut instructions);
+    // Run the register allocator
+    let variable_assignment: Map<&String, Assignment> = allocate_registers(
+        &program.body,
+        Set::from([&R8, &R9, &R10, &R11, &R12, &R13]),
+        Set::from([
+            &Xmm1, &Xmm2, &Xmm3, &Xmm4, &Xmm5, &Xmm6, &Xmm7, &Xmm8, &Xmm9, &Xmm10, &Xmm11, &Xmm12, &Xmm13,
+        ]),
+    );
+
+    compile_block(
+        &program.body,
+        &mut symbol_table,
+        &mut stack_index,
+        &variable_assignment,
+        &mut instructions,
+        Some(&Location::Register(Rax)),
+    );
 
     instructions.push(Ret);
     instructions
@@ -41,28 +58,19 @@ fn compile_block(
     block: &Block,
     symbol_table: &mut SymbolTable,
     stack_index: &mut Box<i64>,
+    variable_assignment: &Map<&String, Assignment>,
     instructions: &mut Vec<Instruction>,
+    location: Option<&Location>,
 ) {
-    // Run the register allocator
-    let variable_assignment: Map<&String, Assignment> = allocate_registers(
-        block,
-        Set::from([&R8, &R9, &R10, &R11, &R12, &R13]),
-        Set::from([
-            &Xmm1, &Xmm2, &Xmm3, &Xmm4, &Xmm5, &Xmm6, &Xmm7, &Xmm8, &Xmm9, &Xmm10, &Xmm11, &Xmm12, &Xmm13,
-        ]),
-    );
-
-    // println!("{:#?}", block);
-    // println!("{:#?}", variable_assignment);
     // Compile each expression
     for (i, expr) in block.exprs.iter().enumerate() {
         compile_expr(
             expr,
             // For the last expression only, compile the result into Rax (for implicit returns).
-            if i == block.exprs.len() - 1 { Some(&Location::Register(Rax)) } else { None },
+            if i == block.exprs.len() - 1 { location } else { None },
             symbol_table,
             stack_index,
-            &variable_assignment,
+            variable_assignment,
             instructions,
         );
     }
@@ -104,49 +112,56 @@ pub fn compile_expr(
                 }
             }
         }
-        Expr::Let { id, init_expr } => {
-            // Convert assignment of let binding to a location
-            let assignment_location = match variable_assignment.get(id).unwrap() {
-                Assignment::Register(register) => Location::Register(*register),
-                Assignment::FloatRegister(register) => Location::FloatRegister(*register),
-                Assignment::Spill => {
-                    let location = Location::StackIndex(**stack_index);
-                    **stack_index -= 8;
-                    location
-                }
-                Assignment::None => {
-                    return compile_expr(
-                        init_expr,
-                        None,
-                        symbol_table,
-                        stack_index,
-                        variable_assignment,
-                        instructions,
-                    )
-                }
+        Expr::Let { id, init_expr } => compile_let(
+            id,
+            init_expr,
+            location,
+            symbol_table,
+            stack_index,
+            variable_assignment,
+            instructions,
+        ),
+        Expr::If { condition, then_block, else_block } => {
+            let condition = compile_direct(condition, symbol_table);
+            let else_label = gen_label("else");
+            let continue_label = gen_label("continue");
+
+            // Condition must be a binding.
+            if matches!(condition, Imm(..) | FloatImm(..)) {
+                internal_compiler_error(&format!("invalid condition {condition:?}"))
             };
 
-            compile_expr(
-                init_expr,
-                Some(&assignment_location),
+            instructions.push(Cmp(condition, Imm(1)));
+            instructions.push(Jne(if else_block.is_some() {
+                else_label.to_string()
+            } else {
+                continue_label.to_string()
+            }));
+
+            compile_block(
+                then_block,
                 symbol_table,
                 stack_index,
                 variable_assignment,
                 instructions,
+                location,
             );
 
-            // Move the result of the init_expr to location if it is set.
-            if let Some(location) = location {
-                mov_instruction_safe(
-                    location.to_operand(),
-                    assignment_location.to_operand(),
+            if let Some(else_block) = else_block {
+                instructions.push(Jmp(continue_label.to_string()));
+                instructions.push(Label(else_label));
+
+                compile_block(
+                    else_block,
+                    symbol_table,
+                    stack_index,
+                    variable_assignment,
                     instructions,
-                    R14,
+                    location,
                 );
             }
 
-            // Add the identifier to the symbol_table, *after* compiling the init_expr.
-            symbol_table.insert(id.to_string(), assignment_location);
+            instructions.push(Label(continue_label));
         }
         Expr::BinaryExpr { kind, operand_1, operand_2, operand_type } => {
             // If location is None, we can safely ignore the BinaryExpr as well since it *cannot induce any side
@@ -172,8 +187,61 @@ pub fn compile_expr(
             || internal_compiler_error("coercion must have location"),
             |location| compile_type_coercion(expr, location, from_type, to_type, symbol_table, instructions),
         ),
-        Expr::If { .. } => todo!(),
     }
+}
+
+/// Compiles a let expression
+pub fn compile_let(
+    id: &String,
+    init_expr: &Expr,
+    location: Option<&Location>,
+    symbol_table: &mut SymbolTable,
+    stack_index: &mut Box<i64>,
+    variable_assignment: &Map<&String, Assignment>,
+    instructions: &mut Vec<Instruction>,
+) {
+    // Convert assignment of let binding to a location
+    let assignment_location = match variable_assignment.get(id).unwrap() {
+        Assignment::Register(register) => Location::Register(*register),
+        Assignment::FloatRegister(register) => Location::FloatRegister(*register),
+        Assignment::Spill => {
+            let location = Location::StackIndex(**stack_index);
+            **stack_index -= 8;
+            location
+        }
+        Assignment::None => {
+            return compile_expr(
+                init_expr,
+                None,
+                symbol_table,
+                stack_index,
+                variable_assignment,
+                instructions,
+            )
+        }
+    };
+
+    compile_expr(
+        init_expr,
+        Some(&assignment_location),
+        symbol_table,
+        stack_index,
+        variable_assignment,
+        instructions,
+    );
+
+    // Move the result of the init_expr to location if it is set.
+    if let Some(location) = location {
+        mov_instruction_safe(
+            location.to_operand(),
+            assignment_location.to_operand(),
+            instructions,
+            R14,
+        );
+    }
+
+    // Add the identifier to the symbol_table, *after* compiling the init_expr.
+    symbol_table.insert(id.to_string(), assignment_location);
 }
 
 /// Converts (coercion) an expression from one type to another type, pushing the results into `instructions`
@@ -243,4 +311,20 @@ pub fn mov_instruction_safe(
     } else {
         instructions.push(mov_instruction(asm_operand_1, asm_operand_2));
     }
+}
+
+// Gives a assembly label that is unique and can't conflict with any previously generated labels.
+fn gen_label(label: &str) -> String {
+    thread_local! {
+        pub static TAG: RefCell<u32> = RefCell::new(0);
+    }
+
+    let mut id = 0;
+
+    TAG.with(|tag| {
+        id = *tag.borrow();
+        *tag.borrow_mut() += 1;
+    });
+
+    format!("{label}__{id}")
 }
