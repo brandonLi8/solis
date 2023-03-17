@@ -118,3 +118,37 @@ fn test_parse_if_no_brace() {
         "#]],
     );
 }
+
+#[test]
+fn test_invalid_semi_1() {
+    parse_error_check(
+        "
+        if a; {
+          1 + 2
+        }
+        ",
+        expect![[r#"
+            Error: Syntax Error: expected OpenBrace
+             --> :2:11
+              |
+            2 |         if a; {
+              |            ^
+        "#]],
+    );
+}
+
+#[test]
+fn test_invalid_semi_2() {
+    parse_error_check(
+        "
+        (1;)
+        ",
+        expect![[r#"
+            Error: Syntax Error: expected CloseParen
+             --> :2:9
+              |
+            2 |         (1;)
+              |          ^
+        "#]],
+    );
+}

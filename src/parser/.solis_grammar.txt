@@ -26,7 +26,7 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 
 <block> ::=                                   # Makes up the body of the program
    | ε
-   | <expr> <block>
+   | <expr> [";"] <block>
 
 
 #!——————————————————————————————————————————————*!
@@ -34,9 +34,9 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 #!——————————————————————————————————————————————*!
 
 <expr> ::=
-  | <let-expr>   [";"]
-  | <if-expr>    [";"]
-  | <infix-expr> [";"]
+  | <let-expr>
+  | <if-expr>
+  | <infix-expr>
 
 <let-expr> ::=
   | LET ID COLON <type> ID EQUALS <expr>

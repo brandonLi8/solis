@@ -81,6 +81,12 @@ fn parse_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
     } else {
         let next_expr = parse_expr(tokens_cursor);
         block.exprs.push(next_expr);
+
+        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
+        if let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
+            tokens_cursor.advance();
+        }
+
         parse_block(block, tokens_cursor)
     }
 }

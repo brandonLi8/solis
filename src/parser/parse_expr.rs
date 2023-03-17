@@ -12,18 +12,11 @@ use tokenizer::tokenizer::{Token, TokenKind};
 pub fn parse_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.peek_unwrap();
 
-    let expr = match &next_token.kind {
+    match &next_token.kind {
         TokenKind::Let => parse_let_expr(tokens_cursor),
         TokenKind::If => parse_if_expr(tokens_cursor),
         _ => parse_infix_expr(tokens_cursor),
-    };
-
-    // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
-    while let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
-        tokens_cursor.advance();
     }
-
-    expr
 }
 
 /// Corresponds to <let-expr> rule and parses into `ast::Expr::Let`.
@@ -128,6 +121,12 @@ fn parse_if_body(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
     } else {
         let next_expr = parse_expr(tokens_cursor);
         block.exprs.push(next_expr);
+
+        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
+        if let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
+            tokens_cursor.advance();
+        }
+
         parse_if_body(block, tokens_cursor)
     }
 }
