@@ -5,50 +5,36 @@
 import random
 import struct
 import copy
+import textwrap
 
 # seeded random for repeatability
 random.seed(1)
 
 class Expression:
-    """
-    A class representing a solis expression, with the program text and the program value.
+  """
+  A class representing a solis expression, with the program text and the program value.
 
-    -----------
-    text: str - the text representation of the expression (in the program)
-    value: * - the value of the expression.
-    """
-    def __init__(self, text, value):
-        self.text = text
-        self.value = value
+  -----------
+  text: string - the text representation of the expression (in the program)
+  value: * - the value of the expression.
+  """
+  def __init__(self, text, value):
+    self.text = text
+    self.value = value
 
 class Identifier:
-    """
-    A class representing a solis identifier.
-    """
-    def __init__(self, type_ref, value):
-        self.type_ref = type_ref
-        self.value = value
-
-# tab - for formatting purposes
-tab = 0
-
-def inc_tab():
-  global tab
-  tab += 2
-
-def dec_tab():
-  global tab
-  tab -= 2
-
-def reset_tab():
-  global tab
-  tab = 0
+  """
+  A class representing a solis identifier.
+  """
+  def __init__(self, type_ref, value):
+    self.type_ref = type_ref
+    self.value = value
 
 #!————————————————————————————————————————————————————————————————————————————*!
 # Identifier Generators
 #!————————————————————————————————————————————————————————————————————————————*!
 
-# number of identifiers that have been created
+# Number of identifiers that have been created
 id_count = 0
 
 def gen_unique_id():
@@ -90,7 +76,7 @@ def gen_id(bindings, type_ref):
 
 def gen_binding(bindings, type_ref):
   """
-  Returns a random int binding (`let _: int = `)
+  Returns a random binding (`let _: [type_ref] = `)
   """
   id_name = gen_unique_id()
   expression = TYPED_GENERATORS[type_ref](bindings)
@@ -100,35 +86,29 @@ def gen_binding(bindings, type_ref):
 
 def gen_if(bindings, type_ref):
   """
-  Returns a if statement that results in type type_ref
+  Returns an if statement that results in type type_ref
   """
   num_branches = random.randrange(2, 8)
   result_value = None
   text = ''
-  bindings_copy = copy.copy(bindings)
 
+  for i in range(num_branches):
+    is_last_branch = i == num_branches - 1
 
-  for i in range(num_branches - 1):
-    condition = gen_random_bool(copy.copy(bindings_copy))
+    if not is_last_branch:
+      condition = gen_random_bool(bindings)
+      text += f"if {condition.text} "
 
-    text += f'if {condition.text}' + ' {\n'
+    text += "{\n"
 
-    inc_tab()
-    block = gen_block(copy.copy(bindings_copy), random.randrange(1, 10), type_ref)
-    dec_tab()
+    block = gen_block(copy.copy(bindings), random.randrange(1, 10), type_ref)
 
-    text += block.text + '\n' + ' ' * tab + '} else '
+    text += "  " + block.text.replace("\n", "\n  ") + "\n}"
+    if not is_last_branch:
+      text += " else "
 
-    if result_value == None and condition.value == True:
+    if result_value is None and (condition.value or is_last_branch):
       result_value = block.value
-
-  inc_tab()
-  block = gen_block(copy.copy(bindings_copy), random.randrange(1, 10), type_ref)
-  dec_tab()
-  text += '{\n' + block.text + '\n' + ' ' * tab + '}'
-
-  if result_value == None:
-    result_value = block.value
 
   return Expression(text, result_value)
 
@@ -171,17 +151,13 @@ def gen_random_int(bindings):
   Returns a randomly generated integer expression.
   """
   global tab
-  generators = [gen_int_literal, gen_int_binary_exp]
+  generators = [gen_int_literal] * 4  + [gen_int_binary_exp]
 
   if has_id_of_type(bindings, "int"):
-    generators.append(lambda bindings: gen_id(bindings, "int"))
-    generators.append(lambda bindings: gen_id(bindings, "int"))
-    generators.append(lambda bindings: gen_id(bindings, "int"))
+    generators.extend([lambda bindings: gen_id(bindings, "int")] * 4)
 
-  generators.append(lambda bindings: gen_binding(bindings, "int"))
-  if tab < 6:
-    generators = generators * 4
-    generators.append(lambda bindings: gen_if(bindings, "int"))
+  generators = generators * 4
+  generators.append(lambda bindings: gen_if(bindings, "int"))
 
   result = random.choice(generators)(bindings)
 
@@ -232,15 +208,15 @@ def gen_random_float(bindings):
   """
   Returns a randomly generated float expression.
   """
-  generators = [gen_float_literal, gen_float_binary_exp]
+  generators = [gen_float_literal] * 4 + [gen_float_binary_exp]
 
   if has_id_of_type(bindings, "float"):
-    generators.append(lambda bindings: gen_id(bindings, "float"))
-    generators.append(lambda bindings: gen_id(bindings, "float"))
-    generators.append(lambda bindings: gen_id(bindings, "float"))
+    generators.extend([lambda bindings: gen_id(bindings, "float")] * 4)
 
-  generators.append(lambda bindings: gen_binding(bindings, "float"))
   result = random.choice(generators)(bindings)
+
+  generators = generators * 4
+  generators.append(lambda bindings: gen_if(bindings, "float"))
 
   if random.choice([True, False]):
     return Expression('-(' + result.text + ')', -result.value)
@@ -291,14 +267,14 @@ def gen_random_bool(bindings):
   """
   Returns a randomly generated bool expression.
   """
-  generators = [gen_bool_literal, gen_bool_binary_exp, gen_bool_from_equality]
+  generators = [gen_bool_literal] * 4 + [gen_bool_binary_exp, gen_bool_from_equality]
 
   if has_id_of_type(bindings, "bool"):
-    generators.append(lambda bindings: gen_id(bindings, "bool"))
-    generators.append(lambda bindings: gen_id(bindings, "bool"))
-    generators.append(lambda bindings: gen_id(bindings, "bool"))
+    generators.extend([lambda bindings: gen_id(bindings, "bool")] * 4)
 
-  generators.append(lambda bindings: gen_binding(bindings, "bool"))
+  generators = generators * 4
+  generators.append(lambda bindings: gen_if(bindings, "bool"))
+
   result = random.choice(generators)(bindings)
 
   if random.choice([True, False]):
@@ -312,12 +288,19 @@ def gen_random_bool(bindings):
 def gen_random_expr(bindings):
   """
   Generates a random expression.
+  is_last_expression - true if it is the last expression in a block
   """
-  expr = random.choice([
+  choices = [
     gen_random_int,
     gen_random_float,
     gen_random_bool,
-  ])(bindings)
+  ] * 3
+
+  choices.extend([lambda bindings: gen_binding(bindings, "int")] * 2)
+  choices.extend([lambda bindings: gen_binding(bindings, "float")] * 2)
+  choices.extend([lambda bindings: gen_binding(bindings, "bool")] * 2)
+
+  expr = random.choice(choices)(bindings)
   expr.text += ';'
   return expr
 
@@ -341,20 +324,19 @@ def gen_block(bindings, num_expr, type_ref):
     result.append(expr)
 
   # for int and float, the result is a sum of all bindings of that type
-  if type_ref == 'int' and has_id_of_type(bindings, 'int'):
+  if (type_ref == 'int' and has_id_of_type(bindings, 'int')) or (type_ref == 'float' and has_id_of_type(bindings, 'float')):
     typed_bindings = list(filter(lambda n: bindings[n].type_ref == type_ref, bindings.keys()))
     sampled_bindings = random.sample(typed_bindings, random.randrange(1, len(typed_bindings) + 1));
 
-    result.append(Expression(" + ".join(sampled_bindings), sum(map(lambda n: bindings[n].value, sampled_bindings))))
-  elif type_ref == 'float' and has_id_of_type(bindings, 'float'):
-    typed_bindings = list(filter(lambda n: bindings[n].type_ref in ['float', 'int'], bindings.keys()))
-    sampled_bindings = random.sample(typed_bindings, random.randrange(1, len(typed_bindings) + 1));
+    if type_ref == 'float' and has_id_of_type(bindings, 'int'):
+      int_typed_bindings = list(filter(lambda n: bindings[n].type_ref in 'int', bindings.keys()))
+      sampled_bindings += random.sample(typed_bindings, random.randrange(1, len(typed_bindings) + 1));
 
     result.append(Expression(" + ".join(sampled_bindings), sum(map(lambda n: bindings[n].value, sampled_bindings))))
   else:
     result.append(TYPED_GENERATORS[type_ref](bindings))
 
-  return Expression(("\n" + " " * tab).join([r.text for r in result]), result[-1].value)
+  return Expression("\n".join([r.text for r in result]), result[-1].value)
 
 # maps a type_ref to a generator that creates an expression of that type
 TYPED_GENERATORS = {
@@ -367,34 +349,36 @@ def gen_program(i):
   """
   Generates random_{i}.py
   """
-  reset_tab()
   reset_id_count()
 
   bindings = {}
   result_type = random.choice(['int', 'float', 'bool'])
-  result = gen_block(bindings, 100, result_type)
+  result = gen_block(bindings, 150, result_type)
 
   if result_type == 'float':
     result.value = float_to_signed_int(result.value)
+
   if result_type == 'bool':
     result.value = 0 if result.value == False else 1
 
-  program = """# Copyright © 2022-2023 Brandon Li. All rights reserved.
+  program = textwrap.dedent("""\
+    # Copyright © 2022-2023 Brandon Li. All rights reserved.
 
-##
-Integration test of a randomly generated program.
-NOTE: this file was auto-generated with the `random_program_gen.py` script.
-##
+    ##
+    Integration test of a randomly generated program.
+    NOTE: this file was auto-generated with the `random_program_gen.py` script.
+    ##\n
+    """)
 
-"""
+  print(f"Generate `random_{i}.sol` with result type `{result_type}`")
 
-  file = open('./tests/integration/random_' + i + '.sol', 'w+')
-  file.write(program + result.text)
-  file.close()
+  # Write program and result to file
+  with open(f'./tests/integration/random_{i}.sol', 'w+') as f:
+    f.write(program + result.text)
 
-  expected_file = open('./tests/integration/expected/random_' + i + '.out', 'w+')
-  expected_file.write(str(result.value))
-  expected_file.close()
+  # Write expected result to file
+  with open(f'./tests/integration/expected/random_{i}.out', 'w+') as f:
+    f.write(str(result.value))
 
-for i in range(1, 2):
+for i in range(1, 10):
   gen_program(str(i))

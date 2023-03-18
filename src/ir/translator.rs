@@ -80,8 +80,8 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
             // Flatten out let bindings inside sub expressions as well.
             bindings.push(ir::Expr::Let { id: id.clone(), init_expr: Box::new(init_expr) });
             (
-                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id, id_type: init_type.clone() } },
-                init_type,
+                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id, id_type: init_type } },
+                Type::Unit,
             )
         }
         ast::ExprKind::If { condition, then_block, else_block } => {

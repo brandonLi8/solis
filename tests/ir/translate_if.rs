@@ -8,19 +8,20 @@ use test_utils::{translate_check, translate_error_check};
 #[test]
 fn test_translate_if_no_else() {
     translate_check(
-        r"
-          let a: int = let b: int = 0;
-          if a < b {
-            1 + 2
-            2 + 3
-          }
+        "
+        let a: int = 0;
+        let b: int = a;
+        if a < b {
+          1 + 2
+          2 + 3
+        }
         ",
         expect![[r#"
             Program {
                 body: Block {
                     exprs: [
                         Let {
-                            id: "b",
+                            id: "a",
                             init_expr: Direct {
                                 expr: Int {
                                     value: 0,
@@ -28,10 +29,10 @@ fn test_translate_if_no_else() {
                             },
                         },
                         Let {
-                            id: "a",
+                            id: "b",
                             init_expr: Direct {
                                 expr: Id {
-                                    value: "b",
+                                    value: "a",
                                     id_type: Int,
                                 },
                             },
@@ -91,8 +92,9 @@ fn test_translate_if_no_else() {
 #[test]
 fn test_translate_if_empty() {
     translate_check(
-        r"
-          let a: int = let b: int = 0;
+        "
+        let a: int = 0;
+        let b: int = a;
           if a < b {
           }
         ",
@@ -101,7 +103,7 @@ fn test_translate_if_empty() {
                 body: Block {
                     exprs: [
                         Let {
-                            id: "b",
+                            id: "a",
                             init_expr: Direct {
                                 expr: Int {
                                     value: 0,
@@ -109,10 +111,10 @@ fn test_translate_if_empty() {
                             },
                         },
                         Let {
-                            id: "a",
+                            id: "b",
                             init_expr: Direct {
                                 expr: Id {
-                                    value: "b",
+                                    value: "a",
                                     id_type: Int,
                                 },
                             },
@@ -151,22 +153,23 @@ fn test_translate_if_empty() {
 #[test]
 fn test_translate_if_else_basic() {
     translate_check(
-        r"
-          let a: int = let b: int = 0;
-          if a < b {
-            1 + 2
-            2 + 3
-          }
-          else {
-            4 + 5
-          }
+        "
+        let a: int = 0;
+        let b: int = a;
+        if a < b {
+          1 + 2
+          2 + 3
+        }
+        else {
+          4 + 5
+        }
         ",
         expect![[r#"
             Program {
                 body: Block {
                     exprs: [
                         Let {
-                            id: "b",
+                            id: "a",
                             init_expr: Direct {
                                 expr: Int {
                                     value: 0,
@@ -174,10 +177,10 @@ fn test_translate_if_else_basic() {
                             },
                         },
                         Let {
-                            id: "a",
+                            id: "b",
                             init_expr: Direct {
                                 expr: Id {
-                                    value: "b",
+                                    value: "a",
                                     id_type: Int,
                                 },
                             },
@@ -252,33 +255,35 @@ fn test_translate_if_else_basic() {
 #[test]
 fn test_translate_if_else_chain() {
     translate_check(
-        r"
-          let a: int = let b: int = 0;
-          let c: bool = let d: bool = false;
+        "
+        let a: int = 0;
+        let b: int = a;
+        let d: bool = false;
+        let c: bool = d;
 
-          let e: int = if a < b {
-            1 + 2;
-            2 + 3
-          }
-          else if c {
-            2 + 3
-          }
-          else if d {
-            1 + 2
-          }
-          else if c {
-            a
-          }
-          else {
-            2 + 1
-          }
+        let e: int = if a < b {
+          1 + 2;
+          2 + 3
+        }
+        else if c {
+          2 + 3
+        }
+        else if d {
+          1 + 2
+        }
+        else if c {
+          a
+        }
+        else {
+          2 + 1
+        }
         ",
         expect![[r#"
             Program {
                 body: Block {
                     exprs: [
                         Let {
-                            id: "b",
+                            id: "a",
                             init_expr: Direct {
                                 expr: Int {
                                     value: 0,
@@ -286,10 +291,10 @@ fn test_translate_if_else_chain() {
                             },
                         },
                         Let {
-                            id: "a",
+                            id: "b",
                             init_expr: Direct {
                                 expr: Id {
-                                    value: "b",
+                                    value: "a",
                                     id_type: Int,
                                 },
                             },
@@ -491,7 +496,7 @@ fn test_translate_if_else_chain() {
 #[test]
 fn test_translate_nested() {
     translate_check(
-        r"
+        "
         let a: int = 0
         let b: int = 0
         let c: int = 0
@@ -504,8 +509,9 @@ fn test_translate_nested() {
         }
         else {
           let e: int = b + c + 2
+          e
         }
-      ",
+        ",
         expect![[r#"
             Program {
                 body: Block {
@@ -765,6 +771,7 @@ fn test_translate_branch_type_consistency() {
         }
         else {
           let d: int = b + c + 2
+          d
         }
         ",
         expect![[r#"
@@ -796,14 +803,15 @@ fn test_translate_use_declared_inside_branch() {
         }
         else {
           let d: int = 3
+          d
         }
         d
         ",
         expect![[r#"
             Error: Undeclared variable `d`
-             --> :18:8
+             --> :19:8
                |
-            18 |         d
+            19 |         d
                |         ^
         "#]],
     );

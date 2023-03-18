@@ -124,6 +124,22 @@ fn test_binary_type_reference_mismatch_numerical_3() {
 }
 
 #[test]
+fn test_binary_type_reference_mismatch_numerical_4() {
+    translate_error_check(
+        "
+        let a: int = (let c: int = 1 + 2 + 3) + 2
+        ",
+        expect![[r#"
+            Error: Bad operand types for `Plus` operator: `<unit>` and `int`
+             --> :2:46
+              |
+            2 |         let a: int = (let c: int = 1 + 2 + 3) + 2
+              |                                               ^
+        "#]],
+    );
+}
+
+#[test]
 fn test_binary_type_reference_mismatch_comparison_1() {
     translate_error_check(
         "let b: bool = 1 + 2 - 3 <= false",

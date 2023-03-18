@@ -37,4 +37,6 @@ macro_rules! gen_integration_tests {
     }
 }
 
-gen_integration_tests!(basic_1, random_1);
+gen_integration_tests!(
+    basic_1, random_1, random_2, random_3, random_4, random_5, random_6, random_7, random_8, random_9
+);

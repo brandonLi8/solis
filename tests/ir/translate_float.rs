@@ -67,7 +67,10 @@ fn test_float_basic() {
 #[test]
 fn test_float_complex() {
     translate_check(
-        "let a: bool = let b: bool = !(1 < 2.3 == false)",
+        "
+        let b: bool = !(1 < 2.3 == false)
+        let a: bool = b
+        ",
         expect![[r#"
             Program {
                 body: Block {
