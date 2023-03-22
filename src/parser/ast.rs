@@ -8,12 +8,27 @@ use std::ops::Range;
 
 #[derive(PartialEq, Debug)]
 pub struct Program {
+    pub functions: Vec<Function>,
     pub body: Block,
 }
 
 #[derive(PartialEq, Debug)]
 pub struct Block {
     pub exprs: Vec<Expr>,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Function {
+    pub id: String,
+    pub params: Vec<Param>,
+    pub return_type: Type,
+    pub body: Block,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Param {
+    pub id: String,
+    pub type_reference: Type,
 }
 
 #[derive(PartialEq, Debug)]
@@ -58,6 +73,10 @@ pub enum ExprKind {
         kind: BinaryExprKind,
         operand_1: Box<Expr>,
         operand_2: Box<Expr>,
+    },
+    Call {
+        id: String,
+        args: Vec<Expr>,
     },
 }
 

@@ -18,6 +18,7 @@ fn test_multiple_expressions() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -126,6 +127,7 @@ fn test_multiple_expressions() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {

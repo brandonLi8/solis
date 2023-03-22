@@ -11,8 +11,10 @@
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
 use error_messages::compilation_error;
-use parser::ast::{Block, Expr, ExprKind, Program};
+use error_messages::internal_compiler_error;
+use parser::ast::{Block, Expr, ExprKind, Program, Type};
 use parser::parse_expr::parse_expr;
+use parser::parse_function::{parse_call, parse_functions};
 use parser::tokens_cursor::TokensCursor;
 use tokenizer::tokenizer::{Token, TokenKind};
 use File;
@@ -40,19 +42,29 @@ pub fn parse(file: &File, tokens: Vec<Token>) -> Program {
 
 // Corresponds to <program> rule and parses into ast::Program.
 fn parse_program(tokens_cursor: &mut TokensCursor) -> Program {
+    let functions = parse_functions(vec![], tokens_cursor);
     let block = parse_block(Block { exprs: vec![] }, tokens_cursor);
 
-    Program { body: block }
+    Program { functions, body: block }
 }
 
 // Corresponds to <terminal> rule and parses into ast::Id, ast::Int, etc.
 pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
     let (next_token, tokens_cursor) = tokens_cursor.next();
     match &next_token.kind {
-        TokenKind::Id(id) => Expr {
-            kind: ExprKind::Id { value: id.to_string() },
-            position: next_token.position.clone(),
-        },
+        TokenKind::Id(id) => {
+            let (next_next_token, tokens_cursor) = tokens_cursor.peek();
+
+            if let Some(Token { kind: TokenKind::OpenParen, .. }) = next_next_token {
+                tokens_cursor.advance();
+                parse_call(id.to_string(), next_token.position.clone(), tokens_cursor)
+            } else {
+                Expr {
+                    kind: ExprKind::Id { value: id.to_string() },
+                    position: next_token.position.clone(),
+                }
+            }
+        }
         TokenKind::Int(int) => Expr {
             kind: ExprKind::Int { value: *int },
             position: next_token.position.clone(),
@@ -73,9 +85,28 @@ pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
     }
 }
 
+/// Corresponds to <type> rule and parses into `ast::Type`.
+pub fn parse_type(tokens_cursor: &mut TokensCursor) -> Type {
+    let (next_token, tokens_cursor) = tokens_cursor.next();
+
+    match &next_token.kind {
+        TokenKind::Id(id) => match id.as_str() {
+            "int" => Type::Int,
+            "bool" => Type::Bool,
+            "float" => Type::Float,
+            _ => compilation_error(tokens_cursor.file, &next_token.position, &format!("Invalid type: {id}")),
+        },
+        TokenKind::OpenParen => {
+            tokens_cursor.consume_token(TokenKind::CloseParen);
+            Type::Unit
+        }
+        _ => internal_compiler_error(&format!("{next_token:?}")),
+    }
+}
+
 // Corresponds to <block> rule and parses into ast::Block.
 // * block: in order to inexpensively parse expressions and add them to a result block, recursively.
-fn parse_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
+pub fn parse_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
     if tokens_cursor.is_end_of_file() {
         block
     } else {
@@ -88,5 +119,26 @@ fn parse_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
         }
 
         parse_block(block, tokens_cursor)
+    }
+}
+
+// Corresponds to <closed-block>> rule and parses into ast::Block.
+// * block: in order to inexpensively parse expressions and add them to a result block, recursively.
+pub fn parse_closed_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
+    let (next_token, tokens_cursor) = tokens_cursor.peek();
+
+    if let Some(Token { kind: TokenKind::CloseBrace, .. }) = next_token {
+        tokens_cursor.advance();
+        block
+    } else {
+        let next_expr = parse_expr(tokens_cursor);
+        block.exprs.push(next_expr);
+
+        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
+        if let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
+            tokens_cursor.advance();
+        }
+
+        parse_closed_block(block, tokens_cursor)
     }
 }

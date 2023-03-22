@@ -178,6 +178,7 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
                 result_type,
             )
         }
+        ast::ExprKind::Call { .. } => todo!(),
     }
 }
 

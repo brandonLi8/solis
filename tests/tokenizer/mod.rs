@@ -5,6 +5,7 @@
 mod tokenize_basic;
 mod tokenize_comments;
 mod tokenize_comprehensive;
+mod tokenize_functions;
 mod tokenize_infix;
 mod tokenize_literals;
 mod tokenize_prefix;

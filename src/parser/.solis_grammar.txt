@@ -16,18 +16,49 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 ##
 
 
-<program> ::= <block>
+<program> ::= <functions> <block>
 
 <terminal> ::=
   | ID(string)
+  | <call>
   | BOOL(b @ "true"| "false")
   | INT(n)
   | FLOAT(n)
+
+<type> ::=
+  | "int"
+  | "bool"
+  | "float"
+  | "()" # unit
 
 <block> ::=                                   # Makes up the body of the program
    | ε
    | <expr> [";"] <block>
 
+<closed-block> ::=                            # Block that ends in RBRACE
+   | "}"
+   | <expr> <closed-block>
+
+#!——————————————————————————————————————————————*!
+#  Functions
+#!——————————————————————————————————————————————*!
+
+<functions> ::=
+  | ε
+  | <function> [";"] <functions>
+
+<function> ::=
+  | FUN ID "(" comma-separated-list-rest[<params] ":" <type> "{" <closed-block>
+
+<param> ::=
+  | ID ":" <type>
+
+<call> ::=
+  | ID "(" comma-separated-list-rest[<expr>]
+
+<comma-separated-list>[<rule>] ::=
+  | ")"
+  | [? ","] <rule> <comma-separated-list>     # Don't parse comma on first recursive call
 
 #!——————————————————————————————————————————————*!
 #  Expression
@@ -39,25 +70,15 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
   | <infix-expr>
 
 <let-expr> ::=
-  | LET ID COLON <type> ID EQUALS <expr>
-
-<type> ::=
-  | "int"
-  | "bool"
-  | "float"
-  | "()" # unit
+  | LET ID ":" <type> ID EQUALS <expr>
 
 <if-expr> ::=
-  | IF <expr> "{" <if-body> <else-block>
+  | IF <expr> "{" <closed-block> <else-block>
 
 <else-block> ::=
   | ε
-  | ELSE IF <expr> "{" <if-body> <else-block>
-  | ELSE "{" <if-body>
-
-<if-body> ::=                                 # Block that ends in RBRACE
-   | "}"
-   | <expr> <if-body>
+  | ELSE IF <expr> "{" <closed-block> <else-block>
+  | ELSE "{" <closed-block>
 
 
 #!——————————————————————————————————————————————*!

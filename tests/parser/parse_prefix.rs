@@ -11,6 +11,7 @@ fn test_prefix() {
         "+1",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -28,6 +29,7 @@ fn test_prefix() {
         "-1",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -51,6 +53,7 @@ fn test_prefix() {
         "let name: int = --!-+-3 # incorrect semantics",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -105,6 +108,7 @@ fn test_prefix() {
         "let name: int = +2 - -3 - -+-+-4 + !4",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -195,6 +199,7 @@ fn test_prefix() {
         "let name: bool = !!!!!!!!!!!true",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {

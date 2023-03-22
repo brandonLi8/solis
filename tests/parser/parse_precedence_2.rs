@@ -18,6 +18,7 @@ fn test_comparison_precedence_1() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -216,6 +217,7 @@ fn test_comparison_precedence_2() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {

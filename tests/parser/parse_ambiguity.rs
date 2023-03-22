@@ -14,6 +14,7 @@ fn test_ambiguity_unary() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -53,6 +54,7 @@ fn test_ambiguity_unary() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {

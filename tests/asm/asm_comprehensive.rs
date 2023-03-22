@@ -176,6 +176,7 @@ fn test_basic() {
         	mulsd xmm2, xmm2
         	divsd xmm2, xmm2
         	cmpsd xmm2, xmm2, 6
+
         ; some comment
         	mov rdx, rcx                            ; some comment
     "#]]

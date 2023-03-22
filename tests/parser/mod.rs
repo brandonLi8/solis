@@ -8,6 +8,7 @@ mod parse_associativity_2;
 mod parse_basic_1;
 mod parse_basic_2;
 mod parse_comprehensive;
+mod parse_function;
 mod parse_if;
 mod parse_precedence_1;
 mod parse_precedence_2;

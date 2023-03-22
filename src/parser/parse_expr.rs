@@ -2,9 +2,10 @@
 
 //! Defines the functions for parsing various types of expressions.
 
-use error_messages::{compilation_error, internal_compiler_error};
-use parser::ast::{Block, Expr, ExprKind, Type};
+use error_messages::internal_compiler_error;
+use parser::ast::{Block, Expr, ExprKind};
 use parser::parse_infix::parse_infix_expr;
+use parser::parser::{parse_closed_block, parse_type};
 use parser::tokens_cursor::TokensCursor;
 use tokenizer::tokenizer::{Token, TokenKind};
 
@@ -48,25 +49,6 @@ pub fn parse_let_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     }
 }
 
-/// Corresponds to <type> rule and parses into `ast::Type`.
-pub fn parse_type(tokens_cursor: &mut TokensCursor) -> Type {
-    let (next_token, tokens_cursor) = tokens_cursor.next();
-
-    match &next_token.kind {
-        TokenKind::Id(id) => match id.as_str() {
-            "int" => Type::Int,
-            "bool" => Type::Bool,
-            "float" => Type::Float,
-            _ => compilation_error(tokens_cursor.file, &next_token.position, &format!("Invalid type: {id}")),
-        },
-        TokenKind::OpenParen => {
-            tokens_cursor.consume_token(TokenKind::CloseParen);
-            Type::Unit
-        }
-        _ => todo!(),
-    }
-}
-
 /// Corresponds to <if-expr> rule and parses into `ast::Expr::If`.
 pub fn parse_if_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     tokens_cursor.consume_token(TokenKind::If);
@@ -78,7 +60,7 @@ pub fn parse_if_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     tokens_cursor.consume_token(TokenKind::OpenBrace);
 
     // Parse the consequent block
-    let then_block = parse_if_body(Block { exprs: vec![] }, tokens_cursor);
+    let then_block = parse_closed_block(Block { exprs: vec![] }, tokens_cursor);
 
     // Peek the next two tokens
     let (next_token, tokens_cursor) = tokens_cursor.peek();
@@ -106,27 +88,6 @@ fn parse_else_block(tokens_cursor: &mut TokensCursor) -> Block {
         Block { exprs: vec![parse_if_expr(tokens_cursor)] }
     } else {
         tokens_cursor.consume_token(TokenKind::OpenBrace);
-        parse_if_body(Block { exprs: vec![] }, tokens_cursor)
-    }
-}
-
-// Corresponds to <if-body> rule and parses into ast::Block.
-// * block: in order to inexpensively parse expressions and add them to a result block, recursively.
-fn parse_if_body(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
-
-    if let Some(Token { kind: TokenKind::CloseBrace, .. }) = next_token {
-        tokens_cursor.advance();
-        block
-    } else {
-        let next_expr = parse_expr(tokens_cursor);
-        block.exprs.push(next_expr);
-
-        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
-        if let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
-            tokens_cursor.advance();
-        }
-
-        parse_if_body(block, tokens_cursor)
+        parse_closed_block(Block { exprs: vec![] }, tokens_cursor)
     }
 }

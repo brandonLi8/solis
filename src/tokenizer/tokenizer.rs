@@ -36,6 +36,10 @@ pub enum TokenKind {
     If,
     Else,
 
+    // Functions
+    Fun,
+    Comma,
+
     // Arithmetic Operators.
     Plus,  // For both unary and binary Plus
     Minus, // For both unary and binary Minus
@@ -150,6 +154,8 @@ lazy_static! {
         token_pattern!(TokenKind::Final,             r"final\b"),
         token_pattern!(TokenKind::If,                r"if\b"),
         token_pattern!(TokenKind::Else,              r"else\b"),
+        token_pattern!(TokenKind::Fun,               r"fun\b"),
+        token_pattern!(TokenKind::Comma,             r","),
 
         // Arithmetic
         token_pattern!(TokenKind::Plus,              r"\+"),

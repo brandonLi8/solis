@@ -5,11 +5,11 @@
 
 use colored::Colorize;
 use ir::ir::Type;
+
 use std::backtrace::Backtrace;
 use std::fmt::{self, Display};
 use std::ops::Range;
 use File;
-
 /// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
 /// when compilation errors occur, such as syntax errors, etc. This function aims to provide helpful error messages for
 /// the user by pretty printing a snippet of the Solis input, pin pointing where the error is happening. This function

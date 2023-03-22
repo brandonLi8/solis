@@ -16,6 +16,7 @@ fn test_comparison_left_associative_1() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
@@ -150,6 +151,7 @@ fn test_comparison_left_associative_2() {
         "let a: bool = 32 < 2 <= (3 > ((4))) / 5 >= 3 != 2 == 2",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {

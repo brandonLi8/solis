@@ -187,7 +187,7 @@ fn instruction_to_string(instruction: Instruction) -> String {
         Divsd(dest, src) =>       format!("\tdivsd {}, {}", operand_to_string(dest), operand_to_string(src)),
         Cmpsd(dest, src, mode) => format!("\tcmpsd {}, {}, {mode}", operand_to_string(dest), operand_to_string(src)),
 
-        Comment(comment) =>       format!("; {comment}"),
+        Comment(comment) =>       format!("\n; {comment}"),
         Annotate(instruction, comment) => {
             format!("{: <40} ; {comment}", instruction_to_string(*instruction))
         }

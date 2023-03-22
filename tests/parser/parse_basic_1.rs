@@ -11,6 +11,7 @@ fn test_empty() {
         "",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [],
                 },
@@ -27,6 +28,7 @@ fn test_basic() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {

@@ -19,6 +19,7 @@ fn test_arithmetic_precedence() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Expr {
