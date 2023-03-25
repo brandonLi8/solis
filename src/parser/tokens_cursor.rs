@@ -74,7 +74,10 @@ impl<'a> TokensCursor<'a> {
             compilation_error(
                 self.file,
                 &self.prev().position,
-                &format!("Syntax Error: expected {expected_token_kind:?}"),
+                &format!(
+                    "Syntax Error: expected `{expected_token_kind}` after `{}`",
+                    self.prev().kind
+                ),
             )
         }
         self.advance();

@@ -25,7 +25,7 @@ pub fn parse_let_expr(tokens_cursor: &mut TokensCursor) -> Expr {
     tokens_cursor.consume_token(TokenKind::Let);
 
     // Consume the let expression identifier
-    tokens_cursor.consume_token(TokenKind::Id("any variable name".to_string()));
+    tokens_cursor.consume_token(TokenKind::Id("identifier".to_string()));
     let id_token_kind = &tokens_cursor.prev().kind;
 
     tokens_cursor.consume_token(TokenKind::Colon);

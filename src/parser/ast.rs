@@ -6,18 +6,18 @@
 
 use std::ops::Range;
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Program {
     pub functions: Vec<Function>,
     pub body: Block,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Block {
     pub exprs: Vec<Expr>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Function {
     pub id: String,
     pub params: Vec<Param>,
@@ -25,13 +25,13 @@ pub struct Function {
     pub body: Block,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Param {
     pub id: String,
     pub type_reference: Type,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Expr {
     pub kind: ExprKind,
 
@@ -41,7 +41,7 @@ pub struct Expr {
     pub position: Range<usize>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum ExprKind {
     Let {
         id: String,
@@ -80,7 +80,7 @@ pub enum ExprKind {
     },
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Debug)]
 pub enum Type {
     Unit,
     Int,
@@ -88,13 +88,13 @@ pub enum Type {
     Float,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum UnaryExprKind {
     Not,
     Negative,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum BinaryExprKind {
     Plus,
     Minus,

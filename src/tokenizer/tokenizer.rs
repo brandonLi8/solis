@@ -11,6 +11,7 @@
 //! For error checking, the tokenizer only checks for tokens that it recognizes, and doesn't do any other validation
 //! or error checking. All other errors are deferred to the parser and code gen stages.
 
+use derive_more::Display;
 use error_messages::{compilation_error, internal_compiler_error};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -18,7 +19,7 @@ use std::ops::Range;
 use File;
 
 /// Different kinds of tokens and data associated with each token.
-#[derive(PartialEq, Debug)]
+#[derive(Display, Debug)]
 pub enum TokenKind {
     // Literals
     Int(i64),
@@ -26,18 +27,29 @@ pub enum TokenKind {
     Float(f64),
 
     // Bindings
+    #[display(fmt = "let")]
     Let,
+
+    #[display(fmt = ":")]
     Colon,
     Final,
+
+    #[display(fmt = "=")]
     Equals,
     Id(String),
 
     // If
+    #[display(fmt = "if")]
     If,
+
+    #[display(fmt = "else")]
     Else,
 
     // Functions
+    #[display(fmt = "fun")]
     Fun,
+
+    #[display(fmt = ",")]
     Comma,
 
     // Arithmetic Operators.
@@ -59,15 +71,22 @@ pub enum TokenKind {
     NotEquals,
 
     // Other
+    #[display(fmt = "(")]
     OpenParen,
+
+    #[display(fmt = ")")]
     CloseParen,
+
+    #[display(fmt = "{{")]
     OpenBrace,
+
+    #[display(fmt = "}}")]
     CloseBrace,
     Semi,
 }
 
 /// A token returned by the tokenizer
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Token {
     pub kind: TokenKind,
 

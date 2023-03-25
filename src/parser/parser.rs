@@ -100,7 +100,7 @@ pub fn parse_type(tokens_cursor: &mut TokensCursor) -> Type {
             tokens_cursor.consume_token(TokenKind::CloseParen);
             Type::Unit
         }
-        _ => internal_compiler_error(&format!("{next_token:?}")),
+        _ => internal_compiler_error("parse type"),
     }
 }
 

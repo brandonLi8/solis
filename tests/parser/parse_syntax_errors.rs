@@ -73,13 +73,14 @@ fn test_parse_factor_consume_token() {
 fn test_parse_factor_consume_token_end_of_file() {
     parse_error_check(
         "
-        let a: int = 2 + (2 + 1 \nlet b: int = 2
+        let a: int = 2 + (2 + 1
+        let b: int = 2
         ",
         expect![[r#"
-            Error: Syntax Error: expected CloseParen
+            Error: Syntax Error: expected `)` after `1`
              --> :2:30
               |
-            2 |         let a: int = 2 + (2 + 1 
+            2 |         let a: int = 2 + (2 + 1
               |                               ^
         "#]],
     );
@@ -110,7 +111,7 @@ fn test_parse_if_no_brace() {
         }
         ",
         expect![[r#"
-            Error: Syntax Error: expected OpenBrace
+            Error: Syntax Error: expected `{` after `a`
              --> :2:11
               |
             2 |         if a
@@ -128,7 +129,7 @@ fn test_invalid_semi_1() {
         }
         ",
         expect![[r#"
-            Error: Syntax Error: expected OpenBrace
+            Error: Syntax Error: expected `{` after `a`
              --> :2:11
               |
             2 |         if a; {
@@ -144,11 +145,61 @@ fn test_invalid_semi_2() {
         (1;)
         ",
         expect![[r#"
-            Error: Syntax Error: expected CloseParen
+            Error: Syntax Error: expected `)` after `1`
              --> :2:9
               |
             2 |         (1;)
               |          ^
+        "#]],
+    );
+}
+
+#[test]
+fn test_missing_id() {
+    parse_error_check(
+        "
+        let 2
+        ",
+        expect![[r#"
+            Error: Syntax Error: expected `identifier` after `let`
+             --> :2:8
+              |
+            2 |         let 2
+              |         ^^^
+        "#]],
+    );
+}
+
+#[test]
+fn test_missing_id_2() {
+    parse_error_check(
+        "
+        fun () {}
+        ",
+        expect![[r#"
+            Error: Syntax Error: expected `identifier` after `fun`
+             --> :2:8
+              |
+            2 |         fun () {}
+              |         ^^^
+        "#]],
+    );
+}
+
+#[test]
+fn test_parse_fun_no_brace() {
+    parse_error_check(
+        "
+        fun (a: int)
+          1 + 2 + a
+        }
+        ",
+        expect![[r#"
+            Error: Syntax Error: expected `identifier` after `fun`
+             --> :2:8
+              |
+            2 |         fun (a: int)
+              |         ^^^
         "#]],
     );
 }

@@ -22,7 +22,7 @@ pub fn tokenize_check(program: &str, expect: Expect) {
     expect.assert_eq(
         &tokens
             .iter()
-            .fold(String::new(), |acc, token| acc + &format!("{token:?}") + "\n"),
+            .fold(String::new(), |acc, token| acc + &format!("{token:?}\n")),
     );
 }
 

@@ -128,7 +128,7 @@ pub fn compile_expr(
 
             // Condition must be a binding.
             if matches!(condition, Imm(..) | FloatImm(..)) {
-                internal_compiler_error(&format!("invalid condition {condition:?}"))
+                internal_compiler_error("invalid condition")
             };
 
             instructions.push(Cmp(condition, Imm(1)));

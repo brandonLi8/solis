@@ -32,7 +32,7 @@ fn parse_function(tokens_cursor: &mut TokensCursor) -> Function {
     tokens_cursor.consume_token(TokenKind::Fun);
 
     // Consume the function id
-    tokens_cursor.consume_token(TokenKind::Id("any function id".to_string()));
+    tokens_cursor.consume_token(TokenKind::Id("identifier".to_string()));
     let id_token_kind = &tokens_cursor.prev().kind;
 
     tokens_cursor.consume_token(TokenKind::OpenParen);
@@ -53,7 +53,7 @@ fn parse_function(tokens_cursor: &mut TokensCursor) -> Function {
 
 // Corresponds to `<param>` rule and parses into `ast::Param`.
 fn parse_param(tokens_cursor: &mut TokensCursor) -> Param {
-    tokens_cursor.consume_token(TokenKind::Id("any function id".to_string()));
+    tokens_cursor.consume_token(TokenKind::Id("identifier".to_string()));
     let param_id_kind = &tokens_cursor.prev().kind;
 
     tokens_cursor.consume_token(TokenKind::Colon);

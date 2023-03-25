@@ -5,6 +5,7 @@
 
 extern crate clap;
 extern crate colored;
+extern crate derive_more;
 extern crate lazy_static;
 extern crate regex;
 

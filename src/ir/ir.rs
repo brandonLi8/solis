@@ -43,17 +43,17 @@
 //!   Working with directs means that the operator does not have to do any more computation (naively would have to store
 //!   results on the stack).
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Program {
     pub body: Block,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Block {
     pub exprs: Vec<Expr>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum Expr {
     Direct {
         expr: DirectExpr,
@@ -87,7 +87,7 @@ pub enum Expr {
     },
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum DirectExpr {
     Int { value: i64 },
     Bool { value: bool },
@@ -103,13 +103,13 @@ pub enum Type {
     Float,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum UnaryExprKind {
     Not,
     Negative,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum BinaryExprKind {
     Plus,
     Minus,
