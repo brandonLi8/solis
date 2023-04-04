@@ -11,6 +11,7 @@ fn test_empty() {
         "",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [],
                 },
@@ -24,6 +25,7 @@ fn test_direct() {
         "2",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Direct {
@@ -43,6 +45,7 @@ fn test_direct_2() {
         "let a: float = 2.; a",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -81,6 +84,7 @@ fn test_basic() {
          let b: int = a + 1 - 2 + 3 * 4",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -167,6 +171,7 @@ fn test_basic() {
         "32 - 2 * (3 + ((4))) / 5 == 3 * 2",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -258,6 +263,7 @@ fn test_basic() {
         "!!!(true == false)",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {

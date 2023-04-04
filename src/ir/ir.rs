@@ -45,6 +45,14 @@
 
 #[derive(Debug)]
 pub struct Program {
+    pub functions: Vec<Function>,
+    pub body: Block,
+}
+
+#[derive(Debug)]
+pub struct Function {
+    pub id: String,
+    pub params: Vec<String>,
     pub body: Block,
 }
 
@@ -77,6 +85,10 @@ pub enum Expr {
         operand_1: Box<DirectExpr>,
         operand_2: Box<DirectExpr>,
         operand_type: Type,
+    },
+    Call {
+        id: String,
+        args: Vec<DirectExpr>,
     },
 
     // Converts one type to another type. We do this in the IR layer instead of the compiler layer

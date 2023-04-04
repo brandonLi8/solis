@@ -187,6 +187,7 @@ pub fn compile_expr(
             || internal_compiler_error("coercion must have location"),
             |location| compile_type_coercion(expr, location, from_type, to_type, symbol_table, instructions),
         ),
+        Expr::Call { .. } => todo!(),
     }
 }
 

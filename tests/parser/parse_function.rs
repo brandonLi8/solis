@@ -133,6 +133,7 @@ fn test_fib() {
                                 },
                             ],
                         },
+                        position: 13..16,
                     },
                 ],
                 body: Block {
@@ -252,6 +253,7 @@ fn test_function() {
                                 },
                             ],
                         },
+                        position: 13..14,
                     },
                 ],
                 body: Block {
@@ -281,6 +283,97 @@ fn test_function() {
                                 ],
                             },
                             position: 84..85,
+                        },
+                    ],
+                },
+            }"#]],
+    );
+}
+
+#[test]
+fn test_multi_functions() {
+    parse_check(
+        "
+        fun a() : int {
+          2
+        }
+
+        fun a() : () {
+          let a: bool = false
+        }
+
+        a(1,2,   3)
+        ",
+        expect![[r#"
+            Program {
+                functions: [
+                    Function {
+                        id: "a",
+                        params: [],
+                        return_type: Int,
+                        body: Block {
+                            exprs: [
+                                Expr {
+                                    kind: Int {
+                                        value: 2,
+                                    },
+                                    position: 35..36,
+                                },
+                            ],
+                        },
+                        position: 13..14,
+                    },
+                    Function {
+                        id: "a",
+                        params: [],
+                        return_type: Unit,
+                        body: Block {
+                            exprs: [
+                                Expr {
+                                    kind: Let {
+                                        id: "a",
+                                        type_reference: Bool,
+                                        init_expr: Expr {
+                                            kind: Bool {
+                                                value: false,
+                                            },
+                                            position: 95..100,
+                                        },
+                                    },
+                                    position: 88..92,
+                                },
+                            ],
+                        },
+                        position: 60..61,
+                    },
+                ],
+                body: Block {
+                    exprs: [
+                        Expr {
+                            kind: Call {
+                                id: "a",
+                                args: [
+                                    Expr {
+                                        kind: Int {
+                                            value: 1,
+                                        },
+                                        position: 122..123,
+                                    },
+                                    Expr {
+                                        kind: Int {
+                                            value: 2,
+                                        },
+                                        position: 124..125,
+                                    },
+                                    Expr {
+                                        kind: Int {
+                                            value: 3,
+                                        },
+                                        position: 129..130,
+                                    },
+                                ],
+                            },
+                            position: 120..121,
                         },
                     ],
                 },

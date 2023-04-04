@@ -11,6 +11,7 @@ fn test_nested_let() {
         "let a: () = let b: bool = !(1 < 2 == false)",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {

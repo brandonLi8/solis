@@ -13,6 +13,7 @@ fn test_float_plus_int_basic() {
          let c: float = 2.1 + 3.14",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -133,6 +134,7 @@ fn test_float_other_2() {
          let c: float = 2 + 1 + 3 + 1.2",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {

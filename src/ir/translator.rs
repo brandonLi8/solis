@@ -17,19 +17,59 @@ use File;
 /// Translates a `ast::Program` into a `ir::Program`
 pub fn translate_program(file: &File, program: ast::Program) -> ir::Program {
     let mut type_checker = TypeChecker::new(file);
-    let (body, _) = translate_block(&mut type_checker, program.body);
-    ir::Program { body }
+
+    // Register all functions
+    for function in &program.functions {
+        let return_type = ast_type_to_ir_type(&function.return_type);
+        let param_types = function
+            .params
+            .iter()
+            .map(|p| ast_type_to_ir_type(&p.type_reference))
+            .collect();
+
+        type_checker.register_function(&function.id, return_type, param_types, &function.position);
+    }
+
+    // Translate functions.
+    let mut functions = vec![];
+    for function in &program.functions {
+        functions.push(translate_function(&mut type_checker, function));
+    }
+
+    let (body, _) = translate_block(&mut type_checker, &program.body);
+    ir::Program { functions, body }
+}
+
+// Translates a `ast::Function` into a `ir::Function`
+fn translate_function(type_checker: &mut TypeChecker, function: &ast::Function) -> ir::Function {
+    let mut type_checker = TypeChecker::inherited(type_checker);
+
+    // Bind parameters in the function scope.
+    for param in &function.params {
+        type_checker.bind_variable(&param.id, ast_type_to_ir_type(&param.type_reference));
+    }
+
+    let (body, return_type) = translate_block(&mut type_checker, &function.body);
+
+    // Type check the function
+    type_checker.type_check_function(&function.id, return_type, &function.position);
+
+    ir::Function {
+        id: function.id.to_string(),
+        params: function.params.iter().map(|p| p.id.to_string()).collect(),
+        body,
+    }
 }
 
 // Translates a `ast::Block` into a `ir::Block`
 // * return - the block and the type that the block evaluates to
-fn translate_block(type_checker: &mut TypeChecker, block: ast::Block) -> (ir::Block, Type) {
+fn translate_block(type_checker: &mut TypeChecker, block: &ast::Block) -> (ir::Block, Type) {
     let num_exprs = block.exprs.len();
     let mut exprs = vec![];
 
     let mut result_type = Type::Unit;
 
-    for (i, expr) in block.exprs.into_iter().enumerate() {
+    for (i, expr) in block.exprs.iter().enumerate() {
         let (translated_expr, expr_type) = translate_expr(expr, type_checker, &mut exprs);
 
         // Ignore top-level directs, unless it is the last expression in the block
@@ -44,19 +84,27 @@ fn translate_block(type_checker: &mut TypeChecker, block: ast::Block) -> (ir::Bl
 
 // Translates a `ast::Expr` into a `ir::Expr`
 // * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mut Vec<ir::Expr>) -> (ir::Expr, Type) {
-    match expr.kind {
+fn translate_expr(expr: &ast::Expr, type_checker: &mut TypeChecker, bindings: &mut Vec<ir::Expr>) -> (ir::Expr, Type) {
+    match &expr.kind {
         ast::ExprKind::Id { value } => {
-            let id_type = type_checker.get_declared_variable_type(&value, &expr.position);
+            let id_type = type_checker.get_declared_variable_type(value, &expr.position);
             (
-                ir::Expr::Direct { expr: ir::DirectExpr::Id { value, id_type: id_type.clone() } },
+                ir::Expr::Direct {
+                    expr: ir::DirectExpr::Id { value: value.to_string(), id_type: id_type.clone() },
+                },
                 id_type,
             )
         }
-        ast::ExprKind::Int { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Int { value } }, Type::Int),
-        ast::ExprKind::Bool { value } => (ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } }, Type::Bool),
+        ast::ExprKind::Int { value } => (
+            ir::Expr::Direct { expr: ir::DirectExpr::Int { value: *value } },
+            Type::Int,
+        ),
+        ast::ExprKind::Bool { value } => (
+            ir::Expr::Direct { expr: ir::DirectExpr::Bool { value: *value } },
+            Type::Bool,
+        ),
         ast::ExprKind::Float { value } => {
-            let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value } };
+            let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value: *value } };
             (
                 // There are no such things as float immediates for x86. Instead, we must make each float a variable
                 // binding (in the compiler, there must be a `Location` for floats). For example `let a: float = 1.2 + 2.3`
@@ -66,34 +114,32 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
             )
         }
         ast::ExprKind::Let { id, init_expr, type_reference } => {
-            let type_reference = match type_reference {
-                ast::Type::Int => ir::Type::Int,
-                ast::Type::Bool => ir::Type::Bool,
-                ast::Type::Float => ir::Type::Float,
-                ast::Type::Unit => ir::Type::Unit,
-            };
+            let type_reference = ast_type_to_ir_type(type_reference);
 
-            type_checker.register_variable_being_declared(&id, type_reference.clone(), &expr.position);
-            let (init_expr, init_type) = translate_expr(*init_expr, type_checker, bindings);
-            type_checker.type_check_let(&id, init_type.clone(), type_reference, &expr.position);
+            type_checker.register_variable_being_declared(id, type_reference.clone(), &expr.position);
+            let (init_expr, init_type) = translate_expr(init_expr, type_checker, bindings);
+            type_checker.type_check_let(id, init_type.clone(), type_reference, &expr.position);
 
             // Flatten out let bindings inside sub expressions as well.
             bindings.push(ir::Expr::Let { id: id.clone(), init_expr: Box::new(init_expr) });
             (
-                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id, id_type: init_type } },
+                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id.to_string(), id_type: init_type } },
                 Type::Unit,
             )
         }
         ast::ExprKind::If { condition, then_block, else_block } => {
-            let (condition, condition_type) = translate_expr(*condition, type_checker, bindings);
+            let (condition, condition_type) = translate_expr(condition, type_checker, bindings);
             let condition = to_binding(condition, condition_type.clone(), bindings);
 
             let (then_block, then_block_type) = translate_block(&mut TypeChecker::inherited(type_checker), then_block);
 
-            let (else_block, else_block_type) = else_block.map_or((None, None), |else_block| {
-                let (block, block_type) = translate_block(&mut TypeChecker::inherited(type_checker), else_block);
-                (Some(block), Some(block_type))
-            });
+            let (else_block, else_block_type) = match else_block {
+                None => (None, None),
+                Some(else_block) => {
+                    let (block, block_type) = translate_block(&mut TypeChecker::inherited(type_checker), else_block);
+                    (Some(block), Some(block_type))
+                }
+            };
 
             // Type check and get the result type
             let result_type =
@@ -105,7 +151,7 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
         }
         ast::ExprKind::UnaryExpr { kind, operand } => {
             // Translate operand
-            let (operand_ir, operand_type) = translate_expr(*operand, type_checker, bindings);
+            let (operand_ir, operand_type) = translate_expr(operand, type_checker, bindings);
 
             let kind = match kind {
                 ast::UnaryExprKind::Not => ir::UnaryExprKind::Not,
@@ -129,8 +175,8 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
         }
         ast::ExprKind::BinaryExpr { kind, operand_1, operand_2 } => {
             // Translate both operands
-            let (operand_1, operand_1_type) = translate_expr(*operand_1, type_checker, bindings);
-            let (operand_2, operand_2_type) = translate_expr(*operand_2, type_checker, bindings);
+            let (operand_1, operand_1_type) = translate_expr(operand_1, type_checker, bindings);
+            let (operand_2, operand_2_type) = translate_expr(operand_2, type_checker, bindings);
 
             // Convert ast::BinaryExprKind to ir::BinaryExprKind.
             let kind = match kind {
@@ -178,7 +224,21 @@ fn translate_expr(expr: ast::Expr, type_checker: &mut TypeChecker, bindings: &mu
                 result_type,
             )
         }
-        ast::ExprKind::Call { .. } => todo!(),
+        ast::ExprKind::Call { id, args } => {
+            let mut arg_types = vec![];
+            let mut arg_positions = vec![];
+            let mut direct_args = vec![]; // arguments that are converted to directs.
+
+            for arg in args {
+                arg_positions.push(arg.position.clone());
+                let (arg, arg_type) = translate_expr(arg, type_checker, bindings);
+                direct_args.push(to_direct(arg, arg_type.clone(), bindings));
+                arg_types.push(arg_type);
+            }
+
+            let return_type = type_checker.type_check_call(id, &expr.position, arg_types, arg_positions);
+            (ir::Expr::Call { id: id.to_string(), args: direct_args }, return_type)
+        }
     }
 }
 
@@ -239,4 +299,14 @@ fn gen_temp_identifier() -> String {
     });
 
     format!("@temp{tag_value}")
+}
+
+/// Converts a `ast::Type` to the corresponding `ir::Type`.
+const fn ast_type_to_ir_type(ast_type: &ast::Type) -> ir::Type {
+    match ast_type {
+        ast::Type::Int => ir::Type::Int,
+        ast::Type::Bool => ir::Type::Bool,
+        ast::Type::Float => ir::Type::Float,
+        ast::Type::Unit => ir::Type::Unit,
+    }
 }

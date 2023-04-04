@@ -11,6 +11,7 @@ fn test_float_basic() {
         "let a: float = 2.3 + 1.2; 2.6",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -73,6 +74,7 @@ fn test_float_complex() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {

@@ -33,6 +33,7 @@
 -A clippy::must-use-candidate
 -A clippy::needless_pass_by_value
 -A clippy::new-without-default
+-A clippy::option-if-let-else
 -A clippy::range-plus-one
 -A clippy::too-many-lines
 -A clippy::trivial_regex

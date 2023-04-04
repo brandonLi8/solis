@@ -23,6 +23,7 @@ pub struct Function {
     pub params: Vec<Param>,
     pub return_type: Type,
     pub body: Block,
+    pub position: Range<usize>,
 }
 
 #[derive(Debug)]

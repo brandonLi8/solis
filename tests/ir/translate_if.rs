@@ -18,6 +18,7 @@ fn test_translate_if_no_else() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -100,6 +101,7 @@ fn test_translate_if_empty() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -166,6 +168,7 @@ fn test_translate_if_else_basic() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -280,6 +283,7 @@ fn test_translate_if_else_chain() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {
@@ -514,6 +518,7 @@ fn test_translate_nested() {
         ",
         expect![[r#"
             Program {
+                functions: [],
                 body: Block {
                     exprs: [
                         Let {

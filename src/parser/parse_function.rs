@@ -17,14 +17,15 @@ pub fn parse_functions(mut functions: Vec<Function>, tokens_cursor: &mut TokensC
 
     if let Some(Token { kind: TokenKind::Fun, .. }) = next_token {
         functions.push(parse_function(tokens_cursor));
-    }
 
-    // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
-    if let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
-        tokens_cursor.advance();
+        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
+        if let (Some(Token { kind: TokenKind::Semi, .. }), _) = tokens_cursor.peek() {
+            tokens_cursor.advance();
+        }
+        parse_functions(functions, tokens_cursor)
+    } else {
+        functions
     }
-
-    functions
 }
 
 // Corresponds to the `<function>` rule and parses into `ast::Function`
@@ -33,7 +34,7 @@ fn parse_function(tokens_cursor: &mut TokensCursor) -> Function {
 
     // Consume the function id
     tokens_cursor.consume_token(TokenKind::Id("identifier".to_string()));
-    let id_token_kind = &tokens_cursor.prev().kind;
+    let id_token = &tokens_cursor.prev();
 
     tokens_cursor.consume_token(TokenKind::OpenParen);
     let params = parse_comma_separated_list::<Param>(vec![], parse_param, tokens_cursor);
@@ -44,8 +45,14 @@ fn parse_function(tokens_cursor: &mut TokensCursor) -> Function {
     tokens_cursor.consume_token(TokenKind::OpenBrace);
     let body = parse_closed_block(Block { exprs: vec![] }, tokens_cursor);
 
-    if let TokenKind::Id(id) = id_token_kind {
-        Function { params, return_type, body, id: id.to_string() }
+    if let TokenKind::Id(id) = &id_token.kind {
+        Function {
+            params,
+            return_type,
+            body,
+            id: id.to_string(),
+            position: id_token.position.clone(),
+        }
     } else {
         internal_compiler_error("Unable to get id. Should have been consumed.")
     }

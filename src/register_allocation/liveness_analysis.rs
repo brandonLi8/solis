@@ -106,6 +106,7 @@ pub fn liveness_analysis<'a>(
 
             liveness_analysis_direct(condition, live_variables, variable_frequencies);
         }
+        Expr::Call { .. } => todo!(),
     }
 }
 
