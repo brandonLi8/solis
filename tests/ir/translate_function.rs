@@ -99,6 +99,9 @@ fn test_fib() {
                                                                 id_type: Int,
                                                             },
                                                         ],
+                                                        live_variables: RefCell {
+                                                            value: {},
+                                                        },
                                                     },
                                                 },
                                                 Let {
@@ -111,6 +114,9 @@ fn test_fib() {
                                                                 id_type: Int,
                                                             },
                                                         ],
+                                                        live_variables: RefCell {
+                                                            value: {},
+                                                        },
                                                     },
                                                 },
                                                 BinaryExpr {
@@ -144,6 +150,9 @@ fn test_fib() {
                                         value: 5,
                                     },
                                 ],
+                                live_variables: RefCell {
+                                    value: {},
+                                },
                             },
                         },
                         Let {
@@ -254,6 +263,9 @@ fn test_function_1() {
                                     value: 3,
                                 },
                             ],
+                            live_variables: RefCell {
+                                value: {},
+                            },
                         },
                     ],
                 },
@@ -346,6 +358,9 @@ fn test_multi_functions() {
                                     value: 3,
                                 },
                             ],
+                            live_variables: RefCell {
+                                value: {},
+                            },
                         },
                     ],
                 },

@@ -11,6 +11,7 @@ use error_messages::internal_compiler_error;
 use ir::ir::{self, Type};
 use ir::type_checker::TypeChecker;
 use parser::ast;
+use register_allocation::register_allocator::Set;
 use std::cell::RefCell;
 use File;
 
@@ -237,7 +238,14 @@ fn translate_expr(expr: &ast::Expr, type_checker: &mut TypeChecker, bindings: &m
             }
 
             let return_type = type_checker.type_check_call(id, &expr.position, arg_types, arg_positions);
-            (ir::Expr::Call { id: id.to_string(), args: direct_args }, return_type)
+            (
+                ir::Expr::Call {
+                    id: id.to_string(),
+                    args: direct_args,
+                    live_variables: RefCell::new(Set::new()),
+                },
+                return_type,
+            )
         }
     }
 }

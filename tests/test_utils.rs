@@ -89,6 +89,7 @@ pub fn liveness_analysis_check(
         program.body.exprs.last().unwrap(),
         &mut live_variables,
         &mut variable_frequencies,
+        &Set::new(),
         &mut InterferenceGraph::new(),
         &mut InterferenceGraph::new(),
     );
@@ -102,7 +103,17 @@ pub fn conflict_analysis_check(block: &str, expect: Expect) {
     let file = File { name: String::new(), contents: block.to_string() };
     let program = translate_program(&file, parse(&file, tokenize(&file)));
 
-    expect.assert_eq(&format!("{:#?}", conflict_analysis(&program.body)));
+    expect.assert_eq(&format!("{:#?}", conflict_analysis(&program.body, &Set::new())));
+}
+
+/// Test function for conflict analysis of a block, but the IR is formatted instead of the interference graph.
+/// This is typically done to test that Call sites are updated with the correct caller save information.
+pub fn conflict_analysis_ir_check(block: &str, expect: Expect) {
+    let file = File { name: String::new(), contents: block.to_string() };
+    let program = translate_program(&file, parse(&file, tokenize(&file)));
+    conflict_analysis(&program.body, &Set::new());
+
+    expect.assert_eq(&format!("{:#?}", program.body));
 }
 
 /// Test function for conflict analysis of a block.
@@ -117,7 +128,7 @@ pub fn register_allocator_check(
 
     expect.assert_eq(&format!(
         "{:#?}",
-        allocate_registers(&program.body, registers, float_registers)
+        allocate_registers(&program.body, &Set::new(), registers, float_registers)
     ));
 }
 

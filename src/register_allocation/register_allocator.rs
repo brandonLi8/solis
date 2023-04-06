@@ -35,6 +35,7 @@ pub enum Assignment {
 /// Returns a map of variable names to the corresponding assignment.
 pub fn allocate_registers<'a>(
     block: &'a Block,
+    params: &Set<&'a String>,
     registers: Set<&'a Register>,
     float_registers: Set<&'a FloatRegister>,
 ) -> Map<&'a String, Assignment> {
@@ -51,7 +52,7 @@ pub fn allocate_registers<'a>(
         .collect();
 
     // Create a interference graph and frequency map
-    let (interference_graph, float_interference_graph, mut variable_frequencies) = conflict_analysis(block);
+    let (interference_graph, float_interference_graph, mut variable_frequencies) = conflict_analysis(block, params);
 
     // Result allocation.
     let mut allocation = Map::new();

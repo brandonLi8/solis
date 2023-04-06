@@ -34,6 +34,7 @@ pub fn compile(program: Program) -> Vec<Instruction> {
     // Run the register allocator
     let variable_assignment: Map<&String, Assignment> = allocate_registers(
         &program.body,
+        &Set::new(),
         Set::from([&R8, &R9, &R10, &R11, &R12, &R13]),
         Set::from([
             &Xmm1, &Xmm2, &Xmm3, &Xmm4, &Xmm5, &Xmm6, &Xmm7, &Xmm8, &Xmm9, &Xmm10, &Xmm11, &Xmm12, &Xmm13,

@@ -80,7 +80,10 @@ impl<'a> InterferenceGraph<'a> {
 /// *  - the `InterferenceGraph` for variables of type `Type::Float`
 /// *  - the variable frequencies map
 /// * )
-pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph, Map<&String, usize>) {
+pub fn conflict_analysis<'a>(
+    block: &'a Block,
+    params: &Set<&'a String>,
+) -> (InterferenceGraph<'a>, InterferenceGraph<'a>, Map<&'a String, usize>) {
     let mut live_variables = Map::new();
     let mut variable_frequencies = Map::new();
     let mut interference_graph = InterferenceGraph::new();
@@ -90,6 +93,7 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
 
     conflict_analysis_block(
         block,
+        params,
         &mut live_variables,
         &mut variable_frequencies,
         &mut interference_graph,
@@ -105,6 +109,7 @@ pub fn conflict_analysis(block: &Block) -> (InterferenceGraph, InterferenceGraph
 /// * `interference_graph` - interference graph to add onto
 pub fn conflict_analysis_block<'a>(
     block: &'a Block,
+    params: &Set<&'a String>,
     live_variables: &mut Map<&'a String, &'a Type>,
     variable_frequencies: &mut Map<&'a String, usize>,
     interference_graph: &mut InterferenceGraph<'a>,
@@ -115,6 +120,7 @@ pub fn conflict_analysis_block<'a>(
             expr,
             live_variables,
             variable_frequencies,
+            params,
             interference_graph,
             float_interference_graph,
         );

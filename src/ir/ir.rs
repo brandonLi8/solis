@@ -43,6 +43,9 @@
 //!   Working with directs means that the operator does not have to do any more computation (naively would have to store
 //!   results on the stack).
 
+use register_allocation::register_allocator::Set;
+use std::cell::RefCell;
+
 #[derive(Debug)]
 pub struct Program {
     pub functions: Vec<Function>,
@@ -89,6 +92,10 @@ pub enum Expr {
     Call {
         id: String,
         args: Vec<DirectExpr>,
+
+        /// Variables that are live before the call occurs. This is filled in in the register_allocation analysis, and
+        /// since they are live, they are the caller saved variables.
+        live_variables: RefCell<Set<String>>,
     },
 
     // Converts one type to another type. We do this in the IR layer instead of the compiler layer
