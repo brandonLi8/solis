@@ -1,6 +1,6 @@
 // Copyright © 2022-2023 Brandon Li. All rights reserved.
 
-//! A token_pattern describes information to match and create different kinds of TokenKinds.
+//! A `token_pattern` describes information to match and create different kinds of `TokenKinds`.
 //! See `tokenizer.rs` for background context.
 
 #![macro_use]

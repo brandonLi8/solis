@@ -29,12 +29,15 @@ pub fn main() {
     // Parse the command line arguments.
     let cli_args = CLIDriver::parse();
 
+    // Move out the file_path.
+    let file_path = cli_args.file;
+
     // Destination as a Path
-    let destination = Path::new(&cli_args.destination);
+    let _destination = Path::new(&cli_args.destination);
 
     // Get the name of the input file, without the extension.
-    let name = cli_args.name.unwrap_or_else(|| {
-        Path::new(&cli_args.file)
+    let _name = cli_args.name.unwrap_or_else(|| {
+        Path::new(&file_path)
             .file_stem()
             .unwrap()
             .to_str()
@@ -43,10 +46,10 @@ pub fn main() {
     });
 
     // Create the compilation Context,
-    let context = Context::from_file_path(cli_args.file);
+    let context = Context::from_file_path(file_path);
 
     let tokens = tokenizer::tokenizer::tokenize(&context);
-    dbg!(tokens);
+    dbg!(tokens.collect::<Vec<tokenizer::tokenizer::Token>>());
     // let program_ast = parser::parser::parse(&file, tokens);
 
     // let program_ir = ir::translator::translate_program(&file, program_ast);

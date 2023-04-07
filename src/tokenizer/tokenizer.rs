@@ -157,52 +157,58 @@ lazy_static! {
     ];
 }
 
-/// Tokenize the input file into a vector of tokens
-pub fn tokenize(context: &Context) -> Vec<Token> {
-    let mut tokens: Vec<Token> = Vec::new();
+/// Tokenize the input file into a iterator of tokens.
+/// * context - compilation context
+pub fn tokenize(context: &Context) -> impl Iterator<Item = Token> {
+    // A file_cursor is the index the represents everything that has been tokenized already (to the left).
+    let mut file_cursor = 0;
 
-    // A cursor is the index the represents everything that has been tokenized already (to the left).
-    let mut cursor = 0;
+    std::iter::from_fn(move || find_next_token(context, &mut file_cursor))
+}
 
-    'cursor_loop: while cursor < context.file.len() {
-        // File slice starting at the cursor
-        let file_slice = &context.file[cursor..];
+// Function that finds the next token, advancing a passed in `file_cursor`
+// * context - compilation context
+// * file_cursor - the index the represents everything that has been tokenized already (to the left).
+fn find_next_token<'a>(context: &'a Context, file_cursor: &mut usize) -> Option<Token<'a>> {
+    if *file_cursor >= context.file.len() {
+        return None
+    };
 
-        // First search for characters that we should ignore in the context.
-        for ignore_pattern in &*IGNORE_PATTERNS {
-            if let Some(ignore_match) = ignore_pattern.find(file_slice) {
-                cursor += ignore_match.end();
-                continue 'cursor_loop;
-            }
+    // File slice starting at the file_cursor
+    let file_slice = &context.file[*file_cursor..];
+
+    // First search for ignore_patterns in the slice.
+    for ignore_pattern in &*IGNORE_PATTERNS {
+        if let Some(ignore_match) = ignore_pattern.find(file_slice) {
+            *file_cursor += ignore_match.end();
+            return find_next_token(context, file_cursor)
         }
-
-        // Find the next token at cursor
-        for TokenPattern { match_regex, token_kind_constructor, error_match } in &*TOKEN_PATTERNS {
-            if let Some(token_match) = match_regex.find(file_slice) {
-                tokens.push(Token {
-                    kind: token_kind_constructor(token_match.as_str()),
-                    position: cursor..cursor + token_match.end(),
-                });
-
-                cursor += token_match.end();
-
-                if let Some(error_match) = error_match {
-                    if error_match.find(&context.file[cursor..]).is_some() {
-                        compilation_error(context, &(cursor..cursor + 1), "Syntax Error: Invalid syntax")
-                    }
-                }
-
-                continue 'cursor_loop;
-            }
-        }
-
-        // At this point, nothing was found, so we raise a syntax error.
-        compilation_error(
-            context,
-            &(cursor..cursor + 1),
-            "Syntax Error: Invalid or unexpected token",
-        )
     }
 
-    tokens
+    // Find the next token at file_cursor
+    for TokenPattern { match_regex, token_kind_constructor, error_match } in &*TOKEN_PATTERNS {
+        if let Some(token_match) = match_regex.find(file_slice) {
+            let token = Token {
+                kind: token_kind_constructor(token_match.as_str()),
+                position: *file_cursor..*file_cursor + token_match.end(),
+            };
+
+            *file_cursor += token_match.end();
+
+            if let Some(error_match) = error_match {
+                if error_match.find(&context.file[*file_cursor..]).is_some() {
+                    compilation_error(context, &(*file_cursor..*file_cursor + 1), "Syntax Error: Invalid syntax")
+                }
+            }
+
+            return Some(token)
+        }
+    }
+
+    // At this point, nothing was found, so we raise a syntax error.
+    compilation_error(
+        context,
+        &(*file_cursor..*file_cursor + 1),
+        "Syntax Error: Invalid or unexpected token",
+    )
 }

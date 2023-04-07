@@ -16,13 +16,13 @@ pub struct Context {
 }
 
 impl Context {
-    /// Creates a new Context from a file_path.
+    /// Creates a new Context from a `file_path`.
     pub fn from_file_path(file_path: String) -> Self {
         let file = fs::read_to_string(&file_path).unwrap_or_else(|error| {
             println!("{}: no such file {file_path}. {error}", "Error".red().bold());
             exit(exitcode::DATAERR)
         });
 
-        Context { file_path, file }
+        Self { file_path, file }
     }
 }

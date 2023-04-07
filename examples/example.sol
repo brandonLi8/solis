@@ -1,19 +1,17 @@
-fun fib(n: int) : int {
-  let a: int = true
-  if n <= 1 {
-    1
-  }
-  else {
-    fib(n - 1) + fib(n - 2)
-  }
-}
+# comment
+        let a: int = b # some comment
+        let a: ## some comment ## int = b ## some comment ##
+        #
 
-fun a() : int {
-  2
-}
+        ## block
+        comment
+        ##
 
-fun a() : () {
-  let a: bool = false
-}
+        ### block
+        comment
+        ##
 
-let a: bool = fib(1)
+        1 + 2
+
+        # comment
+        a
