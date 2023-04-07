@@ -36,14 +36,9 @@ pub fn main() {
     let _destination = Path::new(&cli_args.destination);
 
     // Get the name of the input file, without the extension.
-    let _name = cli_args.name.unwrap_or_else(|| {
-        Path::new(&file_path)
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
-    });
+    let _name = cli_args
+        .name
+        .unwrap_or_else(|| Path::new(&file_path).file_stem().unwrap().to_str().unwrap().to_string());
 
     // Create the compilation Context,
     let context = Context::from_file_path(file_path);

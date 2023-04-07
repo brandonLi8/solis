@@ -13,17 +13,14 @@ use expect_test::{expect, Expect};
 // use solis::register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
 // use solis::register_allocation::liveness_analysis::liveness_analysis;
 // use solis::register_allocation::register_allocator::{allocate_registers, Map, Set};
-use solis::tokenizer::tokenizer::tokenize;
 use solis::context::Context;
+use solis::tokenizer::tokenizer::tokenize;
 
 /// Tests tokenizer output on program.
 pub fn tokenize_check(program: &str, expect: Expect) {
     let context = Context { file_path: String::new(), file: program.to_string() };
     let tokens = tokenize(&context);
-    expect.assert_eq(
-        &tokens
-            .fold(String::new(), |acc, token| acc + &format!("{token:?}\n")),
-    );
+    expect.assert_eq(&tokens.fold(String::new(), |acc, token| acc + &format!("{token:?}\n")));
 }
 
 /// Tests tokenizer output on program, where a compilation error is expected.

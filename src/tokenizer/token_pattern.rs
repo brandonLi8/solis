@@ -4,6 +4,7 @@
 //! See `tokenizer.rs` for background context.
 
 #![macro_use]
+
 use regex::Regex;
 use tokenizer::tokenizer::TokenKind;
 
@@ -33,12 +34,12 @@ macro_rules! token_pattern {
 
     // Token Pattern with no arguments passed to the TokenKind variant, and no error_match.
     ($token_kind:expr, $pattern:expr) => {
-      token_pattern!($pattern, |_| $token_kind, None)
+        token_pattern!($pattern, |_| $token_kind, None)
     };
 
     // Token Pattern with the matched string (only) passed to the TokenKind variant, and no error_match.
     ($token_kind:expr => from_match $pattern:expr) => {
-      token_pattern!($pattern, |m| $token_kind(m), None)
+        token_pattern!($pattern, |m| $token_kind(m), None)
     };
 
     // TokenKind variant where data is from a simple string parse.
@@ -55,7 +56,7 @@ macro_rules! token_pattern {
 
     // TokenKind variant where data is from a simple string parse, with no error_match.
     ($token_kind:expr, $pattern:expr => $to_type:ty) => {
-      token_pattern!($token_kind, $pattern => $to_type, None)
+        token_pattern!($token_kind, $pattern => $to_type, None)
     };
 
     // TokenKind variant where data is from a simple string parse, with a error_match.

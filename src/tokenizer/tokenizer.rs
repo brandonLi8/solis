@@ -171,7 +171,7 @@ pub fn tokenize(context: &Context) -> impl Iterator<Item = Token> {
 // * file_cursor - the index the represents everything that has been tokenized already (to the left).
 fn find_next_token<'a>(context: &'a Context, file_cursor: &mut usize) -> Option<Token<'a>> {
     if *file_cursor >= context.file.len() {
-        return None
+        return None;
     };
 
     // File slice starting at the file_cursor
@@ -181,7 +181,7 @@ fn find_next_token<'a>(context: &'a Context, file_cursor: &mut usize) -> Option<
     for ignore_pattern in &*IGNORE_PATTERNS {
         if let Some(ignore_match) = ignore_pattern.find(file_slice) {
             *file_cursor += ignore_match.end();
-            return find_next_token(context, file_cursor)
+            return find_next_token(context, file_cursor);
         }
     }
 
@@ -197,11 +197,15 @@ fn find_next_token<'a>(context: &'a Context, file_cursor: &mut usize) -> Option<
 
             if let Some(error_match) = error_match {
                 if error_match.find(&context.file[*file_cursor..]).is_some() {
-                    compilation_error(context, &(*file_cursor..*file_cursor + 1), "Syntax Error: Invalid syntax")
+                    compilation_error(
+                        context,
+                        &(*file_cursor..*file_cursor + 1),
+                        "Syntax Error: Invalid syntax",
+                    )
                 }
             }
 
-            return Some(token)
+            return Some(token);
         }
     }
 
