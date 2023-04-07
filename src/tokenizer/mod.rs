@@ -2,4 +2,6 @@
 
 //! The tokenizer module is responsible for tokenizing an input program into Tokens.
 
+mod token_pattern;
+
 pub mod tokenizer;

@@ -4,12 +4,12 @@
 //! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
-use ir::ir::Type;
-
+// use ir::ir::Type;
 use std::backtrace::Backtrace;
-use std::fmt::{self, Display};
+// use std::fmt::{self, Display};
+use context::Context;
 use std::ops::Range;
-use File;
+
 /// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
 /// when compilation errors occur, such as syntax errors, etc. This function aims to provide helpful error messages for
 /// the user by pretty printing a snippet of the Solis input, pin pointing where the error is happening. This function
@@ -21,14 +21,14 @@ use File;
 /// 2 | let var - int = 32
 ///   |         ^
 /// ```
-/// * file: the original Solis file
+/// * context: compilation context
 /// * position: describes where the error is in the source code (for pin pointing), as a index range.
 ///             **It is assumed that position lies on 1 line and is valid and in bounds**
 /// * message: the error message to display
-pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) -> ! {
-    let next_newline_search = file.contents[position.start..].find('\n');
-    let mut next_newline = next_newline_search.unwrap_or(file.contents.len() - 1 - position.start) + position.start;
-    let mut newline_indicies: Vec<usize> = file.contents[..=next_newline]
+pub fn compilation_error(context: &Context, position: &Range<usize>, message: &str) -> ! {
+    let next_newline_search = context.file[position.start..].find('\n');
+    let mut next_newline = next_newline_search.unwrap_or(context.file.len() - 1 - position.start) + position.start;
+    let mut newline_indicies: Vec<usize> = context.file[..=next_newline]
         .match_indices('\n')
         .map(|(i, _)| i)
         .collect();
@@ -51,20 +51,20 @@ pub fn compilation_error(file: &File, position: &Range<usize>, message: &str) ->
     }
 
     let error_message = format!(
-        "{error}: {message}\n {arrow} {filename}:{line_number}:{column}\n  \
+        "{error}: {message}\n {arrow} {file_path}:{line_number}:{column}\n  \
                  {bar_padding}{bar}\n\
         {display_line_number} {bar} {line}\n  \
                  {bar_padding}{bar} {padding}{caret}\n",
         error = "Error".red().bold(),
         message = message.bold(),
         arrow = "-->".blue().bold(),
-        filename = file.name,
+        file_path = context.file_path,
         line_number = line_number,
         column = column,
         bar_padding = " ".repeat(line_number.to_string().len() - 1),
         bar = "|".blue().bold(),
         display_line_number = line_number.to_string().blue().bold(),
-        line = &file.contents[prev_newline..next_newline],
+        line = &context.file[prev_newline..next_newline],
         padding = " ".repeat(column),
         caret = "^".repeat(position.len()).yellow().bold()
     );
@@ -97,14 +97,14 @@ pub fn internal_compiler_error(message: &str) -> ! {
     }
 }
 
-/// For user facing, create more precise display messages for `Types` for error messaging purposes.
-impl Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Unit => write!(f, "<unit>"),
-            Self::Int => write!(f, "int"),
-            Self::Bool => write!(f, "bool"),
-            Self::Float => write!(f, "float"),
-        }
-    }
-}
+// /// For user facing, create more precise display messages for `Types` for error messaging purposes.
+// impl Display for Type {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         match self {
+//             Self::Unit => write!(f, "<unit>"),
+//             Self::Int => write!(f, "int"),
+//             Self::Bool => write!(f, "bool"),
+//             Self::Float => write!(f, "float"),
+//         }
+//     }
+// }

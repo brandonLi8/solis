@@ -11,16 +11,17 @@
 //! For error checking, the tokenizer only checks for tokens that it recognizes, and doesn't do any other validation
 //! or error checking. All other errors are deferred to the parser and code gen stages.
 
+use context::Context;
 use derive_more::Display;
-use error_messages::{compilation_error, internal_compiler_error};
+use error_messages::compilation_error;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::ops::Range;
-use File;
+use tokenizer::token_pattern::TokenPattern;
 
 /// Different kinds of tokens and data associated with each token.
 #[derive(Display, Debug)]
-pub enum TokenKind {
+pub enum TokenKind<'a> {
     // Literals
     Int(i64),
     Bool(bool),
@@ -36,7 +37,7 @@ pub enum TokenKind {
 
     #[display(fmt = "=")]
     Equals,
-    Id(String),
+    Id(&'a str),
 
     // If
     #[display(fmt = "if")]
@@ -87,62 +88,12 @@ pub enum TokenKind {
 
 /// A token returned by the tokenizer
 #[derive(Debug)]
-pub struct Token {
-    pub kind: TokenKind,
+pub struct Token<'a> {
+    pub kind: TokenKind<'a>,
 
     /// For error messaging purposes, we need to link a token to where it was extracted in the original raw source code.
     /// `position` is the range (index based) of where the token is found in the raw input.
     pub position: Range<usize>,
-}
-
-// Struct that describes everything that is needed to to match and create a particular TokenKind.
-struct TokenPattern {
-    // Pattern to match for the token
-    pub match_regex: Regex,
-
-    // Converts matched text to a TokenKind instance.
-    pub token_kind_constructor: fn(String) -> TokenKind,
-
-    // There can be some scenarios where we want to match a token with `match_regex`, but ensure that what is after
-    // the match is not something else (`error_match`). For example, for floating point, we want to match `1.2`, but
-    // not match `1.2.2`. This is a workaround since Rust's Regex crate does not support lookahead.
-    pub error_match: Option<Regex>,
-}
-
-// Macro for creating a `TokenPattern`
-macro_rules! token_pattern {
-    // Simple token_pattern with no arguments to the TokenKind variant
-    ($token_kind:expr, $pattern:expr) => {
-        TokenPattern {
-            match_regex: Regex::new(&format!("^{}", $pattern)).unwrap(),
-            token_kind_constructor: |_| $token_kind,
-            error_match: None
-        }
-    };
-
-    // TokenKind variant where data is from a simple string parse, with generic error_match
-    ($token_kind:expr, $pattern:expr => $to_type:ty, $error_match:expr) => {
-        TokenPattern {
-            match_regex: Regex::new(&format!("^{}", $pattern)).unwrap(),
-            token_kind_constructor: |m| {
-                $token_kind(
-                    m.parse::<$to_type>()
-                        .unwrap_or_else(|error| internal_compiler_error(&format!("unable to parse {m}: {error}"))),
-                )
-            },
-            error_match: $error_match
-        }
-    };
-
-    // TokenKind variant where data is from a simple string parse, with no generic error_match
-    ($token_kind:expr, $pattern:expr => $to_type:ty) => {
-        token_pattern!($token_kind, $pattern => $to_type, None)
-    };
-
-    // TokenKind variant where data is from a simple string parse, with a error_match
-    ($token_kind:expr, $pattern:expr => $to_type:ty, error_if_next $error_match:expr) => {
-        token_pattern!($token_kind, $pattern => $to_type, Some(Regex::new(&format!("^{}", $error_match)).unwrap()))
-    };
 }
 
 lazy_static! {
@@ -202,22 +153,22 @@ lazy_static! {
         token_pattern!(TokenKind::Semi,              r";"),
 
         // Id
-        token_pattern!(TokenKind::Id,                r"([A-Za-z][A-Za-z0-9_]*)\b" => String),
+        token_pattern!(TokenKind::Id => from_match   r"([A-Za-z][A-Za-z0-9_]*)\b"),
     ];
 }
 
 /// Tokenize the input file into a vector of tokens
-pub fn tokenize(file: &File) -> Vec<Token> {
+pub fn tokenize(context: &Context) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
 
     // A cursor is the index the represents everything that has been tokenized already (to the left).
     let mut cursor = 0;
 
-    'cursor_loop: while cursor < file.contents.len() {
+    'cursor_loop: while cursor < context.file.len() {
         // File slice starting at the cursor
-        let file_slice = &file.contents[cursor..];
+        let file_slice = &context.file[cursor..];
 
-        // First search for characters that we should ignore in the file.
+        // First search for characters that we should ignore in the context.
         for ignore_pattern in &*IGNORE_PATTERNS {
             if let Some(ignore_match) = ignore_pattern.find(file_slice) {
                 cursor += ignore_match.end();
@@ -229,15 +180,15 @@ pub fn tokenize(file: &File) -> Vec<Token> {
         for TokenPattern { match_regex, token_kind_constructor, error_match } in &*TOKEN_PATTERNS {
             if let Some(token_match) = match_regex.find(file_slice) {
                 tokens.push(Token {
-                    kind: token_kind_constructor(token_match.as_str().to_string()),
+                    kind: token_kind_constructor(token_match.as_str()),
                     position: cursor..cursor + token_match.end(),
                 });
 
                 cursor += token_match.end();
 
                 if let Some(error_match) = error_match {
-                    if error_match.find(&file.contents[cursor..]).is_some() {
-                        compilation_error(file, &(cursor..cursor + 1), "Syntax Error: Invalid syntax")
+                    if error_match.find(&context.file[cursor..]).is_some() {
+                        compilation_error(context, &(cursor..cursor + 1), "Syntax Error: Invalid syntax")
                     }
                 }
 
@@ -246,7 +197,11 @@ pub fn tokenize(file: &File) -> Vec<Token> {
         }
 
         // At this point, nothing was found, so we raise a syntax error.
-        compilation_error(file, &(cursor..cursor + 1), "Syntax Error: Invalid or unexpected token")
+        compilation_error(
+            context,
+            &(cursor..cursor + 1),
+            "Syntax Error: Invalid or unexpected token",
+        )
     }
 
     tokens
