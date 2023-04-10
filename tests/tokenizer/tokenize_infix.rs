@@ -10,61 +10,61 @@ fn test_infix() {
     tokenize_check(
         "let name: float = 32.4 - 2 + 3 * 4 / 5 % 1 + 2 * (3 + 1)",
         expect![[r#"
-            Token { kind: Let, position: 0..3 }
-            Token { kind: Id("name"), position: 4..8 }
-            Token { kind: Colon, position: 8..9 }
-            Token { kind: Id("float"), position: 10..15 }
-            Token { kind: Equals, position: 16..17 }
-            Token { kind: Float(32.4), position: 18..22 }
-            Token { kind: Minus, position: 23..24 }
-            Token { kind: Int(2), position: 25..26 }
-            Token { kind: Plus, position: 27..28 }
-            Token { kind: Int(3), position: 29..30 }
-            Token { kind: Times, position: 31..32 }
-            Token { kind: Int(4), position: 33..34 }
-            Token { kind: Divide, position: 35..36 }
-            Token { kind: Int(5), position: 37..38 }
-            Token { kind: Mod, position: 39..40 }
-            Token { kind: Int(1), position: 41..42 }
-            Token { kind: Plus, position: 43..44 }
-            Token { kind: Int(2), position: 45..46 }
-            Token { kind: Times, position: 47..48 }
-            Token { kind: OpenParen, position: 49..50 }
-            Token { kind: Int(3), position: 50..51 }
-            Token { kind: Plus, position: 52..53 }
-            Token { kind: Int(1), position: 54..55 }
-            Token { kind: CloseParen, position: 55..56 }
+            Token `Let` at 0..3
+            Token `Id("name")` at 4..8
+            Token `Colon` at 8..9
+            Token `Id("float")` at 10..15
+            Token `Equals` at 16..17
+            Token `Float(32.4)` at 18..22
+            Token `Minus` at 23..24
+            Token `Int(2)` at 25..26
+            Token `Plus` at 27..28
+            Token `Int(3)` at 29..30
+            Token `Times` at 31..32
+            Token `Int(4)` at 33..34
+            Token `Divide` at 35..36
+            Token `Int(5)` at 37..38
+            Token `Mod` at 39..40
+            Token `Int(1)` at 41..42
+            Token `Plus` at 43..44
+            Token `Int(2)` at 45..46
+            Token `Times` at 47..48
+            Token `OpenParen` at 49..50
+            Token `Int(3)` at 50..51
+            Token `Plus` at 52..53
+            Token `Int(1)` at 54..55
+            Token `CloseParen` at 55..56
         "#]],
     );
 
     tokenize_check(
         "1 + 58 * 67 % 35 - 45 < 6 == (95 / 42) != 19 >= 42 <= 54 > 58",
         expect![[r#"
-            Token { kind: Int(1), position: 0..1 }
-            Token { kind: Plus, position: 2..3 }
-            Token { kind: Int(58), position: 4..6 }
-            Token { kind: Times, position: 7..8 }
-            Token { kind: Int(67), position: 9..11 }
-            Token { kind: Mod, position: 12..13 }
-            Token { kind: Int(35), position: 14..16 }
-            Token { kind: Minus, position: 17..18 }
-            Token { kind: Int(45), position: 19..21 }
-            Token { kind: LessThan, position: 22..23 }
-            Token { kind: Int(6), position: 24..25 }
-            Token { kind: EqualsEquals, position: 26..28 }
-            Token { kind: OpenParen, position: 29..30 }
-            Token { kind: Int(95), position: 30..32 }
-            Token { kind: Divide, position: 33..34 }
-            Token { kind: Int(42), position: 35..37 }
-            Token { kind: CloseParen, position: 37..38 }
-            Token { kind: NotEquals, position: 39..41 }
-            Token { kind: Int(19), position: 42..44 }
-            Token { kind: MoreThanOrEquals, position: 45..47 }
-            Token { kind: Int(42), position: 48..50 }
-            Token { kind: LessThanOrEquals, position: 51..53 }
-            Token { kind: Int(54), position: 54..56 }
-            Token { kind: MoreThan, position: 57..58 }
-            Token { kind: Int(58), position: 59..61 }
+            Token `Int(1)` at 0..1
+            Token `Plus` at 2..3
+            Token `Int(58)` at 4..6
+            Token `Times` at 7..8
+            Token `Int(67)` at 9..11
+            Token `Mod` at 12..13
+            Token `Int(35)` at 14..16
+            Token `Minus` at 17..18
+            Token `Int(45)` at 19..21
+            Token `LessThan` at 22..23
+            Token `Int(6)` at 24..25
+            Token `EqualsEquals` at 26..28
+            Token `OpenParen` at 29..30
+            Token `Int(95)` at 30..32
+            Token `Divide` at 33..34
+            Token `Int(42)` at 35..37
+            Token `CloseParen` at 37..38
+            Token `NotEquals` at 39..41
+            Token `Int(19)` at 42..44
+            Token `MoreThanOrEquals` at 45..47
+            Token `Int(42)` at 48..50
+            Token `LessThanOrEquals` at 51..53
+            Token `Int(54)` at 54..56
+            Token `MoreThan` at 57..58
+            Token `Int(58)` at 59..61
         "#]],
     );
 }

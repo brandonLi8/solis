@@ -4,4 +4,5 @@
 
 mod token_pattern;
 
+pub mod token_iterator;
 pub mod tokenizer;

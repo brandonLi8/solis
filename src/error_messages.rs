@@ -4,11 +4,12 @@
 //! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
-// use ir::ir::Type;
-use std::backtrace::Backtrace;
-// use std::fmt::{self, Display};
 use context::Context;
+use std::backtrace::Backtrace;
 use std::ops::Range;
+
+/// Type alias for a position (index based) from the original source code, for error messaging purposes.
+pub type Position = Range<usize>;
 
 /// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
 /// when compilation errors occur, such as syntax errors, etc. This function aims to provide helpful error messages for
@@ -85,8 +86,8 @@ pub fn internal_compiler_error(message: &str) -> ! {
     let backtrace = Backtrace::force_capture();
     println!(
         "{error}: {message}\n\n\
-      Please submit a full bug report at https://github.com/brandonLi8/solis/issues with the backtrace below.\n\n\
-      Backtrace: \n {backtrace}",
+         Please submit a full bug report at https://github.com/brandonLi8/solis/issues with the backtrace below.\n\n\
+         Backtrace: \n {backtrace}",
         error = "Internal Compiler Error".red().bold(),
     );
 
@@ -96,15 +97,3 @@ pub fn internal_compiler_error(message: &str) -> ! {
         std::process::exit(exitcode::DATAERR)
     }
 }
-
-// /// For user facing, create more precise display messages for `Types` for error messaging purposes.
-// impl Display for Type {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         match self {
-//             Self::Unit => write!(f, "<unit>"),
-//             Self::Int => write!(f, "int"),
-//             Self::Bool => write!(f, "bool"),
-//             Self::Float => write!(f, "float"),
-//         }
-//     }
-// }

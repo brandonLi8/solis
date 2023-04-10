@@ -10,17 +10,17 @@ fn test_abnormal_whitespace() {
     tokenize_check(
         "\nlet     a  \n :int = \n 2     + 3\n\n     1 +  2\n\n\n\n",
         expect![[r#"
-            Token { kind: Let, position: 1..4 }
-            Token { kind: Id("a"), position: 9..10 }
-            Token { kind: Colon, position: 14..15 }
-            Token { kind: Id("int"), position: 15..18 }
-            Token { kind: Equals, position: 19..20 }
-            Token { kind: Int(2), position: 23..24 }
-            Token { kind: Plus, position: 29..30 }
-            Token { kind: Int(3), position: 31..32 }
-            Token { kind: Int(1), position: 39..40 }
-            Token { kind: Plus, position: 41..42 }
-            Token { kind: Int(2), position: 44..45 }
+            Token `Let` at 1..4
+            Token `Id("a")` at 9..10
+            Token `Colon` at 14..15
+            Token `Id("int")` at 15..18
+            Token `Equals` at 19..20
+            Token `Int(2)` at 23..24
+            Token `Plus` at 29..30
+            Token `Int(3)` at 31..32
+            Token `Int(1)` at 39..40
+            Token `Plus` at 41..42
+            Token `Int(2)` at 44..45
         "#]],
     );
 }

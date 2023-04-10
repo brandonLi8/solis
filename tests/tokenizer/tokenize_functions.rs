@@ -21,53 +21,53 @@ fn test_fib() {
         let a: int = 2 - fib(5) * 3
         ",
         expect![[r#"
-            Token { kind: Fun, position: 9..12 }
-            Token { kind: Id("fib"), position: 13..16 }
-            Token { kind: OpenParen, position: 16..17 }
-            Token { kind: Id("n"), position: 17..18 }
-            Token { kind: Colon, position: 18..19 }
-            Token { kind: Id("int"), position: 20..23 }
-            Token { kind: CloseParen, position: 23..24 }
-            Token { kind: Colon, position: 25..26 }
-            Token { kind: Id("int"), position: 27..30 }
-            Token { kind: OpenBrace, position: 31..32 }
-            Token { kind: If, position: 43..45 }
-            Token { kind: Id("n"), position: 46..47 }
-            Token { kind: LessThanOrEquals, position: 48..50 }
-            Token { kind: Int(1), position: 51..52 }
-            Token { kind: OpenBrace, position: 53..54 }
-            Token { kind: Int(1), position: 67..68 }
-            Token { kind: CloseBrace, position: 79..80 }
-            Token { kind: Else, position: 91..95 }
-            Token { kind: OpenBrace, position: 96..97 }
-            Token { kind: Id("fib"), position: 110..113 }
-            Token { kind: OpenParen, position: 113..114 }
-            Token { kind: Id("n"), position: 114..115 }
-            Token { kind: Minus, position: 116..117 }
-            Token { kind: Int(1), position: 118..119 }
-            Token { kind: CloseParen, position: 119..120 }
-            Token { kind: Plus, position: 121..122 }
-            Token { kind: Id("fib"), position: 123..126 }
-            Token { kind: OpenParen, position: 126..127 }
-            Token { kind: Id("n"), position: 127..128 }
-            Token { kind: Minus, position: 129..130 }
-            Token { kind: Int(2), position: 131..132 }
-            Token { kind: CloseParen, position: 132..133 }
-            Token { kind: CloseBrace, position: 144..145 }
-            Token { kind: CloseBrace, position: 154..155 }
-            Token { kind: Let, position: 165..168 }
-            Token { kind: Id("a"), position: 169..170 }
-            Token { kind: Colon, position: 170..171 }
-            Token { kind: Id("int"), position: 172..175 }
-            Token { kind: Equals, position: 176..177 }
-            Token { kind: Int(2), position: 178..179 }
-            Token { kind: Minus, position: 180..181 }
-            Token { kind: Id("fib"), position: 182..185 }
-            Token { kind: OpenParen, position: 185..186 }
-            Token { kind: Int(5), position: 186..187 }
-            Token { kind: CloseParen, position: 187..188 }
-            Token { kind: Times, position: 189..190 }
-            Token { kind: Int(3), position: 191..192 }
+            Token `Fun` at 9..12
+            Token `Id("fib")` at 13..16
+            Token `OpenParen` at 16..17
+            Token `Id("n")` at 17..18
+            Token `Colon` at 18..19
+            Token `Id("int")` at 20..23
+            Token `CloseParen` at 23..24
+            Token `Colon` at 25..26
+            Token `Id("int")` at 27..30
+            Token `OpenBrace` at 31..32
+            Token `If` at 43..45
+            Token `Id("n")` at 46..47
+            Token `LessThanOrEquals` at 48..50
+            Token `Int(1)` at 51..52
+            Token `OpenBrace` at 53..54
+            Token `Int(1)` at 67..68
+            Token `CloseBrace` at 79..80
+            Token `Else` at 91..95
+            Token `OpenBrace` at 96..97
+            Token `Id("fib")` at 110..113
+            Token `OpenParen` at 113..114
+            Token `Id("n")` at 114..115
+            Token `Minus` at 116..117
+            Token `Int(1)` at 118..119
+            Token `CloseParen` at 119..120
+            Token `Plus` at 121..122
+            Token `Id("fib")` at 123..126
+            Token `OpenParen` at 126..127
+            Token `Id("n")` at 127..128
+            Token `Minus` at 129..130
+            Token `Int(2)` at 131..132
+            Token `CloseParen` at 132..133
+            Token `CloseBrace` at 144..145
+            Token `CloseBrace` at 154..155
+            Token `Let` at 165..168
+            Token `Id("a")` at 169..170
+            Token `Colon` at 170..171
+            Token `Id("int")` at 172..175
+            Token `Equals` at 176..177
+            Token `Int(2)` at 178..179
+            Token `Minus` at 180..181
+            Token `Id("fib")` at 182..185
+            Token `OpenParen` at 185..186
+            Token `Int(5)` at 186..187
+            Token `CloseParen` at 187..188
+            Token `Times` at 189..190
+            Token `Int(3)` at 191..192
         "#]],
     );
 }
@@ -83,38 +83,38 @@ fn test_function() {
         a(1,2,   3)
         ",
         expect![[r#"
-            Token { kind: Fun, position: 9..12 }
-            Token { kind: Id("a"), position: 13..14 }
-            Token { kind: OpenParen, position: 14..15 }
-            Token { kind: Id("b"), position: 15..16 }
-            Token { kind: Colon, position: 16..17 }
-            Token { kind: Id("int"), position: 18..21 }
-            Token { kind: Comma, position: 21..22 }
-            Token { kind: Id("c"), position: 23..24 }
-            Token { kind: Colon, position: 24..25 }
-            Token { kind: Id("int"), position: 26..29 }
-            Token { kind: Comma, position: 29..30 }
-            Token { kind: Id("d"), position: 30..31 }
-            Token { kind: Colon, position: 31..32 }
-            Token { kind: Id("int"), position: 32..35 }
-            Token { kind: CloseParen, position: 35..36 }
-            Token { kind: Colon, position: 37..38 }
-            Token { kind: Id("int"), position: 39..42 }
-            Token { kind: OpenBrace, position: 43..44 }
-            Token { kind: Id("a"), position: 55..56 }
-            Token { kind: Plus, position: 57..58 }
-            Token { kind: Id("b"), position: 59..60 }
-            Token { kind: Plus, position: 61..62 }
-            Token { kind: Id("c"), position: 63..64 }
-            Token { kind: CloseBrace, position: 73..74 }
-            Token { kind: Id("a"), position: 84..85 }
-            Token { kind: OpenParen, position: 85..86 }
-            Token { kind: Int(1), position: 86..87 }
-            Token { kind: Comma, position: 87..88 }
-            Token { kind: Int(2), position: 88..89 }
-            Token { kind: Comma, position: 89..90 }
-            Token { kind: Int(3), position: 93..94 }
-            Token { kind: CloseParen, position: 94..95 }
+            Token `Fun` at 9..12
+            Token `Id("a")` at 13..14
+            Token `OpenParen` at 14..15
+            Token `Id("b")` at 15..16
+            Token `Colon` at 16..17
+            Token `Id("int")` at 18..21
+            Token `Comma` at 21..22
+            Token `Id("c")` at 23..24
+            Token `Colon` at 24..25
+            Token `Id("int")` at 26..29
+            Token `Comma` at 29..30
+            Token `Id("d")` at 30..31
+            Token `Colon` at 31..32
+            Token `Id("int")` at 32..35
+            Token `CloseParen` at 35..36
+            Token `Colon` at 37..38
+            Token `Id("int")` at 39..42
+            Token `OpenBrace` at 43..44
+            Token `Id("a")` at 55..56
+            Token `Plus` at 57..58
+            Token `Id("b")` at 59..60
+            Token `Plus` at 61..62
+            Token `Id("c")` at 63..64
+            Token `CloseBrace` at 73..74
+            Token `Id("a")` at 84..85
+            Token `OpenParen` at 85..86
+            Token `Int(1)` at 86..87
+            Token `Comma` at 87..88
+            Token `Int(2)` at 88..89
+            Token `Comma` at 89..90
+            Token `Int(3)` at 93..94
+            Token `CloseParen` at 94..95
         "#]],
     );
 }

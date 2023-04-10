@@ -1,17 +1,10 @@
-# comment
-        let a: int = b # some comment
-        let a: ## some comment ## int = b ## some comment ##
-        #
+fun fib(n: int) : int {
+  if n <= 1 {
+    1
+  }
+  else {
+    fib(n - 1) + fib(n - 2)
+  }
+}
 
-        ## block
-        comment
-        ##
-
-        ### block
-        comment
-        ##
-
-        1 + 2
-
-        # comment
-        a
+let a: int = 2 - fib(5) * 3

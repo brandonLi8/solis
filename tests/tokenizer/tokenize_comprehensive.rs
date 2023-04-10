@@ -10,6 +10,6 @@ fn test_comprehenzive() {
     tokenize_check(
         r"
         ",
-        expect![],
+        expect![""],
     );
 }

@@ -27,22 +27,22 @@ fn test_comments_ignored() {
         a
         ",
         expect![[r#"
-            Token { kind: Let, position: 18..21 }
-            Token { kind: Id("a"), position: 22..23 }
-            Token { kind: Colon, position: 23..24 }
-            Token { kind: Id("int"), position: 25..28 }
-            Token { kind: Equals, position: 29..30 }
-            Token { kind: Id("b"), position: 31..32 }
-            Token { kind: Let, position: 56..59 }
-            Token { kind: Id("a"), position: 60..61 }
-            Token { kind: Colon, position: 61..62 }
-            Token { kind: Id("int"), position: 82..85 }
-            Token { kind: Equals, position: 86..87 }
-            Token { kind: Id("b"), position: 88..89 }
-            Token { kind: Int(1), position: 219..220 }
-            Token { kind: Plus, position: 221..222 }
-            Token { kind: Int(2), position: 223..224 }
-            Token { kind: Id("a"), position: 252..253 }
+            Token `Let` at 18..21
+            Token `Id("a")` at 22..23
+            Token `Colon` at 23..24
+            Token `Id("int")` at 25..28
+            Token `Equals` at 29..30
+            Token `Id("b")` at 31..32
+            Token `Let` at 56..59
+            Token `Id("a")` at 60..61
+            Token `Colon` at 61..62
+            Token `Id("int")` at 82..85
+            Token `Equals` at 86..87
+            Token `Id("b")` at 88..89
+            Token `Int(1)` at 219..220
+            Token `Plus` at 221..222
+            Token `Int(2)` at 223..224
+            Token `Id("a")` at 252..253
         "#]],
     );
 }

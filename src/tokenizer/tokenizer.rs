@@ -14,14 +14,15 @@
 use context::Context;
 use derive_more::Display;
 use error_messages::compilation_error;
+use error_messages::Position;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::ops::Range;
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::token_pattern::TokenPattern;
 
 /// Different kinds of tokens and data associated with each token.
 #[derive(Display, Debug)]
-pub enum TokenKind<'a> {
+pub enum Token<'a> {
     // Literals
     Int(i64),
     Bool(bool),
@@ -86,16 +87,6 @@ pub enum TokenKind<'a> {
     Semi,
 }
 
-/// A token returned by the tokenizer
-#[derive(Debug)]
-pub struct Token<'a> {
-    pub kind: TokenKind<'a>,
-
-    /// For error messaging purposes, we need to link a token to where it was extracted in the original raw source code.
-    /// `position` is the range (index based) of where the token is found in the raw input.
-    pub position: Range<usize>,
-}
-
 lazy_static! {
 
     // Regex patterns for matching text that should be ignored in the input.
@@ -114,105 +105,100 @@ lazy_static! {
     // Regex patterns for matching different types of tokens.
     static ref TOKEN_PATTERNS: Vec<TokenPattern> = vec![
         // Match literals first
-        token_pattern!(TokenKind::Bool,              r"(true|false)\b" => bool),
-        token_pattern!(TokenKind::Float,             r"(([0-9]*\.[0-9]+\b)|([0-9]+\.[0-9]*))" => f64, error_if_next r"\."),
-        token_pattern!(TokenKind::Int,               r"([0-9]+)\b" => i64),
+        token_pattern!(Token::Bool,              r"(true|false)\b" => bool),
+        token_pattern!(Token::Float,             r"(([0-9]*\.[0-9]+\b)|([0-9]+\.[0-9]*))" => f64, error_if_next r"\."),
+        token_pattern!(Token::Int,               r"([0-9]+)\b" => i64),
 
         // Keywords before Id
-        token_pattern!(TokenKind::Let,               r"let\b"),
-        token_pattern!(TokenKind::Colon,             r":"),
-        token_pattern!(TokenKind::Final,             r"final\b"),
-        token_pattern!(TokenKind::If,                r"if\b"),
-        token_pattern!(TokenKind::Else,              r"else\b"),
-        token_pattern!(TokenKind::Fun,               r"fun\b"),
-        token_pattern!(TokenKind::Comma,             r","),
+        token_pattern!(Token::Let,               r"let\b"),
+        token_pattern!(Token::Colon,             r":"),
+        token_pattern!(Token::Final,             r"final\b"),
+        token_pattern!(Token::If,                r"if\b"),
+        token_pattern!(Token::Else,              r"else\b"),
+        token_pattern!(Token::Fun,               r"fun\b"),
+        token_pattern!(Token::Comma,             r","),
 
         // Arithmetic
-        token_pattern!(TokenKind::Plus,              r"\+"),
-        token_pattern!(TokenKind::Minus,             r"-"),
-        token_pattern!(TokenKind::Mod,               r"%"),
-        token_pattern!(TokenKind::Times,             r"\*"),
-        token_pattern!(TokenKind::Divide,            r"/"),
+        token_pattern!(Token::Plus,              r"\+"),
+        token_pattern!(Token::Minus,             r"-"),
+        token_pattern!(Token::Mod,               r"%"),
+        token_pattern!(Token::Times,             r"\*"),
+        token_pattern!(Token::Divide,            r"/"),
 
         // Comparison Groups
-        token_pattern!(TokenKind::LessThanOrEquals,  r"<="),
-        token_pattern!(TokenKind::LessThan,          r"<"),
+        token_pattern!(Token::LessThanOrEquals,  r"<="),
+        token_pattern!(Token::LessThan,          r"<"),
 
-        token_pattern!(TokenKind::MoreThanOrEquals,  r">="),
-        token_pattern!(TokenKind::MoreThan,          r">"),
+        token_pattern!(Token::MoreThanOrEquals,  r">="),
+        token_pattern!(Token::MoreThan,          r">"),
 
-        token_pattern!(TokenKind::EqualsEquals,      r"=="),
-        token_pattern!(TokenKind::Equals,            r"="),
-        token_pattern!(TokenKind::NotEquals,         r"!="),
-        token_pattern!(TokenKind::Not,               r"!"),
+        token_pattern!(Token::EqualsEquals,      r"=="),
+        token_pattern!(Token::Equals,            r"="),
+        token_pattern!(Token::NotEquals,         r"!="),
+        token_pattern!(Token::Not,               r"!"),
 
-        token_pattern!(TokenKind::OpenParen,         r"\("),
-        token_pattern!(TokenKind::CloseParen,        r"\)"),
-        token_pattern!(TokenKind::OpenBrace,         r"\{"),
-        token_pattern!(TokenKind::CloseBrace,        r"\}"),
-        token_pattern!(TokenKind::Semi,              r";"),
+        token_pattern!(Token::OpenParen,         r"\("),
+        token_pattern!(Token::CloseParen,        r"\)"),
+        token_pattern!(Token::OpenBrace,         r"\{"),
+        token_pattern!(Token::CloseBrace,        r"\}"),
+        token_pattern!(Token::Semi,              r";"),
 
         // Id
-        token_pattern!(TokenKind::Id => from_match   r"([A-Za-z][A-Za-z0-9_]*)\b"),
+        token_pattern!(Token::Id => from_match   r"([A-Za-z][A-Za-z0-9_]*)\b"),
     ];
 }
 
-/// Tokenize the input file into a iterator of tokens.
+/// Tokenize the input file into a TokenIterator.
 /// * context - compilation context
-pub fn tokenize(context: &Context) -> impl Iterator<Item = Token> {
-    // A file_cursor is the index the represents everything that has been tokenized already (to the left).
-    let mut file_cursor = 0;
-
-    std::iter::from_fn(move || find_next_token(context, &mut file_cursor))
+pub fn tokenize(context: &Context) -> TokenIterator {
+    TokenIterator::new(context)
 }
 
-// Function that finds the next token, advancing a passed in `file_cursor`
-// * context - compilation context
-// * file_cursor - the index the represents everything that has been tokenized already (to the left).
-fn find_next_token<'a>(context: &'a Context, file_cursor: &mut usize) -> Option<Token<'a>> {
-    if *file_cursor >= context.file.len() {
+/// Function that finds the next token, advancing a passed in `cursor`
+/// * context - compilation context
+/// * cursor - the index the represents everything that has been tokenized already (to the left).
+/// * return Option<(
+///    - the token instance
+///    - the position of the token, for error messaging purposes
+/// * )>
+pub fn find_next_token<'a>(context: &'a Context, cursor: &mut usize) -> Option<(Token<'a>, Position)> {
+    if *cursor >= context.file.len() {
         return None;
     };
 
-    // File slice starting at the file_cursor
-    let file_slice = &context.file[*file_cursor..];
+    // File slice starting at the cursor
+    let file_slice = &context.file[*cursor..];
 
     // First search for ignore_patterns in the slice.
     for ignore_pattern in &*IGNORE_PATTERNS {
         if let Some(ignore_match) = ignore_pattern.find(file_slice) {
-            *file_cursor += ignore_match.end();
-            return find_next_token(context, file_cursor);
+            *cursor += ignore_match.end();
+            return find_next_token(context, cursor);
         }
     }
 
-    // Find the next token at file_cursor
-    for TokenPattern { match_regex, token_kind_constructor, error_match } in &*TOKEN_PATTERNS {
+    // Find the next token at cursor
+    for TokenPattern { match_regex, token_constructor, error_match } in &*TOKEN_PATTERNS {
         if let Some(token_match) = match_regex.find(file_slice) {
-            let token = Token {
-                kind: token_kind_constructor(token_match.as_str()),
-                position: *file_cursor..*file_cursor + token_match.end(),
-            };
+            let token = token_constructor(token_match.as_str());
+            let position = *cursor..*cursor + token_match.end();
 
-            *file_cursor += token_match.end();
+            *cursor += token_match.end();
 
             if let Some(error_match) = error_match {
-                if error_match.find(&context.file[*file_cursor..]).is_some() {
-                    compilation_error(
-                        context,
-                        &(*file_cursor..*file_cursor + 1),
-                        "Syntax Error: Invalid syntax",
-                    )
+                if error_match.find(&context.file[*cursor..]).is_some() {
+                    compilation_error(context, &(*cursor..*cursor + 1), "Syntax Error: Invalid syntax")
                 }
             }
 
-            return Some(token);
+            return Some((token, position));
         }
     }
 
     // At this point, nothing was found, so we raise a syntax error.
     compilation_error(
         context,
-        &(*file_cursor..*file_cursor + 1),
+        &(*cursor..*cursor + 1),
         "Syntax Error: Invalid or unexpected token",
     )
 }

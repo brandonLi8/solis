@@ -44,7 +44,7 @@ pub fn main() {
     let context = Context::from_file_path(file_path);
 
     let tokens = tokenizer::tokenizer::tokenize(&context);
-    dbg!(tokens.collect::<Vec<tokenizer::tokenizer::Token>>());
+
     // let program_ast = parser::parser::parse(&file, tokens);
 
     // let program_ir = ir::translator::translate_program(&file, program_ast);

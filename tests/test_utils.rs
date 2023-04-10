@@ -5,6 +5,7 @@
 extern crate expect_test;
 extern crate solis;
 
+use solis::tokenizer::tokenizer::find_next_token;
 use expect_test::{expect, Expect};
 // use solis::asm::asm::{FloatRegister, Register};
 // use solis::ir::ir::Type;
@@ -14,13 +15,18 @@ use expect_test::{expect, Expect};
 // use solis::register_allocation::liveness_analysis::liveness_analysis;
 // use solis::register_allocation::register_allocator::{allocate_registers, Map, Set};
 use solis::context::Context;
-use solis::tokenizer::tokenizer::tokenize;
 
 /// Tests tokenizer output on program.
 pub fn tokenize_check(program: &str, expect: Expect) {
     let context = Context { file_path: String::new(), file: program.to_string() };
-    let tokens = tokenize(&context);
-    expect.assert_eq(&tokens.fold(String::new(), |acc, token| acc + &format!("{token:?}\n")));
+    let mut tokens = String::new();
+    let mut cursor = 0;
+
+    while let Some((token, position)) = find_next_token(&context, &mut cursor) {
+        tokens.push_str(&format!("Token `{token:?}` at {position:?}\n"))
+    }
+
+    expect.assert_eq(&tokens);
 }
 
 /// Tests tokenizer output on program, where a compilation error is expected.
