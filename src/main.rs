@@ -13,7 +13,7 @@ extern crate regex;
 // pub mod compiler;
 pub mod error_messages;
 // pub mod ir;
-// pub mod parser;
+pub mod parser;
 // pub mod register_allocation;
 pub mod cli_driver;
 pub mod context;
