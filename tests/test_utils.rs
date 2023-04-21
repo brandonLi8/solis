@@ -5,8 +5,8 @@
 extern crate expect_test;
 extern crate solis;
 
-use solis::tokenizer::tokenizer::tokenize;
 use expect_test::{expect, Expect};
+use solis::tokenizer::tokenizer::tokenize;
 // use solis::asm::asm::{FloatRegister, Register};
 // use solis::ir::ir::Type;
 // use solis::ir::translator::translate_program;

@@ -17,6 +17,7 @@ use error_messages::compilation_error;
 use error_messages::Position;
 use lazy_static::lazy_static;
 use regex::Regex;
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::token_pattern::TokenPattern;
 
 /// Different kinds of tokens and data associated with each token.
@@ -149,9 +150,8 @@ lazy_static! {
 
 /// Tokenize the input file into a TokenIterator.
 /// * context - compilation context
-pub fn tokenize(context: &Context) -> impl Iterator<Item = (Token, Position)> {
-    let mut cursor = 0;
-    std::iter::from_fn(move || find_next_token(context, &mut cursor))
+pub fn tokenize(context: &Context) -> TokenIterator {
+    TokenIterator::new(context)
 }
 
 /// Function that finds the next token, advancing a passed in `cursor`

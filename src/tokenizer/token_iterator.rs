@@ -11,13 +11,12 @@
 //!   * `consume`             - if next = expected and not EOF next, advance. Else compilation error.
 //!   * `peek`                - peek the next as an Option indicating if there is a next.
 //!   * `peek_or_error`       - compilation error if Peek is None
-//!   * `prev`                - gets prev, with a internal error if `next` was never called
 //!
 //! See the documentation of each method for full details.
 
 use context::Context;
+use error_messages::internal_compiler_error;
 use error_messages::Position;
-use error_messages::{compilation_error, internal_compiler_error};
 use std::mem::discriminant;
 use tokenizer::tokenizer::find_next_token;
 use tokenizer::tokenizer::Token;
@@ -27,16 +26,13 @@ type TokenAndPosition<'a> = (Token<'a>, Position);
 
 pub struct TokenIterator<'a> {
     // compilation context
-    context: &'a Context,
+    pub context: &'a Context,
 
     // index that represents everything that has been tokenized already (to the left).
     cursor: usize,
 
     // the peeked token and position
     peeked: Option<TokenAndPosition<'a>>,
-
-    // the prev token and position
-    prev: Option<TokenAndPosition<'a>>,
 }
 
 impl<'a> TokenIterator<'a> {
@@ -46,22 +42,24 @@ impl<'a> TokenIterator<'a> {
         let mut cursor = 0;
         let first_token = find_next_token(context, &mut cursor);
 
-        Self { context, cursor, peeked: first_token, prev: None }
+        Self { context, cursor, peeked: first_token }
     }
 
     /// Advances the iterator
     /// * return - a reference to the next found token and position. None value indicates we have reached EOF.
-    pub fn next(&mut self) -> Option<&TokenAndPosition<'a>> {
-        // Move ownership from the peeked value into the prev field.
-        self.prev = self.peeked.take();
+    pub fn next(&mut self) -> Option<TokenAndPosition<'a>> {
+        // Move ownership from the peeked value
+        let next = self.peeked.take();
 
         self.peeked = find_next_token(self.context, &mut self.cursor);
-        self.prev.as_ref()
+        next
     }
 
     /// Advances the iterator, **assuming that there is a next token** and throws a *internal* compiler error if not.
-    pub fn advance(&mut self) {
-        if self.next().is_none() {
+    pub fn advance(&mut self) -> TokenAndPosition<'a> {
+        if let Some(next) = self.next() {
+            next
+        } else {
             internal_compiler_error("EOF inside advance")
         }
     }
@@ -69,7 +67,7 @@ impl<'a> TokenIterator<'a> {
     /// Advances the iterator, **where you are expecting there to be a next token but not fully sure** and throws a user
     /// *compilation* compiler error if not.
     /// * return - a reference to the unwrapped token and position
-    pub fn next_or_error(&mut self) -> &TokenAndPosition<'a> {
+    pub fn next_or_error(&mut self) -> TokenAndPosition<'a> {
         match self.next() {
             Some(token_and_position) => token_and_position,
             None => todo!(), // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file"),
@@ -81,44 +79,33 @@ impl<'a> TokenIterator<'a> {
     ///
     /// NOTE: this works for `Token`s that have data in them, because this checks that the `Token` *variant* matches.
     /// The data within the variant does not have to be equal, and the data within `expected_token` is irrelevant.
-    pub fn consume_token(&mut self, expected_token: Token) {
+    pub fn consume_token(&mut self, expected_token: Token) -> TokenAndPosition<'a> {
         if let Some((token, _)) = &self.peeked {
             // See https://stackoverflow.com/questions/32554285/compare-enums-only-by-variant-not-value
             if discriminant(&expected_token) != discriminant(&token) {
-                compilation_error(
-                    self.context,
-                    &self.prev().1,
-                    &format!("Syntax Error: expected `{expected_token}`"),
-                )
+                todo!()
             }
 
-            self.advance();
+            self.advance()
         } else {
-            compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file");
+            todo!()
+            // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file");
         }
     }
 
     /// Peeks the next value.
     /// * return - a reference to the next found token and position. None value indicates we have reached EOF.
-    pub fn peek(&mut self) -> Option<&TokenAndPosition<'a>> {
+    pub fn peek(&self) -> Option<&TokenAndPosition<'a>> {
         self.peeked.as_ref()
     }
 
     /// Peeks the next value, **where you are expecting there to be a next token but not fully sure** and throws a user
     /// *compilation* compiler error if not.
     /// * return - a reference to the unwrapped token and position
-    pub fn peek_or_error(&mut self) -> &TokenAndPosition {
+    pub fn peek_or_error(&self) -> &TokenAndPosition {
         match self.peeked {
-            None => compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file"),
+            None => todo!(), // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file"),
             Some(ref peeked) => peeked,
-        }
-    }
-
-    /// Gets the prev token, assuming that `next` has been called before and throws a internal compilation error if not.
-    pub fn prev(&mut self) -> &TokenAndPosition {
-        match self.prev {
-            None => internal_compiler_error("unexpected attempt to get previous token at position 0"),
-            Some(ref value) => value,
         }
     }
 }
