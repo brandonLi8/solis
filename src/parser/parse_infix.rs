@@ -20,7 +20,7 @@
 //!
 //!            <infix operation>
 //!            /               \
-//!    <operand> id(a)  "-"     <rest>                        Key; <operand> = <precedence-1-operand>
+//!    <operand> id(a)  "-"     <rest>                        Key: <operand> = <precedence-1-operand>
 //!                            /       \                           <rest>    = <precedence-1-operand>
 //!              <operand> id(b)  "-"  <rest>
 //!                                  /       \
@@ -42,184 +42,169 @@
 //! is converting the parse tree "on the fly" into a left associative structure!
 
 use error_messages::internal_compiler_error;
-use parser::ast::{BinaryExprKind, Expr, ExprKind, UnaryExprKind};
+use parser::ast::{BinaryExprKind, Expr, UnaryExprKind};
 use parser::parse_expr::parse_expr;
 use parser::parser::parse_terminal;
-use parser::tokens_cursor::TokensCursor;
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 
-/// Corresponds to `<infix-expr>` rule and parses into `ast::Expr`.
-pub fn parse_infix_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    parse_comparison_expr(tokens_cursor)
+/// Corresponds to `<infix-expr>` rule and parses into a `ast::Expr`.
+pub fn parse_infix_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    parse_comparison_expr(tokens)
 }
 
-/// Corresponds to `<arithmetic-expr>` rule and parses into `ast::Expr`.
-fn parse_arithmetic_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    let arithmetic_1_operand = parse_arithmetic_1_operand(tokens_cursor);
-    parse_arithmetic_1_rest(arithmetic_1_operand, tokens_cursor)
+/// Corresponds to `<arithmetic-expr>` rule and parses into a `ast::Expr`.
+fn parse_arithmetic_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    let (arithmetic_1_operand, tokens) = parse_arithmetic_1_operand(tokens);
+    parse_arithmetic_1_rest(arithmetic_1_operand, tokens)
 }
 
-/// Corresponds to `<parse_arithmetic_1_rest>` rule and parses into `ast::Expr`
-/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens_cursor`.
-fn parse_arithmetic_1_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
-
-    if let Some((kind @ (Token::Plus | Token::Minus), position )) = next_token {
-        tokens_cursor.advance();
-
-        let arithmetic_1_operand = parse_arithmetic_1_operand(tokens_cursor);
-        left_operand = Expr {
-            kind: ExprKind::BinaryExpr {
-                kind: match kind {
-                    Token::Plus => BinaryExprKind::Plus,
-                    Token::Minus => BinaryExprKind::Minus,
-                    _ => internal_compiler_error("Could not match +/- on inner match"),
-                },
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_1_operand),
-            },
-            position: position.clone(),
+/// Corresponds to `<parse_arithmetic_1_rest>` rule and parses into a `ast::Expr`
+/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens`.
+fn parse_arithmetic_1_rest<'a>(
+    mut left_operand: Expr<'a>,
+    mut tokens: TokenIterator<'a>,
+) -> (Expr<'a>, TokenIterator<'a>) {
+    if let Some((kind @ (Token::Plus | Token::Minus), _)) = tokens.peek() {
+        let kind = match kind {
+            Token::Plus => BinaryExprKind::Plus,
+            Token::Minus => BinaryExprKind::Minus,
+            _ => internal_compiler_error("Could not match +/- on inner match"),
         };
 
-        parse_arithmetic_1_rest(left_operand, tokens_cursor)
+        tokens.advance();
+
+        let (arithmetic_1_operand, tokens) = parse_arithmetic_1_operand(tokens);
+        left_operand = Expr::BinaryExpr {
+            kind,
+            operand_1: Box::new(left_operand),
+            operand_2: Box::new(arithmetic_1_operand),
+        };
+
+        parse_arithmetic_1_rest(left_operand, tokens)
     } else {
-        left_operand
+        (left_operand, tokens)
     }
 }
 
-/// Corresponds to <precedence-1-operand> rule and parses into `ast::Expr`.
-fn parse_arithmetic_1_operand(tokens_cursor: &mut TokensCursor) -> Expr {
-    let arithmetic_2_operand = parse_arithmetic_2_operand(tokens_cursor);
-    parse_arithmetic_2_rest(arithmetic_2_operand, tokens_cursor)
+/// Corresponds to <precedence-1-operand> rule and parses into a `ast::Expr`.
+fn parse_arithmetic_1_operand<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    let (arithmetic_2_operand, tokens) = parse_arithmetic_2_operand(tokens);
+    parse_arithmetic_2_rest(arithmetic_2_operand, tokens)
 }
 
-/// Corresponds to `<parse_arithmetic_2_rest>` rule and parses into `ast::Expr`
-/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens_cursor`.
-fn parse_arithmetic_2_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
-
-    if let Some((kind @ (Token::Times | Token::Divide | Token::Mod),
-        position,
-    )) = next_token
-    {
-        tokens_cursor.advance();
-
-        let arithmetic_2_operand = parse_arithmetic_2_operand(tokens_cursor);
-        left_operand = Expr {
-            kind: ExprKind::BinaryExpr {
-                kind: match kind {
-                    Token::Times => BinaryExprKind::Times,
-                    Token::Divide => BinaryExprKind::Divide,
-                    Token::Mod => BinaryExprKind::Mod,
-                    _ => internal_compiler_error("Could not match */%// on inner match"),
-                },
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(arithmetic_2_operand),
-            },
-            position: position.clone(),
+/// Corresponds to `<parse_arithmetic_2_rest>` rule and parses into a `ast::Expr`
+/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens`.
+fn parse_arithmetic_2_rest<'a>(
+    mut left_operand: Expr<'a>,
+    mut tokens: TokenIterator<'a>,
+) -> (Expr<'a>, TokenIterator<'a>) {
+    if let Some((kind @ (Token::Times | Token::Divide | Token::Mod), _)) = tokens.peek() {
+        let kind = match kind {
+            Token::Times => BinaryExprKind::Times,
+            Token::Divide => BinaryExprKind::Divide,
+            Token::Mod => BinaryExprKind::Mod,
+            _ => internal_compiler_error("Could not match */%// on inner match"),
         };
 
-        parse_arithmetic_2_rest(left_operand, tokens_cursor)
+        tokens.advance();
+
+        let (arithmetic_2_operand, tokens) = parse_arithmetic_2_operand(tokens);
+        left_operand = Expr::BinaryExpr {
+            kind,
+            operand_1: Box::new(left_operand),
+            operand_2: Box::new(arithmetic_2_operand),
+        };
+
+        parse_arithmetic_2_rest(left_operand, tokens)
     } else {
-        left_operand
+        (left_operand, tokens)
     }
 }
 
-/// Corresponds to <precedence-2-operand> rule and parses into `ast::Expr`.
-fn parse_arithmetic_2_operand(tokens_cursor: &mut TokensCursor) -> Expr {
-    parse_factor(tokens_cursor)
+/// Corresponds to <precedence-2-operand> rule and parses into a `ast::Expr`.
+fn parse_arithmetic_2_operand<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    parse_factor(tokens)
 }
 
-/// Corresponds to `<comparison-expr>` rule and parses into `ast::Expr`.
-fn parse_comparison_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    let comparison_operand = parse_arithmetic_expr(tokens_cursor);
-    parse_comparison_rest(comparison_operand, tokens_cursor)
+/// Corresponds to `<comparison-expr>` rule and parses into a `ast::Expr`.
+fn parse_comparison_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    let (comparison_operand, tokens) = parse_arithmetic_expr(tokens);
+    parse_comparison_rest(comparison_operand, tokens)
 }
 
-/// Corresponds to `<parse_comparison_rest>` rule and parses into `ast::Expr`
-/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens_cursor`.
-fn parse_comparison_rest(mut left_operand: Expr, tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
-
+/// Corresponds to `<parse_comparison_rest>` rule and parses into a `ast::Expr`
+/// * `left_operand`: the left operand for the in result infix operation. See the comment at the top for full `tokens`.
+fn parse_comparison_rest<'a>(
+    mut left_operand: Expr<'a>,
+    mut tokens: TokenIterator<'a>,
+) -> (Expr<'a>, TokenIterator<'a>) {
     if let Some((
-            kind @ (Token::LessThan
-            | Token::LessThanOrEquals
-            | Token::MoreThan
-            | Token::MoreThanOrEquals
-            | Token::EqualsEquals
-            | Token::NotEquals),
-        position,
-    )) = next_token
+        kind @ (Token::LessThan
+        | Token::LessThanOrEquals
+        | Token::MoreThan
+        | Token::MoreThanOrEquals
+        | Token::EqualsEquals
+        | Token::NotEquals),
+        _,
+    )) = tokens.peek()
     {
-        tokens_cursor.advance();
-
-        let comparison_operand = parse_arithmetic_expr(tokens_cursor);
-        left_operand = Expr {
-            kind: ExprKind::BinaryExpr {
-                kind: match kind {
-                    Token::LessThan => BinaryExprKind::LessThan,
-                    Token::LessThanOrEquals => BinaryExprKind::LessThanOrEquals,
-                    Token::MoreThan => BinaryExprKind::MoreThan,
-                    Token::MoreThanOrEquals => BinaryExprKind::MoreThanOrEquals,
-                    Token::EqualsEquals => BinaryExprKind::EqualsEquals,
-                    Token::NotEquals => BinaryExprKind::NotEquals,
-                    _ => internal_compiler_error("Could not match comparison operator on inner match"),
-                },
-                operand_1: Box::new(left_operand),
-                operand_2: Box::new(comparison_operand),
-            },
-            position: position.clone(),
+        let kind = match kind {
+            Token::LessThan => BinaryExprKind::LessThan,
+            Token::LessThanOrEquals => BinaryExprKind::LessThanOrEquals,
+            Token::MoreThan => BinaryExprKind::MoreThan,
+            Token::MoreThanOrEquals => BinaryExprKind::MoreThanOrEquals,
+            Token::EqualsEquals => BinaryExprKind::EqualsEquals,
+            Token::NotEquals => BinaryExprKind::NotEquals,
+            _ => internal_compiler_error("Could not match comparison operator on inner match"),
         };
 
-        parse_comparison_rest(left_operand, tokens_cursor)
+        tokens.advance();
+
+        let (comparison_operand, tokens) = parse_arithmetic_expr(tokens);
+        left_operand = Expr::BinaryExpr {
+            kind,
+            operand_1: Box::new(left_operand),
+            operand_2: Box::new(comparison_operand),
+        };
+
+        parse_comparison_rest(left_operand, tokens)
     } else {
-        left_operand
+        (left_operand, tokens)
     }
 }
 
-/// Corresponds to <factor> rule and parses into `ast::Expr`.
-fn parse_factor(tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
+/// Corresponds to <factor> rule and parses into a `ast::Expr`.
+fn parse_factor<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    if let Some((Token::OpenParen, _)) = tokens.peek() {
+        tokens.advance();
 
-    if let Some((Token::OpenParen, _ )) = next_token {
-        tokens_cursor.advance();
-
-        let expr = parse_expr(tokens_cursor);
-        tokens_cursor.consume_token(Token::CloseParen);
-        expr
+        let (expr, mut tokens) = parse_expr(tokens);
+        tokens.consume_token(Token::CloseParen);
+        (expr, tokens)
     } else {
-        parse_prefix_expr(tokens_cursor)
+        parse_prefix_expr(tokens)
     }
 }
 
-/// Corresponds to `<prefix-expr>` rule and parses into `ast::Expr`
-fn parse_prefix_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
+/// Corresponds to `<prefix-expr>` rule and parses into a `ast::Expr`
+fn parse_prefix_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    if let Some((kind @ (Token::Minus | Token::Not), _)) = tokens.peek() {
+        let kind = match kind {
+            Token::Minus => UnaryExprKind::Negative,
+            Token::Not => UnaryExprKind::Not,
+            _ => internal_compiler_error("Could not match prefix operator on inner match"),
+        };
 
-    if let Some(( kind @ (Token::Plus | Token::Minus | Token::Not),
-        position,
-    )) = next_token
-    {
-        tokens_cursor.advance();
+        tokens.advance();
 
-        let operand = parse_factor(tokens_cursor);
+        let (operand, tokens) = parse_factor(tokens);
 
-        if let Token::Plus = kind {
-            operand
-        } else {
-            Expr {
-                kind: ExprKind::UnaryExpr {
-                    kind: match kind {
-                        Token::Minus => UnaryExprKind::Negative,
-                        Token::Not => UnaryExprKind::Not,
-                        _ => internal_compiler_error("Could not match prefix operator on inner match"),
-                    },
-                    operand: Box::new(operand),
-                },
-                position: position.clone(),
-            }
-        }
+        (Expr::UnaryExpr { kind, operand: Box::new(operand) }, tokens)
+    } else if let Some((Token::Plus, _)) = tokens.peek() {
+        tokens.advance();
+        parse_factor(tokens)
     } else {
-        parse_terminal(tokens_cursor)
+        parse_terminal(tokens)
     }
 }

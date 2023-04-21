@@ -2,83 +2,84 @@
 
 //! Utility functions used in the parsing module.
 
-use std::mem::discriminant;
-use std::iter::Peekable;
-use error_messages::{Position, internal_compiler_error};
+use parser::ast::Block;
+use parser::parse_expr::parse_expr;
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 
-// Type alias to a tuple of a Token and its corresponding file position.
-pub type TokenAndPosition<'a> = (Token<'a>, Position);
+/// Used to determine behavior of the `parse_block` function.
+pub enum ParseBlockStopMode {
+    /// Keep continuing to parse until the end of the file
+    EndOfFile,
 
-// ————————————————————————————————————————————————————————————————————————————*!
-// The rest of the utility methods are related to operating on the result from
-// the tokenizer (specifically, a `Peekable<Iterator<TokenAndPosition>>`). For
-// Solis, we are parsing a LL(1) grammar, so we are parsing from left to right
-// and on each production rule we only need to look ahead by 1 token. These are
-// common patterns that have been turned into utility functions.
-// Here is an overview of the utility methods below.
-//
-//   * `advance`             - same as `peekable.next` but *internal compiler* error if EOF
-//   * `next_or_error`       - same as `peekable.next` but *compilation error* if EOF
-//   * `consume`             - if `peekable.next` = expected and not EOF next, advance. Else compilation error.
-//   * `peek_or_error`       - same as `peekable.peek` but compilation error if Peek is None
-//
-// See the documentation of each method for full details.
-// ————————————————————————————————————————————————————————————————————————————*!
-
-/// Advances the iterator, **assuming that there is a next token** and throws a *internal* compiler error if not.
-pub fn advance<'a, I>(tokens: &'a mut Peekable<I>) -> TokenAndPosition // todo should not exist, make use of next_if
-where
-    I: Iterator<Item = (Token<'a>, Position)>
-{
-    match tokens.next() {
-        Some(token_and_position) => token_and_position,
-        None => internal_compiler_error("EOF inside advance")
-    }
+    /// Keep continuing to reaching the matching CloseBrace
+    Brace,
 }
 
-/// Advances the iterator, **where you are expecting there to be a next token but not fully sure** and throws a user
-/// *compilation* compiler error if not.
-pub fn next_or_error<'a, I>(tokens: &'a mut Peekable<I>) -> TokenAndPosition
-where
-    I: Iterator<Item = (Token<'a>, Position)>
-{
-    match tokens.next() {
-        Some(token_and_position) => token_and_position,
-        None => todo!() // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file")
-    }
-}
-
-/// Ensures that next token is the same variant as `expected_token`. If it is, we "consume" it by advancing.
-/// Otherwise, it raises a compilation error.
+/// Corresponds to `<block>` rule and parses into a `ast::Block`.
 ///
-/// NOTE: this works for `Token`s that have data in them, because this checks that the `Token` *variant* matches.
-/// The data within the variant does not have to be equal, and the data within `expected_token` is irrelevant.
-pub fn consume_token<'a, I>(tokens: &'a mut Peekable<I>, expected_token: Token, ) -> TokenAndPosition<'a>
-where
-    I: Iterator<Item = (Token<'a>, Position)>
-{
-    // See https://stackoverflow.com/questions/32554285/compare-enums-only-by-variant-not-value
-    if let Some(token_and_position) = tokens.next_if(|(token, _)| discriminant(&expected_token) != discriminant(&token)) {
-        token_and_position
-    } else {
-        // compilation_error(
-        //     self.context,
-        //     &self.prev().1,
-        //     &format!("Syntax Error: expected `{expected_token}`"),
-        // )
-        todo!()
+/// Note: the implementation of this doesn't match the rule definition in `.solis_grammar.txt`. Instead of recursively
+/// filling the expressions of the block, we iteratively fill the block.
+pub fn parse_block<'a>(stop_mode: ParseBlockStopMode, mut tokens: TokenIterator<'a>) -> (Block<'a>, TokenIterator<'a>) {
+    let mut exprs = vec![];
+
+    // Iteratively parse the expressions of the block.
+    loop {
+        match (&stop_mode, tokens.peek()) {
+            // EndOfFile stop mode - clean break
+            (ParseBlockStopMode::EndOfFile, None) => break,
+
+            // Brace stop mode - advance then break
+            (ParseBlockStopMode::Brace, Some((Token::CloseBrace, _))) => {
+                tokens.advance();
+                break;
+            }
+
+            // Continue condition
+            _ => {
+                let (next_expr, next_tokens) = parse_expr(tokens);
+
+                // The compiler is not smart enough to figure out that we are reassigning the moved tokens, so we use
+                // an intermediate `next_tokens` to explicitly do it.
+                tokens = next_tokens;
+
+                exprs.push(next_expr);
+
+                // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
+                if let Some((Token::Semi, _)) = tokens.peek() {
+                    tokens.advance();
+                }
+            }
+        }
     }
+
+    (Block { exprs }, tokens)
 }
 
-/// Peeks the next value, and throws a user compilation compiler error if EOF.
-/// * return - a reference to the unwrapped token and position
-pub fn peek_or_error<'a, I>(tokens: &'a mut Peekable<I>) -> &'a TokenAndPosition<'a>
-where
-    I: Iterator<Item = (Token<'a>, Position)>
-{
-    match tokens.peek() {
-        Some(ref peeked) => peeked,
-        None => todo!(), // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file"),
+/// Corresponds to `<comma-separated-list>` rule and parses into a `Vec<T>`.
+/// * parse_next - function that parses the next item
+///
+/// Note: the implementation of this doesn't match the rule definition in `.solis_grammar.txt`. Instead of recursively
+/// filling the expressions of the block, we iteratively fill the block.
+pub fn parse_comma_separated_list<'a, T>(
+    parse_next: fn(TokenIterator<'a>) -> (T, TokenIterator),
+    mut tokens: TokenIterator<'a>,
+) -> (Vec<T>, TokenIterator) {
+    let mut items = vec![];
+
+    while !matches!(tokens.peek_or_error().0, Token::CloseParen) {
+        if !items.is_empty() {
+            tokens.consume_token(Token::Comma);
+        }
+
+        let (item, next_tokens) = parse_next(tokens);
+        items.push(item);
+
+        // The compiler is not smart enough to figure out that we are reassigning the moved tokens, so we use
+        // an intermediate `next_tokens` to explicitly do it.
+        tokens = next_tokens;
     }
+
+    tokens.consume_token(Token::CloseParen);
+    (items, tokens)
 }

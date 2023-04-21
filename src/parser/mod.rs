@@ -8,4 +8,4 @@ pub mod parser;
 mod parse_expr;
 mod parse_function;
 mod parse_infix;
-mod tokens_cursor;
+mod parser_utils;

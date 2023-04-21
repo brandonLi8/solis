@@ -16,7 +16,7 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
 ##
 
 
-<program> ::= <functions> <block>
+<program> ::= <functions> <block stop=ε>
 
 <terminal> ::=
   | ID(string)
@@ -32,12 +32,8 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
   | "()" # unit
 
 <block> ::=                                   # Makes up the body of the program
-   | ε
+   | <stop>
    | <expr> [";"] <block>
-
-<closed-block> ::=                            # Block that ends in RBRACE
-   | "}"
-   | <expr> <closed-block>
 
 #!——————————————————————————————————————————————*!
 #  Functions
@@ -48,13 +44,13 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
   | <function> [";"] <functions>
 
 <function> ::=
-  | FUN ID "(" comma-separated-list-rest[<params] ":" <type> "{" <closed-block>
+  | FUN ID "(" <comma-separated-list>[<param>] ":" <type> "{" <block stop="}">
 
 <param> ::=
   | ID ":" <type>
 
 <call> ::=
-  | ID "(" comma-separated-list-rest[<expr>]
+  | ID "(" <comma-separated-list>[<expr>]
 
 <comma-separated-list>[<rule>] ::=
   | ")"
@@ -73,12 +69,12 @@ is unambiguous, and is left factored. Formally, this grammar is a LL(k) grammar.
   | LET ID ":" <type> ID EQUALS <expr>
 
 <if-expr> ::=
-  | IF <expr> "{" <closed-block> <else-block>
+  | IF <expr> "{" <block stop="}"> <else-block>
 
 <else-block> ::=
   | ε
-  | ELSE IF <expr> "{" <closed-block> <else-block>
-  | ELSE "{" <closed-block>
+  | ELSE IF <expr> "{" <block stop="}"> <else-block>
+  | ELSE "{" <block stop="}">
 
 
 #!——————————————————————————————————————————————*!

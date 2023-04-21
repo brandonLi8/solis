@@ -3,91 +3,86 @@
 //! Defines the functions for parsing various types of expressions.
 
 use error_messages::internal_compiler_error;
-use parser::ast::{Block, Expr, ExprKind};
+use parser::ast::{Block, Expr};
 use parser::parse_infix::parse_infix_expr;
-use parser::parser::{parse_closed_block, parse_type};
-use parser::tokens_cursor::TokensCursor;
+use parser::parser::parse_type;
+use parser::parser_utils::{parse_block, ParseBlockStopMode};
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 
-/// Corresponds to <expr> rule and parses into `ast::Expr`.
-pub fn parse_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.peek_unwrap();
-
-    match &next_token.0 {
-        Token::Let => parse_let_expr(tokens_cursor),
-        Token::If => parse_if_expr(tokens_cursor),
-        _ => parse_infix_expr(tokens_cursor),
+/// Corresponds to `<expr>` rule and parses into a `ast::Expr`.
+pub fn parse_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    match tokens.peek_or_error().0 {
+        Token::Let => parse_let_expr(tokens),
+        Token::If => parse_if_expr(tokens),
+        _ => parse_infix_expr(tokens),
     }
 }
 
-/// Corresponds to <let-expr> rule and parses into `ast::Expr::Let`.
-pub fn parse_let_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    tokens_cursor.consume_token(Token::Let);
+/// Corresponds to `<let-expr>` rule and parses into a `ast::Expr::Let`.
+pub fn parse_let_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    tokens.consume_token(Token::Let);
 
     // Consume the let expression identifier
-    tokens_cursor.consume_token(Token::Id(&"identifier".to_string()));
-    let ((id_token_kind, _), tokens_cursor) = tokens_cursor.prev();
+    let (id_token, _) = tokens.consume_token(Token::Id("identifier"));
 
-    tokens_cursor.consume_token(Token::Colon);
+    tokens.consume_token(Token::Colon);
 
     // Parse the type reference.
-    let type_reference = parse_type(tokens_cursor);
-    let (type_reference_token, tokens_cursor) = tokens_cursor.prev();
+    let (type_reference, mut tokens) = parse_type(tokens);
 
-    tokens_cursor.consume_token(Token::Equals);
+    tokens.consume_token(Token::Equals);
 
     // Binding initial expression
-    let init_expr = parse_expr(tokens_cursor);
+    let (init_expr, tokens) = parse_expr(tokens);
 
-    if let Token::Id(id) = id_token_kind {
-        Expr {
-            kind: ExprKind::Let { id: id.to_string(), type_reference, init_expr: Box::new(init_expr) },
-            position: type_reference_token.1.clone(),
-        }
-    } else {
-        internal_compiler_error("Unable to get id. Should have been consumed.")
-    }
+    (
+        Expr::Let {
+            id: if let Token::Id(id) = id_token { id } else { internal_compiler_error("id not Token::Id variant") },
+            type_reference,
+            init_expr: Box::new(init_expr),
+        },
+        tokens,
+    )
 }
 
-/// Corresponds to <if-expr> rule and parses into `ast::Expr::If`.
-pub fn parse_if_expr(tokens_cursor: &mut TokensCursor) -> Expr {
-    tokens_cursor.consume_token(Token::If);
-    let (if_token, tokens_cursor) = tokens_cursor.prev();
+/// Corresponds to `<if-expr>` rule and parses into a `ast::Expr::If`.
+pub fn parse_if_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    tokens.consume_token(Token::If);
 
     // Parse the condition expression
-    let condition = parse_expr(tokens_cursor);
+    let (condition, mut tokens) = parse_expr(tokens);
 
-    tokens_cursor.consume_token(Token::OpenBrace);
+    tokens.consume_token(Token::OpenBrace);
 
     // Parse the consequent block
-    let then_block = parse_closed_block(Block { exprs: vec![] }, tokens_cursor);
-
-    // Peek the next two tokens
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
+    let (then_block, tokens) = parse_block(ParseBlockStopMode::Brace, tokens);
 
     // Parse the alternate block
-    let else_block = match next_token {
-        Some((Token::Else, _)) => Some(parse_else_block(tokens_cursor)),
-        _ => None,
+    let (else_block, tokens) = match tokens.peek() {
+        Some((Token::Else, _)) => {
+            let (else_block, tokens) = parse_else_block(tokens);
+            (Some(else_block), tokens)
+        }
+        _ => (None, tokens),
     };
 
-    Expr {
-        kind: ExprKind::If { condition: Box::new(condition), then_block, else_block },
-        position: if_token.1.clone(),
-    }
+    (
+        Expr::If { condition: Box::new(condition), then_block, else_block },
+        tokens,
+    )
 }
 
-// Corresponds to <else-block> rule and parses into ast::Block.
-fn parse_else_block(tokens_cursor: &mut TokensCursor) -> Block {
-    tokens_cursor.consume_token(Token::Else);
+// Corresponds to `<else-block>` rule and parses into a `ast::Block`.
+fn parse_else_block<'a>(mut tokens: TokenIterator<'a>) -> (Block<'a>, TokenIterator<'a>) {
+    tokens.consume_token(Token::Else);
 
-    // Peek the next token
-    let (next_token, tokens_cursor) = tokens_cursor.peek_unwrap();
-
-    if let Token::If = &next_token.0 {
-        Block { exprs: vec![parse_if_expr(tokens_cursor)] }
+    // Else If vs
+    if let Token::If = tokens.peek_or_error().0 {
+        let (else_expr, tokens) = parse_if_expr(tokens);
+        (Block { exprs: vec![else_expr] }, tokens)
     } else {
-        tokens_cursor.consume_token(Token::OpenBrace);
-        parse_closed_block(Block { exprs: vec![] }, tokens_cursor)
+        tokens.consume_token(Token::OpenBrace);
+        parse_block(ParseBlockStopMode::Brace, tokens)
     }
 }

@@ -3,108 +3,88 @@
 //! Responsible for parsing function declarations.
 
 use error_messages::internal_compiler_error;
-use parser::ast::{Block, Expr, ExprKind, Function, Param};
+use parser::ast::{Expr, Function, Param};
 use parser::parse_expr::parse_expr;
-use parser::parser::{parse_closed_block, parse_type};
-use parser::tokens_cursor::TokensCursor;
-use std::ops::Range;
+use parser::parser::parse_type;
+use parser::parser_utils::{parse_block, parse_comma_separated_list, ParseBlockStopMode};
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 
-/// Corresponds to the `<functions>` rule and parses into `Vec<ast::Function>`
-// * functions: previous functions that were parsed.
-pub fn parse_functions(mut functions: Vec<Function>, tokens_cursor: &mut TokensCursor) -> Vec<Function> {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
+/// Corresponds to the `<functions>` rule and parses into a `Vec<ast::Function>`
+///
+/// Note: the implementation of this doesn't match the rule definition in `.solis_grammar.txt`. Instead of recursively
+/// filling the expressions of the block, we iteratively fill the block.
+pub fn parse_functions<'a>(mut tokens: TokenIterator<'a>) -> (Vec<Function<'a>>, TokenIterator<'a>) {
+    let mut functions = vec![];
+    while matches!(tokens.peek(), Some((Token::Fun, _))) {
+        let (function, next_tokens) = parse_function(tokens);
+        functions.push(function);
 
-    if let Some((Token::Fun, _ )) = next_token {
-        functions.push(parse_function(tokens_cursor));
+        // The compiler is not smart enough to figure out that we are reassigning the moved tokens, so we use
+        // an intermediate `next_tokens` to explicitly do it.
+        tokens = next_tokens;
 
         // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
-        if let (Some((Token::Semi, _ )), _) = tokens_cursor.peek() {
-            tokens_cursor.advance();
+        if let Some((Token::Semi, _)) = tokens.peek() {
+            tokens.advance();
         }
-        parse_functions(functions, tokens_cursor)
-    } else {
-        functions
     }
+
+    (functions, tokens)
 }
 
-// Corresponds to the `<function>` rule and parses into `ast::Function`
-fn parse_function(tokens_cursor: &mut TokensCursor) -> Function {
-    tokens_cursor.consume_token(Token::Fun);
+/// Corresponds to the `<function>` rule and parses into a `ast::Function`
+fn parse_function<'a>(mut tokens: TokenIterator<'a>) -> (Function<'a>, TokenIterator<'a>) {
+    tokens.consume_token(Token::Fun);
 
     // Consume the function id
-    tokens_cursor.consume_token(Token::Id("identifier"));
-    let (id_token, tokens_cursor) = tokens_cursor.prev();
+    let (id_token, _) = tokens.consume_token(Token::Id("identifier"));
 
-    tokens_cursor.consume_token(Token::OpenParen);
-    let params = parse_comma_separated_list::<Param>(vec![], parse_param, tokens_cursor);
+    tokens.consume_token(Token::OpenParen);
 
-    tokens_cursor.consume_token(Token::Colon);
-    let return_type = parse_type(tokens_cursor);
+    let (params, mut tokens) = parse_comma_separated_list::<Param>(parse_param, tokens);
 
-    tokens_cursor.consume_token(Token::OpenBrace);
-    let body = parse_closed_block(Block { exprs: vec![] }, tokens_cursor);
+    tokens.consume_token(Token::Colon);
+    let (return_type, mut tokens) = parse_type(tokens);
 
-    if let Token::Id(id) = &id_token.0 {
+    tokens.consume_token(Token::OpenBrace);
+    let (body, tokens) = parse_block(ParseBlockStopMode::Brace, tokens);
+
+    (
         Function {
             params,
             return_type,
             body,
-            id: id.to_string(),
-            position: id_token.1.clone(),
-        }
-    } else {
-        internal_compiler_error("Unable to get id. Should have been consumed.")
-    }
-}
-
-// Corresponds to `<param>` rule and parses into `ast::Param`.
-fn parse_param(tokens_cursor: &mut TokensCursor) -> Param {
-    tokens_cursor.consume_token(Token::Id("identifier"));
-    let ((param_id_kind, _), tokens_cursor) = tokens_cursor.prev();
-
-    tokens_cursor.consume_token(Token::Colon);
-    let type_reference = parse_type(tokens_cursor);
-
-    if let Token::Id(id) = param_id_kind {
-        Param { type_reference, id: id.to_string() }
-    } else {
-        internal_compiler_error("Unable to get id. Should have been consumed.")
-    }
-}
-
-/// Corresponds to `<call>` rule and parses into `ast::Expr::Call`.
-/// * id - the name of the function
-pub fn parse_call(id: String, id_position: Range<usize>, tokens_cursor: &mut TokensCursor) -> Expr {
-    Expr {
-        kind: ExprKind::Call {
-            id,
-            args: parse_comma_separated_list::<Expr>(vec![], parse_expr, tokens_cursor),
+            id: if let Token::Id(id) = id_token { id } else { internal_compiler_error("id not Token::Id variant") },
         },
-        position: id_position,
-    }
+        tokens,
+    )
 }
 
-// Corresponds to `<comma-separated-list>` rule and parses into `Vec<T>`.
-// * list: previous items that were parsed.
-// * parse_next - function that parses the next item
-fn parse_comma_separated_list<T>(
-    mut list: Vec<T>,
-    parse_next: fn(&mut TokensCursor) -> T,
-    tokens_cursor: &mut TokensCursor,
-) -> Vec<T> {
-    // Peek the next token
-    let (next_token, tokens_cursor) = tokens_cursor.peek_unwrap();
+/// Corresponds to `<param>` rule and parses into a `ast::Param`.
+fn parse_param<'a>(mut tokens: TokenIterator<'a>) -> (Param<'a>, TokenIterator<'a>) {
+    let (param_id_token, _) = tokens.consume_token(Token::Id("identifier"));
 
-    if let Token::CloseParen = &next_token.0 {
-        tokens_cursor.advance();
-        list
-    } else {
-        if !list.is_empty() {
-            tokens_cursor.consume_token(Token::Comma);
-        }
-        list.push(parse_next(tokens_cursor));
+    tokens.consume_token(Token::Colon);
+    let (type_reference, tokens) = parse_type(tokens);
 
-        parse_comma_separated_list(list, parse_next, tokens_cursor)
-    }
+    (
+        Param {
+            type_reference,
+            id: if let Token::Id(id) = param_id_token {
+                id
+            } else {
+                internal_compiler_error("id not Token::Id variant")
+            },
+        },
+        tokens,
+    )
+}
+
+/// Corresponds to `<call>` rule and parses into a `ast::Expr::Call`.
+/// * id - the name of the function
+pub fn parse_call<'a>(id: &'a str, tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    let (args, tokens) = parse_comma_separated_list::<Expr>(parse_expr, tokens);
+
+    (Expr::Call { id, args }, tokens)
 }

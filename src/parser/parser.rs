@@ -8,138 +8,83 @@
 //! It works by creating a bunch of mutually recursive functions -- one for each production rule. Each function does:
 //!   1. making sure there exists a parse tree for the program (is syntactically valid) by "walking" to the next rule
 //!   2. transforming the parse tree into the AST
+//!
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
-use error_messages::Position;
-use error_messages::compilation_error;
-use error_messages::internal_compiler_error;
-use parser::ast::{Block, Expr, ExprKind, Program, Type};
-use parser::parse_expr::parse_expr;
-use parser::parse_function::{parse_call, parse_functions};
-use parser::tokens_cursor::TokensCursor;
+use error_messages::{compilation_error, internal_compiler_error};
+use parser::ast::{Expr, Program, Type};
+use parser::parse_function::parse_call;
+use parser::parse_function::parse_functions;
+use parser::parser_utils::{parse_block, ParseBlockStopMode};
+use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
-use context::Context;
 
 /// Main parser function, which returns a `ast::Program`.
-/// * file: the original Solis file
 /// * tokens: output from the tokenizer
-pub fn parse(file: &Context, tokens: Vec<(Token, Position)>) -> Program {
-    // Create a parse tokens_cursor that is passed around throughout the entire parse process.
-    let mut tokens_cursor = TokensCursor::new(&tokens, file);
-    let program = parse_program(&mut tokens_cursor);
+pub fn parse<'a>(tokens: TokenIterator<'a>) -> Program<'a> {
+    let (program, tokens) = parse_program(tokens);
 
-    // In the case that there are some remaining tokens (potentially a expression that wasn't fully written),
-    // we raise a compilation error. TODO: is this possible? should this be internal error instead?
-    if !tokens_cursor.is_end_of_file() {
-        compilation_error(
-            tokens_cursor.file,
-            &tokens.last().unwrap().1,
-            "Syntax Error: unexpected end of file",
-        )
+    // In the case that there are some remaining tokens.
+    if tokens.peek().is_some() {
+        internal_compiler_error("Leftover tokens in program")
     }
 
     program
 }
 
-// Corresponds to <program> rule and parses into ast::Program.
-fn parse_program(tokens_cursor: &mut TokensCursor) -> Program {
-    let functions = parse_functions(vec![], tokens_cursor);
-    let block = parse_block(Block { exprs: vec![] }, tokens_cursor);
+// Corresponds to `<program>` rule and parses into a `ast::Program`.
+fn parse_program<'a>(tokens: TokenIterator<'a>) -> (Program<'a>, TokenIterator<'a>) {
+    let (functions, tokens) = parse_functions(tokens);
+    let (body, tokens) = parse_block(ParseBlockStopMode::EndOfFile, tokens);
 
-    Program { functions, body: block }
+    (Program { body, functions }, tokens)
 }
 
-// Corresponds to <terminal> rule and parses into ast::Id, ast::Int, etc.
-pub fn parse_terminal(tokens_cursor: &mut TokensCursor) -> Expr {
-    let (next_token, tokens_cursor) = tokens_cursor.next();
-    match &next_token.0 {
-        Token::Id(id) => {
-            let (next_next_token, tokens_cursor) = tokens_cursor.peek();
+// Corresponds to `<terminal>` rule and parses into `ast::Id`, `ast::Int`, etc.
+pub fn parse_terminal<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    let (next_token, next_token_position) = tokens.next_or_error();
 
-            if let Some((Token::OpenParen, _)) = next_next_token {
-                tokens_cursor.advance();
-                parse_call(id.to_string(), next_token.1.clone(), tokens_cursor)
-            } else {
-                Expr {
-                    kind: ExprKind::Id { value: id.to_string() },
-                    position: next_token.1.clone(),
+    (
+        match next_token {
+            Token::Id(id) => {
+                // Either Call or plain ID
+                if let Some((Token::OpenParen, _)) = tokens.peek() {
+                    tokens.advance();
+                    return parse_call(id, tokens);
+                } else {
+                    Expr::Id { value: id }
                 }
             }
-        }
-        Token::Int(int) => Expr {
-            kind: ExprKind::Int { value: *int },
-            position: next_token.1.clone(),
+
+            Token::Int(value) => Expr::Int { value },
+            Token::Bool(value) => Expr::Bool { value },
+            Token::Float(value) => Expr::Float { value },
+
+            _ => compilation_error(tokens.context, &next_token_position, "Syntax Error: unexpected token"),
         },
-        Token::Bool(b) => Expr {
-            kind: ExprKind::Bool { value: *b },
-            position: next_token.1.clone(),
-        },
-        Token::Float(float) => Expr {
-            kind: ExprKind::Float { value: *float },
-            position: next_token.1.clone(),
-        },
-        _ => compilation_error(
-            tokens_cursor.file,
-            &next_token.1,
-            "Syntax Error: unexpected token",
-        ),
-    }
+        tokens,
+    )
 }
 
-/// Corresponds to <type> rule and parses into `ast::Type`.
-pub fn parse_type(tokens_cursor: &mut TokensCursor) -> Type {
-    let (next_token, tokens_cursor) = tokens_cursor.next();
+/// Corresponds to `<type>` rule and parses into `ast::Type`.
+pub fn parse_type(mut tokens: TokenIterator) -> (Type, TokenIterator) {
+    let (next_token, next_token_position) = tokens.next_or_error();
 
-    match &next_token.0 {
-        Token::Id(id) => match *id {
-            "int" => Type::Int,
-            "bool" => Type::Bool,
-            "float" => Type::Float,
-            _ => compilation_error(tokens_cursor.file, &next_token.1, &format!("Invalid type: {id}")),
+    (
+        match next_token {
+            Token::Id("int") => Type::Int,
+            Token::Id("bool") => Type::Bool,
+            Token::Id("float") => Type::Float,
+            Token::OpenParen => {
+                tokens.consume_token(Token::CloseParen);
+                Type::Unit
+            }
+            _ => compilation_error(
+                tokens.context,
+                &next_token_position,
+                &format!("Invalid type: {next_token}"),
+            ),
         },
-        Token::OpenParen => {
-            tokens_cursor.consume_token(Token::CloseParen);
-            Type::Unit
-        }
-        _ => internal_compiler_error("parse type"),
-    }
-}
-
-// Corresponds to <block> rule and parses into ast::Block.
-// * block: in order to inexpensively parse expressions and add them to a result block, recursively.
-pub fn parse_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
-    if tokens_cursor.is_end_of_file() {
-        block
-    } else {
-        let next_expr = parse_expr(tokens_cursor);
-        block.exprs.push(next_expr);
-
-        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
-        if let (Some((Token::Semi, _)), _) = tokens_cursor.peek() {
-            tokens_cursor.advance();
-        }
-
-        parse_block(block, tokens_cursor)
-    }
-}
-
-// Corresponds to <closed-block>> rule and parses into ast::Block.
-// * block: in order to inexpensively parse expressions and add them to a result block, recursively.
-pub fn parse_closed_block(mut block: Block, tokens_cursor: &mut TokensCursor) -> Block {
-    let (next_token, tokens_cursor) = tokens_cursor.peek();
-
-    if let Some((Token::CloseBrace, _)) = next_token {
-        tokens_cursor.advance();
-        block
-    } else {
-        let next_expr = parse_expr(tokens_cursor);
-        block.exprs.push(next_expr);
-
-        // Remove optional semicolons. See https://github.com/brandonLi8/solis/issues/28
-        if let (Some((Token::Semi, _)), _) = tokens_cursor.peek() {
-            tokens_cursor.advance();
-        }
-
-        parse_closed_block(block, tokens_cursor)
-    }
+        tokens,
+    )
 }
