@@ -8,7 +8,7 @@ use context::{Context, Position};
 use std::backtrace::Backtrace;
 
 /// Used to determine behavior of the `compilation_error` function.
-pub enum ErrorPosition {
+pub enum ErrorPosition<'a> {
     /// Error occurred at the end of the file
     EndOfFile,
 
@@ -16,12 +16,12 @@ pub enum ErrorPosition {
     Index(usize),
 
     /// Error occurred at a span, which is the Position of a token.
-    Span(Position),
+    Span(&'a Position),
 
     /// Error occurred before this token (as a span) and the previous token. More specifically, if there is white-space
     /// before this token, the error position is there. If there is no white-space before (new-lines included), then
     /// the error occurred at the start of the position.
-    WhitespaceBefore(Position),
+    WhitespaceBefore(&'a Position),
 }
 
 /// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
@@ -43,35 +43,35 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
     let file = &context.file;
     let file_path = &context.file_path;
     let last_index = file.len() - 1;
-    let not_whitespace = |c: char| !c.is_whitespace();
+    let is_not_whitespace = |c: char| !c.is_whitespace();
 
     // Convert the ErrorPosition to a `Range<usize>`
-    let position = match error_position {
+    let (error_start, error_length) = match error_position {
         ErrorPosition::EndOfFile => {
             // Get the index of where the white-space at the end of the file starts
-            let whitespace_start_index = file.rfind(not_whitespace).unwrap_or(last_index) + 1;
-            whitespace_start_index..whitespace_start_index + 1
+            let whitespace_start_index = file.rfind(is_not_whitespace).unwrap_or(last_index) + 1;
+            (whitespace_start_index, 1)
         }
-        ErrorPosition::Index(index) => index..index + 1,
-        ErrorPosition::Span(span) => span,
+        ErrorPosition::Index(index) => (index, 1),
+        ErrorPosition::Span(span) => (span.start, span.len()),
         ErrorPosition::WhitespaceBefore(span) => {
             // Get the index of where the white-space before the token starts
-            let whitespace_start_index = file[..span.start].rfind(not_whitespace).map_or(0, |i| i + 1);
-            whitespace_start_index..whitespace_start_index + 1
+            let whitespace_start_index = file[..span.start].rfind(is_not_whitespace).map_or(0, |i| i + 1);
+            (whitespace_start_index, 1)
         }
     };
 
     // Get the index of the next_newline (or last_index + 1)
-    let next_newline = file[position.start..]
+    let next_newline = file[error_start..]
         .find('\n')
-        .map_or(last_index + 1, |i| position.start + i);
+        .map_or(last_index + 1, |i| error_start + i);
 
     // Get the index of where the line starts (or 0)
-    let line_start_index = file[..position.start].rfind('\n').map_or(0, |i| i + 1);
+    let line_start_index = file[..error_start].rfind('\n').map_or(0, |i| i + 1);
 
     // Compute the line number and the column within that line number
-    let line_number = file[..position.start].matches('\n').count() + 1;
-    let column = position.start - line_start_index;
+    let line_number = if error_start > 0 { file[..error_start].lines().count() } else { 1 };
+    let column = error_start - line_start_index;
 
     // Disable coloring on unit tests.
     #[cfg(feature = "test")]
@@ -93,7 +93,7 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
         display_line_number = line_number.to_string().blue().bold(),
         line = &context.file[line_start_index..next_newline],
         padding = " ".repeat(column),
-        caret = "^".repeat(position.len()).yellow().bold()
+        caret = "^".repeat(error_length).yellow().bold()
     );
 
     // For testing purposes, we don't want to exit() when we want to test that certain inputs raise errors.
@@ -101,7 +101,7 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
     if cfg!(feature = "test") {
         panic!("{}", error_message.normal());
     } else {
-        println!("{error_message}");
+        eprintln!("{error_message}");
         std::process::exit(exitcode::DATAERR)
     }
 }
@@ -110,7 +110,7 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
 /// called at all.
 pub fn internal_compiler_error(message: &str) -> ! {
     let backtrace = Backtrace::force_capture();
-    println!(
+    eprintln!(
         "{error}: {message}\n\n\
          Please submit a full bug report at https://github.com/brandonLi8/solis/issues with the backtrace below.\n\n\
          Backtrace: \n {backtrace}",

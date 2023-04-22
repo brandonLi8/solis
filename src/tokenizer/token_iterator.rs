@@ -88,7 +88,7 @@ impl<'a> TokenIterator<'a> {
             if discriminant(&expected_token) != discriminant(token) {
                 compilation_error(
                     self.context,
-                    ErrorPosition::WhitespaceBefore(position.clone()),
+                    ErrorPosition::WhitespaceBefore(position),
                     &format!("Syntax Error: expected `{expected_token}`",),
                 )
             }

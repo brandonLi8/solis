@@ -62,7 +62,7 @@ pub fn parse_terminal<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIter
 
             _ => compilation_error(
                 tokens.context,
-                ErrorPosition::Span(next_token_position),
+                ErrorPosition::Span(&next_token_position),
                 "Syntax Error: unexpected token",
             ),
         },
@@ -85,7 +85,7 @@ pub fn parse_type(mut tokens: TokenIterator) -> (Type, TokenIterator) {
             }
             _ => compilation_error(
                 tokens.context,
-                ErrorPosition::Span(next_token_position),
+                ErrorPosition::Span(&next_token_position),
                 &format!("Invalid type: {next_token}"),
             ),
         },
