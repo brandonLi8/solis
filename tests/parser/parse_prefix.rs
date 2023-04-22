@@ -14,11 +14,8 @@ fn test_prefix() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Int {
-                                value: 1,
-                            },
-                            position: 1..2,
+                        Int {
+                            value: 1,
                         },
                     ],
                 },
@@ -32,17 +29,11 @@ fn test_prefix() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: UnaryExpr {
-                                kind: Negative,
-                                operand: Expr {
-                                    kind: Int {
-                                        value: 1,
-                                    },
-                                    position: 1..2,
-                                },
+                        UnaryExpr {
+                            kind: Negative,
+                            operand: Int {
+                                value: 1,
                             },
-                            position: 0..1,
                         },
                     ],
                 },
@@ -56,48 +47,27 @@ fn test_prefix() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Let {
-                                id: "name",
-                                type_reference: Int,
-                                init_expr: Expr {
-                                    kind: UnaryExpr {
-                                        kind: Negative,
-                                        operand: Expr {
-                                            kind: UnaryExpr {
+                        Let {
+                            id: "name",
+                            type_reference: Int,
+                            init_expr: UnaryExpr {
+                                kind: Negative,
+                                operand: UnaryExpr {
+                                    kind: Negative,
+                                    operand: UnaryExpr {
+                                        kind: Not,
+                                        operand: UnaryExpr {
+                                            kind: Negative,
+                                            operand: UnaryExpr {
                                                 kind: Negative,
-                                                operand: Expr {
-                                                    kind: UnaryExpr {
-                                                        kind: Not,
-                                                        operand: Expr {
-                                                            kind: UnaryExpr {
-                                                                kind: Negative,
-                                                                operand: Expr {
-                                                                    kind: UnaryExpr {
-                                                                        kind: Negative,
-                                                                        operand: Expr {
-                                                                            kind: Int {
-                                                                                value: 3,
-                                                                            },
-                                                                            position: 22..23,
-                                                                        },
-                                                                    },
-                                                                    position: 21..22,
-                                                                },
-                                                            },
-                                                            position: 19..20,
-                                                        },
-                                                    },
-                                                    position: 18..19,
+                                                operand: Int {
+                                                    value: 3,
                                                 },
                                             },
-                                            position: 17..18,
                                         },
                                     },
-                                    position: 16..17,
                                 },
                             },
-                            position: 10..13,
                         },
                     ],
                 },
@@ -111,84 +81,45 @@ fn test_prefix() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Let {
-                                id: "name",
-                                type_reference: Int,
-                                init_expr: Expr {
-                                    kind: BinaryExpr {
-                                        kind: Plus,
-                                        operand_1: Expr {
-                                            kind: BinaryExpr {
-                                                kind: Minus,
-                                                operand_1: Expr {
-                                                    kind: BinaryExpr {
-                                                        kind: Minus,
-                                                        operand_1: Expr {
-                                                            kind: Int {
-                                                                value: 2,
-                                                            },
-                                                            position: 17..18,
-                                                        },
-                                                        operand_2: Expr {
-                                                            kind: UnaryExpr {
-                                                                kind: Negative,
-                                                                operand: Expr {
-                                                                    kind: Int {
-                                                                        value: 3,
-                                                                    },
-                                                                    position: 22..23,
-                                                                },
-                                                            },
-                                                            position: 21..22,
-                                                        },
-                                                    },
-                                                    position: 19..20,
-                                                },
-                                                operand_2: Expr {
-                                                    kind: UnaryExpr {
-                                                        kind: Negative,
-                                                        operand: Expr {
-                                                            kind: UnaryExpr {
-                                                                kind: Negative,
-                                                                operand: Expr {
-                                                                    kind: UnaryExpr {
-                                                                        kind: Negative,
-                                                                        operand: Expr {
-                                                                            kind: Int {
-                                                                                value: 4,
-                                                                            },
-                                                                            position: 31..32,
-                                                                        },
-                                                                    },
-                                                                    position: 30..31,
-                                                                },
-                                                            },
-                                                            position: 28..29,
-                                                        },
-                                                    },
-                                                    position: 26..27,
-                                                },
-                                            },
-                                            position: 24..25,
+                        Let {
+                            id: "name",
+                            type_reference: Int,
+                            init_expr: BinaryExpr {
+                                kind: Plus,
+                                operand_1: BinaryExpr {
+                                    kind: Minus,
+                                    operand_1: BinaryExpr {
+                                        kind: Minus,
+                                        operand_1: Int {
+                                            value: 2,
                                         },
-                                        operand_2: Expr {
-                                            kind: UnaryExpr {
-                                                kind: Not,
-                                                operand: Expr {
-                                                    kind: Int {
-                                                        value: 4,
-                                                    },
-                                                    position: 36..37,
-                                                },
+                                        operand_2: UnaryExpr {
+                                            kind: Negative,
+                                            operand: Int {
+                                                value: 3,
                                             },
-                                            position: 35..36,
                                         },
                                     },
-                                    position: 33..34,
+                                    operand_2: UnaryExpr {
+                                        kind: Negative,
+                                        operand: UnaryExpr {
+                                            kind: Negative,
+                                            operand: UnaryExpr {
+                                                kind: Negative,
+                                                operand: Int {
+                                                    value: 4,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                                operand_2: UnaryExpr {
+                                    kind: Not,
+                                    operand: Int {
+                                        value: 4,
+                                    },
                                 },
                             },
-                            position: 10..13,
                         },
                     ],
                 },
@@ -202,84 +133,45 @@ fn test_prefix() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Let {
-                                id: "name",
-                                type_reference: Bool,
-                                init_expr: Expr {
-                                    kind: UnaryExpr {
+                        Let {
+                            id: "name",
+                            type_reference: Bool,
+                            init_expr: UnaryExpr {
+                                kind: Not,
+                                operand: UnaryExpr {
+                                    kind: Not,
+                                    operand: UnaryExpr {
                                         kind: Not,
-                                        operand: Expr {
-                                            kind: UnaryExpr {
+                                        operand: UnaryExpr {
+                                            kind: Not,
+                                            operand: UnaryExpr {
                                                 kind: Not,
-                                                operand: Expr {
-                                                    kind: UnaryExpr {
+                                                operand: UnaryExpr {
+                                                    kind: Not,
+                                                    operand: UnaryExpr {
                                                         kind: Not,
-                                                        operand: Expr {
-                                                            kind: UnaryExpr {
+                                                        operand: UnaryExpr {
+                                                            kind: Not,
+                                                            operand: UnaryExpr {
                                                                 kind: Not,
-                                                                operand: Expr {
-                                                                    kind: UnaryExpr {
+                                                                operand: UnaryExpr {
+                                                                    kind: Not,
+                                                                    operand: UnaryExpr {
                                                                         kind: Not,
-                                                                        operand: Expr {
-                                                                            kind: UnaryExpr {
-                                                                                kind: Not,
-                                                                                operand: Expr {
-                                                                                    kind: UnaryExpr {
-                                                                                        kind: Not,
-                                                                                        operand: Expr {
-                                                                                            kind: UnaryExpr {
-                                                                                                kind: Not,
-                                                                                                operand: Expr {
-                                                                                                    kind: UnaryExpr {
-                                                                                                        kind: Not,
-                                                                                                        operand: Expr {
-                                                                                                            kind: UnaryExpr {
-                                                                                                                kind: Not,
-                                                                                                                operand: Expr {
-                                                                                                                    kind: UnaryExpr {
-                                                                                                                        kind: Not,
-                                                                                                                        operand: Expr {
-                                                                                                                            kind: Bool {
-                                                                                                                                value: true,
-                                                                                                                            },
-                                                                                                                            position: 28..32,
-                                                                                                                        },
-                                                                                                                    },
-                                                                                                                    position: 27..28,
-                                                                                                                },
-                                                                                                            },
-                                                                                                            position: 26..27,
-                                                                                                        },
-                                                                                                    },
-                                                                                                    position: 25..26,
-                                                                                                },
-                                                                                            },
-                                                                                            position: 24..25,
-                                                                                        },
-                                                                                    },
-                                                                                    position: 23..24,
-                                                                                },
-                                                                            },
-                                                                            position: 22..23,
+                                                                        operand: Bool {
+                                                                            value: true,
                                                                         },
                                                                     },
-                                                                    position: 21..22,
                                                                 },
                                                             },
-                                                            position: 20..21,
                                                         },
                                                     },
-                                                    position: 19..20,
                                                 },
                                             },
-                                            position: 18..19,
                                         },
                                     },
-                                    position: 17..18,
                                 },
                             },
-                            position: 10..14,
                         },
                     ],
                 },

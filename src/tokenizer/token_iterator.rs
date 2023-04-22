@@ -14,9 +14,8 @@
 //!
 //! See the documentation of each method for full details.
 
-use context::Context;
-use error_messages::internal_compiler_error;
-use error_messages::Position;
+use context::{Context, Position};
+use error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 use std::mem::discriminant;
 use tokenizer::tokenizer::find_next_token;
 use tokenizer::tokenizer::Token;
@@ -70,7 +69,11 @@ impl<'a> TokenIterator<'a> {
     pub fn next_or_error(&mut self) -> TokenAndPosition<'a> {
         match self.next() {
             Some(token_and_position) => token_and_position,
-            None => todo!(), // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file"),
+            None => compilation_error(
+                self.context,
+                ErrorPosition::EndOfFile,
+                "Syntax Error: unexpected end of file",
+            ),
         }
     }
 
@@ -80,16 +83,23 @@ impl<'a> TokenIterator<'a> {
     /// NOTE: this works for `Token`s that have data in them, because this checks that the `Token` *variant* matches.
     /// The data within the variant does not have to be equal, and the data within `expected_token` is irrelevant.
     pub fn consume_token(&mut self, expected_token: Token) -> TokenAndPosition<'a> {
-        if let Some((token, _)) = &self.peeked {
+        if let Some((token, position)) = &self.peeked {
             // See https://stackoverflow.com/questions/32554285/compare-enums-only-by-variant-not-value
             if discriminant(&expected_token) != discriminant(&token) {
-                todo!()
+                compilation_error(
+                    self.context,
+                    ErrorPosition::WhitespaceBefore(position.clone()),
+                    &format!("Syntax Error: expected `{expected_token}`",),
+                )
             }
 
             self.advance()
         } else {
-            todo!()
-            // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file");
+            compilation_error(
+                self.context,
+                ErrorPosition::EndOfFile,
+                "Syntax Error: unexpected end of file",
+            );
         }
     }
 
@@ -104,7 +114,11 @@ impl<'a> TokenIterator<'a> {
     /// * return - a reference to the unwrapped token and position
     pub fn peek_or_error(&self) -> &TokenAndPosition {
         match self.peeked {
-            None => todo!(), // compilation_error(self.context, &self.prev().1, "Syntax Error: unexpected end of file"),
+            None => compilation_error(
+                self.context,
+                ErrorPosition::EndOfFile,
+                "Syntax Error: unexpected end of file",
+            ),
             Some(ref peeked) => peeked,
         }
     }

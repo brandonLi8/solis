@@ -31,44 +31,26 @@ fn test_basic() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Let {
-                                id: "varName",
-                                type_reference: Int,
-                                init_expr: Expr {
-                                    kind: Int {
-                                        value: 32,
-                                    },
-                                    position: 19..21,
-                                },
+                        Let {
+                            id: "varName",
+                            type_reference: Int,
+                            init_expr: Int {
+                                value: 32,
                             },
-                            position: 13..16,
                         },
-                        Expr {
-                            kind: Let {
-                                id: "varName2",
-                                type_reference: Bool,
-                                init_expr: Expr {
-                                    kind: Bool {
-                                        value: true,
-                                    },
-                                    position: 52..56,
-                                },
+                        Let {
+                            id: "varName2",
+                            type_reference: Bool,
+                            init_expr: Bool {
+                                value: true,
                             },
-                            position: 45..49,
                         },
-                        Expr {
-                            kind: Let {
-                                id: "varName3",
-                                type_reference: Float,
-                                init_expr: Expr {
-                                    kind: Float {
-                                        value: 2.0,
-                                    },
-                                    position: 88..90,
-                                },
+                        Let {
+                            id: "varName3",
+                            type_reference: Float,
+                            init_expr: Float {
+                                value: 2.0,
                             },
-                            position: 80..85,
                         },
                     ],
                 },

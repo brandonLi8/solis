@@ -11,7 +11,7 @@
 //!
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
-use error_messages::{compilation_error, internal_compiler_error};
+use error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 use parser::ast::{Expr, Program, Type};
 use parser::parse_function::parse_call;
 use parser::parse_function::parse_functions;
@@ -60,7 +60,11 @@ pub fn parse_terminal<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIter
             Token::Bool(value) => Expr::Bool { value },
             Token::Float(value) => Expr::Float { value },
 
-            _ => compilation_error(tokens.context, &next_token_position, "Syntax Error: unexpected token"),
+            _ => compilation_error(
+                tokens.context,
+                ErrorPosition::Span(next_token_position.clone()),
+                "Syntax Error: unexpected token",
+            ),
         },
         tokens,
     )
@@ -81,7 +85,7 @@ pub fn parse_type(mut tokens: TokenIterator) -> (Type, TokenIterator) {
             }
             _ => compilation_error(
                 tokens.context,
-                &next_token_position,
+                ErrorPosition::Span(next_token_position.clone()),
                 &format!("Invalid type: {next_token}"),
             ),
         },

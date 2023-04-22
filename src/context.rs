@@ -6,6 +6,7 @@
 use colored::Colorize;
 use exit;
 use std::fs;
+use std::ops::Range;
 
 pub struct Context {
     /// The input file_path to compile, as a owned String.
@@ -26,3 +27,6 @@ impl Context {
         Self { file_path, file }
     }
 }
+
+/// Type alias for a position (index based) from the original source code, for error messaging purposes.
+pub type Position = Range<usize>;

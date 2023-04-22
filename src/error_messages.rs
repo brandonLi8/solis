@@ -4,12 +4,25 @@
 //! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
-use context::Context;
+use context::{Context, Position};
 use std::backtrace::Backtrace;
-use std::ops::Range;
 
-/// Type alias for a position (index based) from the original source code, for error messaging purposes.
-pub type Position = Range<usize>;
+/// Used to determine behavior of the `compilation_error` function.
+pub enum ErrorPosition {
+    /// Error occurred at the end of the file
+    EndOfFile,
+
+    /// Error occurred at a specified index.
+    Index(usize),
+
+    /// Error occurred at a span, which is the Position of a token.
+    Span(Position),
+
+    /// Error occurred before this token (as a span) and the previous token. More specifically, if there is white-space
+    /// before this token, the error position is there. If there is no white-space before (new-lines included), then
+    /// the error occurred at the start of the position.
+    WhitespaceBefore(Position),
+}
 
 /// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
 /// when compilation errors occur, such as syntax errors, etc. This function aims to provide helpful error messages for
@@ -23,10 +36,24 @@ pub type Position = Range<usize>;
 ///   |         ^
 /// ```
 /// * context: compilation context
-/// * position: describes where the error is in the source code (for pin pointing), as a index range.
-///             **It is assumed that position lies on 1 line and is valid and in bounds**
+/// * error_position: describes where the error is in the source code (for pin pointing)
 /// * message: the error message to display
-pub fn compilation_error(context: &Context, position: &Range<usize>, message: &str) -> ! {
+pub fn compilation_error(context: &Context, error_position: ErrorPosition, message: &str) -> ! {
+    let position = match error_position {
+        ErrorPosition::EndOfFile => {
+            let last_non_whitespace_index = context.file.rfind(|c: char| !c.is_whitespace()).unwrap_or(usize::MAX);
+            last_non_whitespace_index + 1..last_non_whitespace_index + 2
+        }
+        ErrorPosition::Index(index) => index..index + 1,
+        ErrorPosition::Span(span) => span,
+        ErrorPosition::WhitespaceBefore(span) => {
+            let last_non_whitespace_index = context.file[..span.start]
+                .rfind(|c: char| !c.is_whitespace())
+                .unwrap_or(usize::MAX);
+            last_non_whitespace_index + 1..last_non_whitespace_index + 2
+        }
+    };
+
     let next_newline_search = context.file[position.start..].find('\n');
     let mut next_newline = next_newline_search.unwrap_or(context.file.len() - 1 - position.start) + position.start;
     let mut newline_indicies: Vec<usize> = context.file[..=next_newline]

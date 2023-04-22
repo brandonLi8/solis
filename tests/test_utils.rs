@@ -5,13 +5,12 @@
 extern crate expect_test;
 extern crate solis;
 
-use solis::tokenizer::tokenizer::find_next_token;
 use expect_test::{expect, Expect};
-
+use solis::tokenizer::tokenizer::{find_next_token, tokenize};
 // use solis::asm::asm::{FloatRegister, Register};
 // use solis::ir::ir::Type;
 // use solis::ir::translator::translate_program;
-// use solis::parser::parser::parse;
+use solis::parser::parser::parse;
 // use solis::register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
 // use solis::register_allocation::liveness_analysis::liveness_analysis;
 // use solis::register_allocation::register_allocator::{allocate_registers, Map, Set};
@@ -40,21 +39,21 @@ pub fn tokenize_error_check(program: &str, expect: Expect) {
     );
 }
 
-// /// Tests parser output on program.
-// pub fn parse_check(program: &str, expect: Expect) {
-//     let file = Context { file_path: String::new(), file: program.to_string() };
-//     expect.assert_eq(&format!("{:#?}", parse(&file, tokenize(&file))));
-// }
+/// Tests parser output on program.
+pub fn parse_check(program: &str, expect: Expect) {
+    let context = Context { file_path: String::new(), file: program.to_string() };
+    expect.assert_eq(&format!("{:#?}", parse(tokenize(&context))));
+}
 
-// /// Tests parser output on program, where a compilation error is expected.
-// pub fn parse_error_check(program: &str, expect: Expect) {
-//     expect_error(
-//         || {
-//             parse_check(program, expect![]);
-//         },
-//         expect,
-//     );
-// }
+/// Tests parser output on program, where a compilation error is expected.
+pub fn parse_error_check(program: &str, expect: Expect) {
+    expect_error(
+        || {
+            parse_check(program, expect![]);
+        },
+        expect,
+    );
+}
 
 // /// Test translator output program.
 // pub fn translate_check(program: &str, expect: Expect) {

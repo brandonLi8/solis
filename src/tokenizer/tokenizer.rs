@@ -11,10 +11,9 @@
 //! For error checking, the tokenizer only checks for tokens that it recognizes, and doesn't do any other validation
 //! or error checking. All other errors are deferred to the parser and code gen stages.
 
-use context::Context;
+use context::{Context, Position};
 use derive_more::Display;
-use error_messages::compilation_error;
-use error_messages::Position;
+use error_messages::{compilation_error, ErrorPosition};
 use lazy_static::lazy_static;
 use regex::Regex;
 use tokenizer::token_iterator::TokenIterator;
@@ -187,7 +186,7 @@ pub fn find_next_token<'a>(context: &'a Context, cursor: &mut usize) -> Option<(
 
             if let Some(error_match) = error_match {
                 if error_match.find(&context.file[*cursor..]).is_some() {
-                    compilation_error(context, &(*cursor..*cursor + 1), "Syntax Error: Invalid syntax")
+                    compilation_error(context, ErrorPosition::Index(*cursor), "Syntax Error: Invalid syntax")
                 }
             }
 
@@ -198,7 +197,7 @@ pub fn find_next_token<'a>(context: &'a Context, cursor: &mut usize) -> Option<(
     // At this point, nothing was found, so we raise a syntax error.
     compilation_error(
         context,
-        &(*cursor..*cursor + 1),
+        ErrorPosition::Index(*cursor),
         "Syntax Error: Invalid or unexpected token",
     )
 }

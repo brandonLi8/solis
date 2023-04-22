@@ -17,30 +17,18 @@ fn test_ambiguity_unary() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Let {
-                                id: "a",
-                                type_reference: Int,
-                                init_expr: Expr {
-                                    kind: BinaryExpr {
-                                        kind: Minus,
-                                        operand_1: Expr {
-                                            kind: Int {
-                                                value: 1,
-                                            },
-                                            position: 24..25,
-                                        },
-                                        operand_2: Expr {
-                                            kind: Int {
-                                                value: 2,
-                                            },
-                                            position: 37..38,
-                                        },
-                                    },
-                                    position: 36..37,
+                        Let {
+                            id: "a",
+                            type_reference: Int,
+                            init_expr: BinaryExpr {
+                                kind: Minus,
+                                operand_1: Int {
+                                    value: 1,
+                                },
+                                operand_2: Int {
+                                    value: 2,
                                 },
                             },
-                            position: 18..21,
                         },
                     ],
                 },
@@ -57,30 +45,18 @@ fn test_ambiguity_unary() {
                 functions: [],
                 body: Block {
                     exprs: [
-                        Expr {
-                            kind: Let {
-                                id: "a",
-                                type_reference: Int,
-                                init_expr: Expr {
-                                    kind: Int {
-                                        value: 1,
-                                    },
-                                    position: 24..25,
-                                },
+                        Let {
+                            id: "a",
+                            type_reference: Int,
+                            init_expr: Int {
+                                value: 1,
                             },
-                            position: 18..21,
                         },
-                        Expr {
-                            kind: UnaryExpr {
-                                kind: Negative,
-                                operand: Expr {
-                                    kind: Int {
-                                        value: 2,
-                                    },
-                                    position: 38..39,
-                                },
+                        UnaryExpr {
+                            kind: Negative,
+                            operand: Int {
+                                value: 2,
                             },
-                            position: 37..38,
                         },
                     ],
                 },

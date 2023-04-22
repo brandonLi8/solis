@@ -29,10 +29,10 @@ fn test_parse_terminal_unexpected_end_of_file() {
         ",
         expect![[r#"
             Error: Syntax Error: unexpected end of file
-             --> :2:23
+             --> :2:24
               |
             2 |         let a: int = 2 +
-              |                        ^
+              |                         ^
         "#]],
     );
 }
@@ -45,10 +45,10 @@ fn test_parse_terminal_unexpected_end_of_file_2() {
         ",
         expect![[r#"
             Error: Syntax Error: unexpected end of file
-             --> :2:21
+             --> :2:22
               |
             2 |         let a: int = +
-              |                      ^
+              |                       ^
         "#]],
     );
 }
@@ -61,10 +61,10 @@ fn test_parse_factor_consume_token() {
         ",
         expect![[r#"
             Error: Syntax Error: unexpected end of file
-             --> :2:30
+             --> :2:31
               |
             2 |         let a: int = 2 + (2 + 1
-              |                               ^
+              |                                ^
         "#]],
     );
 }
@@ -77,11 +77,11 @@ fn test_parse_factor_consume_token_end_of_file() {
         let b: int = 2
         ",
         expect![[r#"
-            Error: Syntax Error: expected `)` after `1`
-             --> :2:30
+            Error: Syntax Error: expected `)`
+             --> :2:31
               |
             2 |         let a: int = 2 + (2 + 1
-              |                               ^
+              |                                ^
         "#]],
     );
 }
@@ -94,10 +94,10 @@ fn test_parse_if_unexpected_end_of_file() {
         ",
         expect![[r#"
             Error: Syntax Error: unexpected end of file
-             --> :2:23
+             --> :2:24
               |
             2 |         if a { 2 + 1 + 3
-              |                        ^
+              |                         ^
         "#]],
     );
 }
@@ -111,11 +111,11 @@ fn test_parse_if_no_brace() {
         }
         ",
         expect![[r#"
-            Error: Syntax Error: expected `{` after `a`
-             --> :2:11
+            Error: Syntax Error: expected `{`
+             --> :2:12
               |
             2 |         if a
-              |            ^
+              |             ^
         "#]],
     );
 }
@@ -129,11 +129,11 @@ fn test_invalid_semi_1() {
         }
         ",
         expect![[r#"
-            Error: Syntax Error: expected `{` after `a`
-             --> :2:11
+            Error: Syntax Error: expected `{`
+             --> :2:12
               |
             2 |         if a; {
-              |            ^
+              |             ^
         "#]],
     );
 }
@@ -145,11 +145,11 @@ fn test_invalid_semi_2() {
         (1;)
         ",
         expect![[r#"
-            Error: Syntax Error: expected `)` after `1`
-             --> :2:9
+            Error: Syntax Error: expected `)`
+             --> :2:10
               |
             2 |         (1;)
-              |          ^
+              |           ^
         "#]],
     );
 }
@@ -161,11 +161,11 @@ fn test_missing_id() {
         let 2
         ",
         expect![[r#"
-            Error: Syntax Error: expected `identifier` after `let`
-             --> :2:8
+            Error: Syntax Error: expected `identifier`
+             --> :2:11
               |
             2 |         let 2
-              |         ^^^
+              |            ^
         "#]],
     );
 }
@@ -177,11 +177,11 @@ fn test_missing_id_2() {
         fun () {}
         ",
         expect![[r#"
-            Error: Syntax Error: expected `identifier` after `fun`
-             --> :2:8
+            Error: Syntax Error: expected `identifier`
+             --> :2:11
               |
             2 |         fun () {}
-              |         ^^^
+              |            ^
         "#]],
     );
 }
@@ -190,16 +190,32 @@ fn test_missing_id_2() {
 fn test_parse_fun_no_brace() {
     parse_error_check(
         "
-        fun (a: int)
+        fun id(a: int)
           1 + 2 + a
         }
         ",
         expect![[r#"
-            Error: Syntax Error: expected `identifier` after `fun`
-             --> :2:8
+            Error: Syntax Error: expected `:`
+             --> :2:22
               |
-            2 |         fun (a: int)
-              |         ^^^
+            2 |         fun id(a: int)
+              |                       ^
+        "#]],
+    );
+}
+
+#[test]
+fn test_parse_invalid_type() {
+    parse_error_check(
+        "
+        let a: intt = 2
+        ",
+        expect![[r#"
+            Error: Invalid type: intt
+             --> :2:15
+              |
+            2 |         let a: intt = 2
+              |                ^^^^
         "#]],
     );
 }
