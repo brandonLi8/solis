@@ -35,7 +35,7 @@ pub struct TokenIterator<'a> {
 }
 
 impl<'a> TokenIterator<'a> {
-    /// TokenIterator constructor
+    /// `TokenIterator` constructor
     pub fn new(context: &'a Context) -> Self {
         // Peek the first token
         let mut cursor = 0;
@@ -85,7 +85,7 @@ impl<'a> TokenIterator<'a> {
     pub fn consume_token(&mut self, expected_token: Token) -> TokenAndPosition<'a> {
         if let Some((token, position)) = &self.peeked {
             // See https://stackoverflow.com/questions/32554285/compare-enums-only-by-variant-not-value
-            if discriminant(&expected_token) != discriminant(&token) {
+            if discriminant(&expected_token) != discriminant(token) {
                 compilation_error(
                     self.context,
                     ErrorPosition::WhitespaceBefore(position.clone()),

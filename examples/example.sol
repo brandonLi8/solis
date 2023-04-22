@@ -1,1 +1,1 @@
-let a: int = * * 2
+if a;

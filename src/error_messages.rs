@@ -35,41 +35,43 @@ pub enum ErrorPosition {
 /// 2 | let var - int = 32
 ///   |         ^
 /// ```
-/// * context: compilation context
-/// * error_position: describes where the error is in the source code (for pin pointing)
-/// * message: the error message to display
+/// * `context`: compilation context
+/// * `error_position`: describes where the error is in the source code (for pin pointing)
+/// * `message`: the error message to display
 pub fn compilation_error(context: &Context, error_position: ErrorPosition, message: &str) -> ! {
+    // Convenience aliases.
+    let file = &context.file;
+    let file_path = &context.file_path;
+    let last_index = file.len() - 1;
+    let not_whitespace = |c: char| !c.is_whitespace();
+
+    // Convert the ErrorPosition to a `Range<usize>`
     let position = match error_position {
         ErrorPosition::EndOfFile => {
-            let last_non_whitespace_index = context.file.rfind(|c: char| !c.is_whitespace()).unwrap_or(usize::MAX);
-            last_non_whitespace_index + 1..last_non_whitespace_index + 2
+            // Get the index of where the white-space at the end of the file starts
+            let whitespace_start_index = file.rfind(not_whitespace).unwrap_or(last_index) + 1;
+            whitespace_start_index..whitespace_start_index + 1
         }
         ErrorPosition::Index(index) => index..index + 1,
         ErrorPosition::Span(span) => span,
         ErrorPosition::WhitespaceBefore(span) => {
-            let last_non_whitespace_index = context.file[..span.start]
-                .rfind(|c: char| !c.is_whitespace())
-                .unwrap_or(usize::MAX);
-            last_non_whitespace_index + 1..last_non_whitespace_index + 2
+            // Get the index of where the white-space before the token starts
+            let whitespace_start_index = file[..span.start].rfind(not_whitespace).map_or(0, |i| i + 1);
+            whitespace_start_index..whitespace_start_index + 1
         }
     };
 
-    let next_newline_search = context.file[position.start..].find('\n');
-    let mut next_newline = next_newline_search.unwrap_or(context.file.len() - 1 - position.start) + position.start;
-    let mut newline_indicies: Vec<usize> = context.file[..=next_newline]
-        .match_indices('\n')
-        .map(|(i, _)| i)
-        .collect();
-    if next_newline_search.is_none() {
-        newline_indicies.push(next_newline);
-        next_newline += 1;
-    }
+    // Get the index of the next_newline (or last_index + 1)
+    let next_newline = file[position.start..]
+        .find('\n')
+        .map_or(last_index + 1, |i| position.start + i);
 
-    let prev_newline = if newline_indicies.len() == 1 { 0 } else { newline_indicies[newline_indicies.len() - 2] + 1 };
+    // Get the index of where the line starts (or 0)
+    let line_start_index = file[..position.start].rfind('\n').map_or(0, |i| i + 1);
 
     // Compute the line number and the column within that line number
-    let line_number = newline_indicies.len();
-    let column = position.start - prev_newline;
+    let line_number = file[..position.start].matches('\n').count() + 1;
+    let column = position.start - line_start_index;
 
     // Disable coloring on unit tests.
     #[cfg(feature = "test")]
@@ -86,13 +88,10 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
         error = "Error".red().bold(),
         message = message.bold(),
         arrow = "-->".blue().bold(),
-        file_path = context.file_path,
-        line_number = line_number,
-        column = column,
         bar_padding = " ".repeat(line_number.to_string().len() - 1),
         bar = "|".blue().bold(),
         display_line_number = line_number.to_string().blue().bold(),
-        line = &context.file[prev_newline..next_newline],
+        line = &context.file[line_start_index..next_newline],
         padding = " ".repeat(column),
         caret = "^".repeat(position.len()).yellow().bold()
     );

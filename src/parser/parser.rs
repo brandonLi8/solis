@@ -37,7 +37,7 @@ fn parse_program<'a>(tokens: TokenIterator<'a>) -> (Program<'a>, TokenIterator<'
     let (functions, tokens) = parse_functions(tokens);
     let (body, tokens) = parse_block(ParseBlockStopMode::EndOfFile, tokens);
 
-    (Program { body, functions }, tokens)
+    (Program { functions, body }, tokens)
 }
 
 // Corresponds to `<terminal>` rule and parses into `ast::Id`, `ast::Int`, etc.
@@ -62,7 +62,7 @@ pub fn parse_terminal<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIter
 
             _ => compilation_error(
                 tokens.context,
-                ErrorPosition::Span(next_token_position.clone()),
+                ErrorPosition::Span(next_token_position),
                 "Syntax Error: unexpected token",
             ),
         },
@@ -85,7 +85,7 @@ pub fn parse_type(mut tokens: TokenIterator) -> (Type, TokenIterator) {
             }
             _ => compilation_error(
                 tokens.context,
-                ErrorPosition::Span(next_token_position.clone()),
+                ErrorPosition::Span(next_token_position),
                 &format!("Invalid type: {next_token}"),
             ),
         },

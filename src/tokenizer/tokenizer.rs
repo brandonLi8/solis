@@ -147,7 +147,7 @@ lazy_static! {
     ];
 }
 
-/// Tokenize the input file into a TokenIterator.
+/// Tokenize the input file into a `TokenIterator`.
 /// * context - compilation context
 pub fn tokenize(context: &Context) -> TokenIterator {
     TokenIterator::new(context)
