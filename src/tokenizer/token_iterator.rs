@@ -44,9 +44,9 @@ impl<'a> TokenIterator<'a> {
         Self { context, cursor, peeked: first_token }
     }
 
-    /// Advances the iterator
-    /// * return - a reference to the next found token and position. None value indicates we have reached EOF.
-    pub fn next(&mut self) -> Option<TokenAndPosition<'a>> {
+    // Advances the iterator
+    // * return - a reference to the next found token and position. None value indicates we have reached EOF.
+    fn next(&mut self) -> Option<TokenAndPosition<'a>> {
         // Move ownership from the peeked value
         let next = self.peeked.take();
 
@@ -105,7 +105,7 @@ impl<'a> TokenIterator<'a> {
 
     /// Peeks the next value.
     /// * return - a reference to the next found token and position. None value indicates we have reached EOF.
-    pub fn peek(&self) -> Option<&TokenAndPosition<'a>> {
+    pub const fn peek(&self) -> Option<&TokenAndPosition<'a>> {
         self.peeked.as_ref()
     }
 

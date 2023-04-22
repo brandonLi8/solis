@@ -21,7 +21,7 @@ use tokenizer::tokenizer::Token;
 
 /// Main parser function, which returns a `ast::Program`.
 /// * tokens: output from the tokenizer
-pub fn parse<'a>(tokens: TokenIterator<'a>) -> Program<'a> {
+pub fn parse(tokens: TokenIterator) -> Program {
     let (program, tokens) = parse_program(tokens);
 
     // In the case that there are some remaining tokens.
@@ -33,7 +33,7 @@ pub fn parse<'a>(tokens: TokenIterator<'a>) -> Program<'a> {
 }
 
 // Corresponds to `<program>` rule and parses into a `ast::Program`.
-fn parse_program<'a>(tokens: TokenIterator<'a>) -> (Program<'a>, TokenIterator<'a>) {
+fn parse_program(tokens: TokenIterator) -> (Program, TokenIterator) {
     let (functions, tokens) = parse_functions(tokens);
     let (body, tokens) = parse_block(ParseBlockStopMode::EndOfFile, tokens);
 
@@ -41,7 +41,7 @@ fn parse_program<'a>(tokens: TokenIterator<'a>) -> (Program<'a>, TokenIterator<'
 }
 
 // Corresponds to `<terminal>` rule and parses into `ast::Id`, `ast::Int`, etc.
-pub fn parse_terminal<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+pub fn parse_terminal(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     let (next_token, next_token_position) = tokens.next_or_error();
 
     (
@@ -51,9 +51,8 @@ pub fn parse_terminal<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIter
                 if let Some((Token::OpenParen, _)) = tokens.peek() {
                     tokens.advance();
                     return parse_call(id, tokens);
-                } else {
-                    Expr::Id { value: id }
                 }
+                Expr::Id { value: id }
             }
 
             Token::Int(value) => Expr::Int { value },

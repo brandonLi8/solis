@@ -11,7 +11,7 @@ use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 
 /// Corresponds to `<expr>` rule and parses into a `ast::Expr`.
-pub fn parse_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+pub fn parse_expr(tokens: TokenIterator) -> (Expr, TokenIterator) {
     match tokens.peek_or_error().0 {
         Token::Let => parse_let_expr(tokens),
         Token::If => parse_if_expr(tokens),
@@ -20,7 +20,7 @@ pub fn parse_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>
 }
 
 /// Corresponds to `<let-expr>` rule and parses into a `ast::Expr::Let`.
-pub fn parse_let_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+pub fn parse_let_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     tokens.consume_token(Token::Let);
 
     // Consume the let expression identifier
@@ -47,7 +47,7 @@ pub fn parse_let_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIter
 }
 
 /// Corresponds to `<if-expr>` rule and parses into a `ast::Expr::If`.
-pub fn parse_if_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+pub fn parse_if_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     tokens.consume_token(Token::If);
 
     // Parse the condition expression
@@ -74,7 +74,7 @@ pub fn parse_if_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenItera
 }
 
 // Corresponds to `<else-block>` rule and parses into a `ast::Block`.
-fn parse_else_block<'a>(mut tokens: TokenIterator<'a>) -> (Block<'a>, TokenIterator<'a>) {
+fn parse_else_block(mut tokens: TokenIterator) -> (Block, TokenIterator) {
     tokens.consume_token(Token::Else);
 
     // Else If vs

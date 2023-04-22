@@ -49,12 +49,12 @@ use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 
 /// Corresponds to `<infix-expr>` rule and parses into a `ast::Expr`.
-pub fn parse_infix_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+pub fn parse_infix_expr(tokens: TokenIterator) -> (Expr, TokenIterator) {
     parse_comparison_expr(tokens)
 }
 
 /// Corresponds to `<arithmetic-expr>` rule and parses into a `ast::Expr`.
-fn parse_arithmetic_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+fn parse_arithmetic_expr(tokens: TokenIterator) -> (Expr, TokenIterator) {
     let (arithmetic_1_operand, tokens) = parse_arithmetic_1_operand(tokens);
     parse_arithmetic_1_rest(arithmetic_1_operand, tokens)
 }
@@ -88,7 +88,7 @@ fn parse_arithmetic_1_rest<'a>(
 }
 
 /// Corresponds to <precedence-1-operand> rule and parses into a `ast::Expr`.
-fn parse_arithmetic_1_operand<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+fn parse_arithmetic_1_operand(tokens: TokenIterator) -> (Expr, TokenIterator) {
     let (arithmetic_2_operand, tokens) = parse_arithmetic_2_operand(tokens);
     parse_arithmetic_2_rest(arithmetic_2_operand, tokens)
 }
@@ -123,12 +123,12 @@ fn parse_arithmetic_2_rest<'a>(
 }
 
 /// Corresponds to <precedence-2-operand> rule and parses into a `ast::Expr`.
-fn parse_arithmetic_2_operand<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+fn parse_arithmetic_2_operand(tokens: TokenIterator) -> (Expr, TokenIterator) {
     parse_factor(tokens)
 }
 
 /// Corresponds to `<comparison-expr>` rule and parses into a `ast::Expr`.
-fn parse_comparison_expr<'a>(tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+fn parse_comparison_expr(tokens: TokenIterator) -> (Expr, TokenIterator) {
     let (comparison_operand, tokens) = parse_arithmetic_expr(tokens);
     parse_comparison_rest(comparison_operand, tokens)
 }
@@ -175,7 +175,7 @@ fn parse_comparison_rest<'a>(
 }
 
 /// Corresponds to <factor> rule and parses into a `ast::Expr`.
-fn parse_factor<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+fn parse_factor(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     if let Some((Token::OpenParen, _)) = tokens.peek() {
         tokens.advance();
 
@@ -188,7 +188,7 @@ fn parse_factor<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'
 }
 
 /// Corresponds to `<prefix-expr>` rule and parses into a `ast::Expr`
-fn parse_prefix_expr<'a>(mut tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+fn parse_prefix_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     if let Some((kind @ (Token::Minus | Token::Not), _)) = tokens.peek() {
         let kind = match kind {
             Token::Minus => UnaryExprKind::Negative,

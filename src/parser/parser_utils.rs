@@ -20,7 +20,7 @@ pub enum ParseBlockStopMode {
 ///
 /// Note: the implementation of this doesn't match the rule definition in `.solis_grammar.txt`. Instead of recursively
 /// filling the expressions of the block, we iteratively fill the block.
-pub fn parse_block<'a>(stop_mode: ParseBlockStopMode, mut tokens: TokenIterator<'a>) -> (Block<'a>, TokenIterator<'a>) {
+pub fn parse_block(stop_mode: ParseBlockStopMode, mut tokens: TokenIterator) -> (Block, TokenIterator) {
     let mut exprs = vec![];
 
     // Iteratively parse the expressions of the block.

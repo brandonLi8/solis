@@ -23,7 +23,7 @@ pub fn tokenize_check(program: &str, expect: Expect) {
     let mut cursor = 0;
 
     while let Some((token, position)) = find_next_token(&context, &mut cursor) {
-        tokens.push_str(&format!("Token `{token:?}` at {position:?}\n"))
+        tokens.push_str(&format!("Token `{token:?}` at {position:?}\n"));
     }
 
     expect.assert_eq(&tokens);

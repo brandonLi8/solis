@@ -14,7 +14,7 @@ use tokenizer::tokenizer::Token;
 ///
 /// Note: the implementation of this doesn't match the rule definition in `.solis_grammar.txt`. Instead of recursively
 /// filling the expressions of the block, we iteratively fill the block.
-pub fn parse_functions<'a>(mut tokens: TokenIterator<'a>) -> (Vec<Function<'a>>, TokenIterator<'a>) {
+pub fn parse_functions(mut tokens: TokenIterator) -> (Vec<Function>, TokenIterator) {
     let mut functions = vec![];
     while matches!(tokens.peek(), Some((Token::Fun, _))) {
         let (function, next_tokens) = parse_function(tokens);
@@ -34,7 +34,7 @@ pub fn parse_functions<'a>(mut tokens: TokenIterator<'a>) -> (Vec<Function<'a>>,
 }
 
 /// Corresponds to the `<function>` rule and parses into a `ast::Function`
-fn parse_function<'a>(mut tokens: TokenIterator<'a>) -> (Function<'a>, TokenIterator<'a>) {
+fn parse_function(mut tokens: TokenIterator) -> (Function, TokenIterator) {
     tokens.consume_token(Token::Fun);
 
     // Consume the function id
@@ -62,7 +62,7 @@ fn parse_function<'a>(mut tokens: TokenIterator<'a>) -> (Function<'a>, TokenIter
 }
 
 /// Corresponds to `<param>` rule and parses into a `ast::Param`.
-fn parse_param<'a>(mut tokens: TokenIterator<'a>) -> (Param<'a>, TokenIterator<'a>) {
+fn parse_param(mut tokens: TokenIterator) -> (Param, TokenIterator) {
     let (param_id_token, _) = tokens.consume_token(Token::Id("identifier"));
 
     tokens.consume_token(Token::Colon);
