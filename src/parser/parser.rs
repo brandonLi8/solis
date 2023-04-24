@@ -11,13 +11,12 @@
 //!
 //! The parser runs in O(n) time with respect to the size of the program, since the grammar is a LL(k) class grammar.
 
-use error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 use parser::ast::{Expr, Program, Type};
-use parser::parse_function::parse_call;
-use parser::parse_function::parse_functions;
+use parser::parse_function::{parse_call, parse_functions};
 use parser::parser_utils::{parse_block, ParseBlockStopMode};
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
+use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 
 /// Main parser function, which returns a `ast::Program`.
 /// * tokens: output from the tokenizer
@@ -40,7 +39,7 @@ fn parse_program(tokens: TokenIterator) -> (Program, TokenIterator) {
     (Program { functions, body }, tokens)
 }
 
-// Corresponds to `<terminal>` rule and parses into `ast::Id`, `ast::Int`, etc.
+/// Corresponds to `<terminal>` rule and parses into `ast::Id`, `ast::Int`, etc.
 pub fn parse_terminal(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     let (next_token, next_token_position) = tokens.next_or_error();
 

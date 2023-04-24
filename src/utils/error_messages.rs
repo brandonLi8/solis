@@ -4,8 +4,8 @@
 //! compiler fails to compile a piece of computer program source code.
 
 use colored::Colorize;
-use context::{Context, Position};
 use std::backtrace::Backtrace;
+use utils::context::{Context, Position};
 
 /// Used to determine behavior of the `compilation_error` function.
 pub enum ErrorPosition<'a> {

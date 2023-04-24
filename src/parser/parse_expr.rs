@@ -2,13 +2,13 @@
 
 //! Defines the functions for parsing various types of expressions.
 
-use error_messages::internal_compiler_error;
 use parser::ast::{Block, Expr};
 use parser::parse_infix::parse_infix_expr;
 use parser::parser::parse_type;
 use parser::parser_utils::{parse_block, ParseBlockStopMode};
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
+use utils::error_messages::internal_compiler_error;
 
 /// Corresponds to `<expr>` rule and parses into a `ast::Expr`.
 pub fn parse_expr(tokens: TokenIterator) -> (Expr, TokenIterator) {

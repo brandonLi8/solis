@@ -5,7 +5,7 @@
 use asm::asm::{
     FloatRegister, FloatRegister::*, Instruction, Instruction::*, Operand, Operand::*, Register, Register::*,
 };
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use std::fs::{create_dir_all, File};
 use std::io::{BufWriter, Write};
 use std::path::Path;

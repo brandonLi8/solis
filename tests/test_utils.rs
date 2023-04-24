@@ -14,7 +14,7 @@ use solis::parser::parser::parse;
 // use solis::register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
 // use solis::register_allocation::liveness_analysis::liveness_analysis;
 // use solis::register_allocation::register_allocator::{allocate_registers, Map, Set};
-use solis::context::Context;
+use solis::utils::context::Context;
 
 /// Tests tokenizer output on program.
 pub fn tokenize_check(program: &str, expect: Expect) {

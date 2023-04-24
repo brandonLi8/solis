@@ -7,7 +7,7 @@
 //! are complex expressions (like unary or binary expressions), we add temporary variables for the translations of
 //! each operands, and substitute the identifier as a Direct into the original expression.
 
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use ir::ir::{self, Type};
 use ir::type_checker::TypeChecker;
 use parser::ast;

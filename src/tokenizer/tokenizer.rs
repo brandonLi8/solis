@@ -11,13 +11,13 @@
 //! For error checking, the tokenizer only checks for tokens that it recognizes, and doesn't do any other validation
 //! or error checking. All other errors are deferred to the parser and code gen stages.
 
-use context::{Context, Position};
 use derive_more::Display;
-use error_messages::{compilation_error, ErrorPosition};
 use lazy_static::lazy_static;
 use regex::Regex;
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::token_pattern::TokenPattern;
+use utils::context::{Context, Position};
+use utils::error_messages::{compilation_error, ErrorPosition};
 
 /// Different kinds of tokens and data associated with each token.
 #[derive(Display, Debug)]

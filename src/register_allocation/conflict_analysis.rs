@@ -9,7 +9,7 @@
 //! liveness analysis (see `liveness_analysis.rs`) on each expression in a block (in reverse order), and the
 //! variables that are returned in the liveness set are added to the graph as a strongly connected component.
 
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use ir::ir::{Block, Type};
 use register_allocation::liveness_analysis::liveness_analysis;
 use register_allocation::register_allocator::{Map, Set};

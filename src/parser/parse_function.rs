@@ -2,13 +2,13 @@
 
 //! Responsible for parsing function declarations.
 
-use error_messages::internal_compiler_error;
 use parser::ast::{Expr, Function, Param};
 use parser::parse_expr::parse_expr;
 use parser::parser::parse_type;
 use parser::parser_utils::{parse_block, parse_comma_separated_list, ParseBlockStopMode};
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
+use utils::error_messages::internal_compiler_error;
 
 /// Corresponds to the `<functions>` rule and parses into a `Vec<ast::Function>`
 ///

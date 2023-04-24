@@ -7,7 +7,7 @@
 use asm::asm::{FloatRegister::*, Instruction, Instruction::*, Operand::*, Register::*};
 use compiler::compiler::{compile_direct, mov_instruction_safe};
 use compiler::symbol_table::{Location, SymbolTable};
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use ir::ir::{DirectExpr, Type, UnaryExprKind};
 
 /// Compiles a unary expression into assembly instructions, pushing the results into `instructions`

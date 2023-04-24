@@ -9,21 +9,18 @@ extern crate lazy_static;
 extern crate regex;
 
 // pub mod asm;
-// pub mod bootstrapper;
 // pub mod compiler;
-pub mod error_messages;
-// pub mod ir;
+// pub mod ir_re;
 pub mod parser;
 // pub mod register_allocation;
-pub mod cli_driver;
-pub mod context;
 pub mod tokenizer;
+pub mod utils;
 
 use clap::Parser;
-use cli_driver::CLIDriver;
-use context::Context;
 use std::path::Path;
 use std::process::exit;
+use utils::cli_driver::CLIDriver;
+use utils::context::Context;
 
 pub fn main() {
     // Parse the command line arguments.

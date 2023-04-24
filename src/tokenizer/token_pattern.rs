@@ -48,7 +48,7 @@ macro_rules! token_pattern {
                 $token_variant(
                     m.parse::<$to_type>()
                         .unwrap_or_else(|error|
-                            crate::error_messages::internal_compiler_error(&format!("unable to parse {m}: {error}")),
+                            crate::utils::error_messages::internal_compiler_error(&format!("unable to parse {m}: {error}")),
                         ),
                 )
             }, $error_match)

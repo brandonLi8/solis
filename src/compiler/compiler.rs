@@ -14,7 +14,7 @@ use asm::asm::{FloatRegister::*, Instruction, Instruction::*, Operand, Operand::
 use compiler::compile_binary_expr::compile_binary_expr;
 use compiler::compile_unary_expr::compile_unary_expr;
 use compiler::symbol_table::{Location, SymbolTable};
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use ir::ir::{Block, DirectExpr, Expr, Program, Type};
 use register_allocation::register_allocator::allocate_registers;
 use register_allocation::register_allocator::{Assignment, Map, Set};

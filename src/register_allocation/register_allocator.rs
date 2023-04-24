@@ -15,7 +15,7 @@
 //! we k-color the graph to achieve an assignment where neighboring edges have different assignments.
 
 use asm::asm::{FloatRegister, Register};
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use ir::ir::Block;
 use register_allocation::conflict_analysis::{conflict_analysis, InterferenceGraph};
 

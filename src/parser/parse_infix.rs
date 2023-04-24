@@ -41,12 +41,12 @@
 //! operand (c) to the right. The final AST is passed onto the next <rest> call as the `left_operand`! This essentially
 //! is converting the parse tree "on the fly" into a left associative structure!
 
-use error_messages::internal_compiler_error;
 use parser::ast::{BinaryExprKind, Expr, UnaryExprKind};
 use parser::parse_expr::parse_expr;
 use parser::parser::parse_terminal;
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
+use utils::error_messages::internal_compiler_error;
 
 /// Corresponds to `<infix-expr>` rule and parses into a `ast::Expr`.
 pub fn parse_infix_expr(tokens: TokenIterator) -> (Expr, TokenIterator) {

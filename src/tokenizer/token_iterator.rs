@@ -14,11 +14,11 @@
 //!
 //! See the documentation of each method for full details.
 
-use context::{Context, Position};
-use error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 use std::mem::discriminant;
 use tokenizer::tokenizer::find_next_token;
 use tokenizer::tokenizer::Token;
+use utils::context::{Context, Position};
+use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 
 // Type alias to a tuple of a Token and its corresponding file position.
 type TokenAndPosition<'a> = (Token<'a>, Position);

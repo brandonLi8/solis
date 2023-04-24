@@ -10,7 +10,7 @@
 use asm::asm::Instruction;
 use asm::asm_writer::write_instructions_to_file;
 use colored::Colorize;
-use error_messages::internal_compiler_error;
+use utils::error_messages::internal_compiler_error;
 use std::io::{self, Write};
 use std::path::Path;
 use std::process::Command;

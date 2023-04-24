@@ -9,7 +9,7 @@
 //! AST tree, and flattens by post-operating on the sub results. The type checker is written to post-operate as well,
 //! and provides helper functions to ensure each sub result is correct.
 
-use error_messages::{compilation_error, internal_compiler_error};
+use utils::error_messages::{compilation_error, internal_compiler_error};
 use ir::ir::{self, Type};
 use std::collections::HashMap;
 use std::ops::Range;
