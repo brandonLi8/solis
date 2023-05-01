@@ -51,7 +51,7 @@ pub fn parse_terminal(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
                     tokens.advance();
                     return parse_call(id, tokens);
                 }
-                Expr::Id { value: id }
+                Expr::Id { value: id, position: next_token_position }
             }
 
             Token::Int(value) => Expr::Int { value },

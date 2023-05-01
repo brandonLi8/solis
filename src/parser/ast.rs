@@ -4,6 +4,9 @@
 //! The job of the parser is to transform tokens (representation of *syntax*) into this representation (*semantics*).
 //! This file contains the definitions of the AST that the Solis parser produces.
 
+use utils::context::Position;
+use utils::lang_common;
+
 #[derive(Debug)]
 pub struct Program<'a> {
     pub functions: Vec<Function<'a>>,
@@ -18,6 +21,7 @@ pub struct Block<'a> {
 #[derive(Debug)]
 pub struct Function<'a> {
     pub id: &'a str,
+    pub id_position: Position,
     pub params: Vec<Param<'a>>,
     pub return_type: Type,
     pub body: Block<'a>,
@@ -33,6 +37,7 @@ pub struct Param<'a> {
 pub enum Expr<'a> {
     Let {
         id: &'a str,
+        id_position: Position,
         type_reference: Type,
         init_expr: Box<Expr<'a>>,
     },
@@ -40,6 +45,7 @@ pub enum Expr<'a> {
         condition: Box<Expr<'a>>,
         then_block: Block<'a>,
         else_block: Option<Block<'a>>,
+        if_position: Position,
     },
     Int {
         value: i64,
@@ -52,15 +58,18 @@ pub enum Expr<'a> {
     },
     Id {
         value: &'a str,
+        position: Position,
     },
     UnaryExpr {
         kind: UnaryExprKind,
         operand: Box<Expr<'a>>,
+        operator_position: Position,
     },
     BinaryExpr {
         kind: BinaryExprKind,
         operand_1: Box<Expr<'a>>,
         operand_2: Box<Expr<'a>>,
+        operator_position: Position,
     },
     Call {
         id: &'a str,
@@ -68,31 +77,6 @@ pub enum Expr<'a> {
     },
 }
 
-#[derive(Debug)]
-pub enum Type {
-    Unit,
-    Int,
-    Bool,
-    Float,
-}
-
-#[derive(Debug)]
-pub enum UnaryExprKind {
-    Not,
-    Negative,
-}
-
-#[derive(Debug)]
-pub enum BinaryExprKind {
-    Plus,
-    Minus,
-    Times,
-    Divide,
-    Mod,
-    LessThan,
-    LessThanOrEquals,
-    MoreThan,
-    MoreThanOrEquals,
-    EqualsEquals,
-    NotEquals,
-}
+pub type Type = lang_common::Type;
+pub type UnaryExprKind = lang_common::UnaryExprKind;
+pub type BinaryExprKind = lang_common::BinaryExprKind;

@@ -33,6 +33,7 @@ fn test_basic() {
                     exprs: [
                         Let {
                             id: "varName",
+                            id_position: 4..11,
                             type_reference: Int,
                             init_expr: Int {
                                 value: 32,
@@ -40,6 +41,7 @@ fn test_basic() {
                         },
                         Let {
                             id: "varName2",
+                            id_position: 35..43,
                             type_reference: Bool,
                             init_expr: Bool {
                                 value: true,
@@ -47,6 +49,7 @@ fn test_basic() {
                         },
                         Let {
                             id: "varName3",
+                            id_position: 70..78,
                             type_reference: Float,
                             init_expr: Float {
                                 value: 2.0,

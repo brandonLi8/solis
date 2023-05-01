@@ -24,7 +24,7 @@ pub fn parse_let_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     tokens.consume_token(Token::Let);
 
     // Consume the let expression identifier
-    let (id_token, _) = tokens.consume_token(Token::Id("identifier"));
+    let (id_token, id_position) = tokens.consume_token(Token::Id("identifier"));
 
     tokens.consume_token(Token::Colon);
 
@@ -39,6 +39,7 @@ pub fn parse_let_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     (
         Expr::Let {
             id: if let Token::Id(id) = id_token { id } else { internal_compiler_error("id not Token::Id variant") },
+            id_position,
             type_reference,
             init_expr: Box::new(init_expr),
         },
@@ -48,7 +49,7 @@ pub fn parse_let_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
 
 /// Corresponds to `<if-expr>` rule and parses into a `ast::Expr::If`.
 pub fn parse_if_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
-    tokens.consume_token(Token::If);
+    let (_, if_position) = tokens.consume_token(Token::If);
 
     // Parse the condition expression
     let (condition, mut tokens) = parse_expr(tokens);
@@ -68,7 +69,7 @@ pub fn parse_if_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     };
 
     (
-        Expr::If { condition: Box::new(condition), then_block, else_block },
+        Expr::If { condition: Box::new(condition), then_block, else_block, if_position },
         tokens,
     )
 }

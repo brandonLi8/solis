@@ -10,7 +10,7 @@ extern crate regex;
 
 // pub mod asm;
 // pub mod compiler;
-// pub mod ir_re;
+pub mod ir_re;
 pub mod parser;
 // pub mod register_allocation;
 pub mod tokenizer;
@@ -41,9 +41,9 @@ pub fn main() {
     let context = Context::from_file_path(file_path);
 
     let tokens = tokenizer::tokenizer::tokenize(&context);
-    let _program_ast = parser::parser::parse(tokens);
-
-    // let program_ir = ir::translator::translate_program(&file, program_ast);
+    let program_ast = parser::parser::parse(tokens);
+    let program_ir = ir_re::translator::translate(program_ast, &context);
+    dbg!(program_ir);
 
     // let instructions = compiler::compiler::compile(program_ir);
 

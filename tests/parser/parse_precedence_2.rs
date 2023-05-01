@@ -132,6 +132,7 @@ fn test_comparison_precedence_2() {
                     exprs: [
                         Let {
                             id: "a",
+                            id_position: 15..16,
                             type_reference: Bool,
                             init_expr: BinaryExpr {
                                 kind: LessThan,
@@ -151,6 +152,7 @@ fn test_comparison_precedence_2() {
                         },
                         Let {
                             id: "b",
+                            id_position: 49..50,
                             type_reference: Bool,
                             init_expr: BinaryExpr {
                                 kind: NotEquals,
@@ -170,6 +172,7 @@ fn test_comparison_precedence_2() {
                         },
                         Let {
                             id: "c",
+                            id_position: 84..85,
                             type_reference: Unit,
                             init_expr: BinaryExpr {
                                 kind: Plus,

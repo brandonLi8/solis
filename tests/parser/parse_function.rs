@@ -88,6 +88,7 @@ fn test_fib() {
                                             ],
                                         },
                                     ),
+                                    if_position: 43..45,
                                 },
                             ],
                         },
@@ -97,6 +98,7 @@ fn test_fib() {
                     exprs: [
                         Let {
                             id: "a",
+                            id_position: 169..170,
                             type_reference: Int,
                             init_expr: BinaryExpr {
                                 kind: Minus,
@@ -235,6 +237,7 @@ fn test_multi_functions() {
                             exprs: [
                                 Let {
                                     id: "a",
+                                    id_position: 85..86,
                                     type_reference: Bool,
                                     init_expr: Bool {
                                         value: false,

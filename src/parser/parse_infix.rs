@@ -72,13 +72,14 @@ fn parse_arithmetic_1_rest<'a>(
             _ => internal_compiler_error("Could not match +/- on inner match"),
         };
 
-        tokens.advance();
+        let (_, operator_position) = tokens.advance();
 
         let (arithmetic_1_operand, tokens) = parse_arithmetic_1_operand(tokens);
         left_operand = Expr::BinaryExpr {
             kind,
             operand_1: Box::new(left_operand),
             operand_2: Box::new(arithmetic_1_operand),
+            operator_position,
         };
 
         parse_arithmetic_1_rest(left_operand, tokens)
@@ -107,13 +108,14 @@ fn parse_arithmetic_2_rest<'a>(
             _ => internal_compiler_error("Could not match */%// on inner match"),
         };
 
-        tokens.advance();
+        let (_, operator_position) = tokens.advance();
 
         let (arithmetic_2_operand, tokens) = parse_arithmetic_2_operand(tokens);
         left_operand = Expr::BinaryExpr {
             kind,
             operand_1: Box::new(left_operand),
             operand_2: Box::new(arithmetic_2_operand),
+            operator_position,
         };
 
         parse_arithmetic_2_rest(left_operand, tokens)
@@ -159,13 +161,14 @@ fn parse_comparison_rest<'a>(
             _ => internal_compiler_error("Could not match comparison operator on inner match"),
         };
 
-        tokens.advance();
+        let (_, operator_position) = tokens.advance();
 
         let (comparison_operand, tokens) = parse_arithmetic_expr(tokens);
         left_operand = Expr::BinaryExpr {
             kind,
             operand_1: Box::new(left_operand),
             operand_2: Box::new(comparison_operand),
+            operator_position,
         };
 
         parse_comparison_rest(left_operand, tokens)
@@ -196,11 +199,14 @@ fn parse_prefix_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
             _ => internal_compiler_error("Could not match prefix operator on inner match"),
         };
 
-        tokens.advance();
+        let (_, operator_position) = tokens.advance();
 
         let (operand, tokens) = parse_factor(tokens);
 
-        (Expr::UnaryExpr { kind, operand: Box::new(operand) }, tokens)
+        (
+            Expr::UnaryExpr { kind, operand: Box::new(operand), operator_position },
+            tokens,
+        )
     } else if let Some((Token::Plus, _)) = tokens.peek() {
         tokens.advance();
         parse_factor(tokens)

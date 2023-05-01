@@ -99,6 +99,7 @@ fn test_arithmetic_precedence() {
                         },
                         Let {
                             id: "a",
+                            id_position: 119..120,
                             type_reference: Int,
                             init_expr: BinaryExpr {
                                 kind: Minus,
@@ -118,6 +119,7 @@ fn test_arithmetic_precedence() {
                         },
                         Let {
                             id: "b",
+                            id_position: 152..153,
                             type_reference: Int,
                             init_expr: BinaryExpr {
                                 kind: Minus,

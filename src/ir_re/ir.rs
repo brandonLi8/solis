@@ -27,7 +27,8 @@
 //!   (can be done with 1 register!).
 //!
 //! ## IR
-//!   The IR reconciles this problem by "flattening" deep sub expressions into a more expressions. For this example:
+//!   The IR reconciles this problem by "flattening" deep sub expressions into a more expressions (called "let-lifting")
+//!   For this example:
 //!     Block [
 //!       Let temp1 = (+ 1 0)             # Live: {temp1}
 //!       Let temp2 = (+ temp1 2)         # Live: {temp2, temp1}
@@ -43,102 +44,77 @@
 //!   Working with directs means that the operator does not have to do any more computation (naively would have to store
 //!   results on the stack).
 
-use register_allocation::register_allocator::Set;
-use std::cell::RefCell;
+use std::rc::Rc;
+use utils::{lang_common, Set};
 
 #[derive(Debug)]
-pub struct Program {
-    pub functions: Vec<Function>,
-    pub body: Block,
+pub struct Program<'a> {
+    pub functions: Vec<Function<'a>>,
+    pub body: Block<'a>,
 }
 
 #[derive(Debug)]
-pub struct Function {
-    pub id: String,
-    pub params: Vec<String>,
-    pub body: Block,
+pub struct Function<'a> {
+    pub id: &'a str,
+    pub params: Vec<&'a str>,
+    pub body: Block<'a>,
 }
 
 #[derive(Debug)]
-pub struct Block {
-    pub exprs: Vec<Expr>,
+pub struct Block<'a> {
+    pub exprs: Vec<Expr<'a>>,
 }
 
 #[derive(Debug)]
-pub enum Expr {
+pub enum Expr<'a> {
     Direct {
-        expr: DirectExpr,
+        expr: DirectExpr<'a>,
     },
     Let {
-        id: String,
-        init_expr: Box<Expr>,
+        id: &'a str,
+        init_expr: Box<Expr<'a>>,
     },
     If {
-        condition: Box<DirectExpr>,
-        then_block: Block,
-        else_block: Option<Block>,
+        condition: Box<DirectExpr<'a>>,
+        then_block: Block<'a>,
+        else_block: Option<Block<'a>>,
     },
     UnaryExpr {
         kind: UnaryExprKind,
-        operand: Box<DirectExpr>,
-        operand_type: Type,
+        operand: Box<DirectExpr<'a>>,
+        operand_type: Rc<Type>,
     },
     BinaryExpr {
         kind: BinaryExprKind,
-        operand_1: Box<DirectExpr>,
-        operand_2: Box<DirectExpr>,
-        operand_type: Type,
+        operand_1: Box<DirectExpr<'a>>,
+        operand_2: Box<DirectExpr<'a>>,
+        operand_type: Rc<Type>,
     },
     Call {
-        id: String,
-        args: Vec<DirectExpr>,
+        id: &'a str,
+        args: Vec<DirectExpr<'a>>,
 
         /// Variables that are live before the call occurs. This is filled in in the register_allocation analysis, and
         /// since they are live, they are the caller saved variables.
-        live_variables: RefCell<Set<String>>,
+        live_variables: Set<&'a str>,
     },
 
     // Converts one type to another type. We do this in the IR layer instead of the compiler layer
     TypeCoercion {
-        expr: Box<DirectExpr>,
+        expr: Box<DirectExpr<'a>>,
         from_type: Type,
         to_type: Type,
     },
 }
 
 #[derive(Debug)]
-pub enum DirectExpr {
+pub enum DirectExpr<'a> {
     Int { value: i64 },
     Bool { value: bool },
     Float { value: f64 },
-    Id { value: String, id_type: Type },
+    Id { value: &'a str, id_type: Rc<Type> },
 }
 
-#[derive(PartialEq, Clone, Debug)]
-pub enum Type {
-    Unit,
-    Int,
-    Bool,
-    Float,
-}
-
-#[derive(Debug)]
-pub enum UnaryExprKind {
-    Not,
-    Negative,
-}
-
-#[derive(Debug)]
-pub enum BinaryExprKind {
-    Plus,
-    Minus,
-    Times,
-    Divide,
-    Mod,
-    LessThan,
-    LessThanOrEquals,
-    MoreThan,
-    MoreThanOrEquals,
-    EqualsEquals,
-    NotEquals,
-}
+pub type Type = lang_common::Type;
+pub type UnaryExprKind = lang_common::UnaryExprKind;
+pub type BinaryExprKind = lang_common::BinaryExprKind;

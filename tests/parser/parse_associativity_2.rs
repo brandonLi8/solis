@@ -96,6 +96,7 @@ fn test_comparison_left_associative_2() {
                     exprs: [
                         Let {
                             id: "a",
+                            id_position: 4..5,
                             type_reference: Bool,
                             init_expr: BinaryExpr {
                                 kind: EqualsEquals,

@@ -38,7 +38,7 @@ fn parse_function(mut tokens: TokenIterator) -> (Function, TokenIterator) {
     tokens.consume_token(Token::Fun);
 
     // Consume the function id
-    let (id_token, _) = tokens.consume_token(Token::Id("identifier"));
+    let (id_token, id_position) = tokens.consume_token(Token::Id("identifier"));
 
     tokens.consume_token(Token::OpenParen);
 
@@ -56,6 +56,7 @@ fn parse_function(mut tokens: TokenIterator) -> (Function, TokenIterator) {
             return_type,
             body,
             id: if let Token::Id(id) = id_token { id } else { internal_compiler_error("id not Token::Id variant") },
+            id_position,
         },
         tokens,
     )

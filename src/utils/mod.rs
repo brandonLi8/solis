@@ -6,6 +6,7 @@
 pub mod cli_driver;
 pub mod context;
 pub mod error_messages;
+pub mod lang_common;
 
 /// In many places throughout the compiler, we want to use Hash tables for performance. However for testing, we need the
 /// result of these steps to be deterministic. Create an aliased type that is stubbed based on the test environment.

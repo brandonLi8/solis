@@ -23,6 +23,7 @@ fn test_multiple_expressions() {
                     exprs: [
                         Let {
                             id: "a",
+                            id_position: 15..16,
                             type_reference: Int,
                             init_expr: Int {
                                 value: 32,
@@ -30,6 +31,7 @@ fn test_multiple_expressions() {
                         },
                         Let {
                             id: "b",
+                            id_position: 41..42,
                             type_reference: Int,
                             init_expr: UnaryExpr {
                                 kind: Negative,
@@ -87,6 +89,7 @@ fn test_multiple_expressions() {
                     exprs: [
                         Let {
                             id: "a",
+                            id_position: 15..16,
                             type_reference: Int,
                             init_expr: Int {
                                 value: 32,
@@ -94,6 +97,7 @@ fn test_multiple_expressions() {
                         },
                         Let {
                             id: "b",
+                            id_position: 31..32,
                             type_reference: Int,
                             init_expr: UnaryExpr {
                                 kind: Negative,

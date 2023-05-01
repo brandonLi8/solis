@@ -49,6 +49,7 @@ fn test_prefix() {
                     exprs: [
                         Let {
                             id: "name",
+                            id_position: 4..8,
                             type_reference: Int,
                             init_expr: UnaryExpr {
                                 kind: Negative,
@@ -83,6 +84,7 @@ fn test_prefix() {
                     exprs: [
                         Let {
                             id: "name",
+                            id_position: 4..8,
                             type_reference: Int,
                             init_expr: BinaryExpr {
                                 kind: Plus,
@@ -135,6 +137,7 @@ fn test_prefix() {
                     exprs: [
                         Let {
                             id: "name",
+                            id_position: 4..8,
                             type_reference: Bool,
                             init_expr: UnaryExpr {
                                 kind: Not,
