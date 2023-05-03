@@ -12,11 +12,11 @@
 //! Note that for modularity, this file defines the basic TypeChecker types and the implementation of specific type
 //! checking methods are distributed in the translator files.
 
-use ir_re::ir::Type;
 use std::collections::HashMap;
-use std::rc::Rc;
+use ir_re::ir::Type;
 use utils::context::{Context, Position};
-use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
+use utils::error_messages::{compilation_error, ErrorPosition, internal_compiler_error};
+use std::rc::Rc;
 
 /// Type Checker for each scope of the program.
 pub struct TypeChecker<'a> {
@@ -43,6 +43,15 @@ impl<'a> TypeChecker<'a> {
         }
     }
 
+    /// Creates a type checker with the scope inherited from a already existing type checker.
+    pub fn inherit_scope(type_checker: &TypeChecker<'a>) -> Self {
+        TypeChecker {
+            context: type_checker.context,
+            defined_identifiers: type_checker.defined_identifiers.clone(),
+            reserved_identifiers: type_checker.reserved_identifiers.clone(),
+        }
+    }
+
     /// Gets the type of variable (declared). If the variable has not been declared, a `compilation_error` is created.
     ///
     /// * id - the identifier name
@@ -66,7 +75,7 @@ impl<'a> TypeChecker<'a> {
     /// * position - the position of this identifier
     pub fn reserve_variable(&mut self, id: &'a str, id_type: Type, position: &Position) {
         if self.reserved_identifiers.contains_key(id) || self.defined_identifiers.contains_key(id) {
-            compilation_error(
+             compilation_error(
                 self.context,
                 ErrorPosition::Span(position),
                 &format!("Variable `{id}` is already declared in this scope"),
@@ -85,7 +94,7 @@ impl<'a> TypeChecker<'a> {
     pub fn declare_reserved_variable(&mut self, id: &'a str, position: &Position) {
         if let Some(id_type) = self.reserved_identifiers.remove(id) {
             if self.defined_identifiers.contains_key(id) {
-                compilation_error(
+                 compilation_error(
                     self.context,
                     ErrorPosition::Span(position),
                     &format!("Variable `{id}` is already declared in this scope"),
@@ -93,7 +102,8 @@ impl<'a> TypeChecker<'a> {
             };
 
             self.force_declare_variable(id, id_type);
-        } else {
+        }
+        else {
             internal_compiler_error("variable was never reserved first")
         }
     }

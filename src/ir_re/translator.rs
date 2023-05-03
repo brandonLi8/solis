@@ -27,14 +27,14 @@ pub fn translate<'a>(program: ast::Program<'a>, context: &'a Context) -> ir::Pro
     }
 }
 
-// Translates a `ast::Block` into a `ir::Block`.
-fn translate_block<'a: 't, 't>(
+/// Translates a `ast::Block` into a `ir::Block`.
+pub fn translate_block<'a: 't, 't>(
     block: ast::Block<'a>,
     type_checker: &'t mut TypeChecker<'a>,
 ) -> (ir::Block<'a>, Rc<Type>) {
     let num_exprs = block.exprs.len();
     let mut exprs = vec![];
-    let mut result_type: Rc<Type> = Rc::new(Type::Int);
+    let mut result_type: Rc<Type> = Rc::new(Type::Unit);
 
     for (i, expr) in block.exprs.into_iter().enumerate() {
         // Collect temporary bindings that are needed to execute the next expression here, with lifetime 'b (out of
@@ -91,7 +91,7 @@ pub fn force_lift<'a: 'b, 'b>(
     let binding = ir::Expr::Let { id: &direct_identifier, init_expr: Box::new(expr) };
 
     bindings.push(binding);
-    ir::DirectExpr::Id { value: &direct_identifier, id_type: Rc::clone(expr_type) }
+    ir::DirectExpr::Id { value: &direct_identifier, id_type: Rc::clone(&expr_type) }
 }
 
 // Generates a unique string (&str) that is used as the identifier of temporary lifts.
