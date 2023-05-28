@@ -35,7 +35,9 @@ fn test_arithmetic_precedence() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 17..18,
                             },
+                            operator_position: 13..14,
                         },
                         BinaryExpr {
                             kind: Plus,
@@ -47,10 +49,12 @@ fn test_arithmetic_precedence() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 33..34,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 37..38,
                         },
                         BinaryExpr {
                             kind: Times,
@@ -62,10 +66,12 @@ fn test_arithmetic_precedence() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 54..55,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 59..60,
                         },
                         BinaryExpr {
                             kind: Times,
@@ -80,7 +86,9 @@ fn test_arithmetic_precedence() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 80..81,
                             },
+                            operator_position: 75..76,
                         },
                         BinaryExpr {
                             kind: Times,
@@ -92,10 +100,12 @@ fn test_arithmetic_precedence() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 97..98,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 101..102,
                         },
                         Let {
                             id: "a",
@@ -114,7 +124,9 @@ fn test_arithmetic_precedence() {
                                     operand_2: Int {
                                         value: 3,
                                     },
+                                    operator_position: 134..135,
                                 },
+                                operator_position: 130..131,
                             },
                         },
                         Let {
@@ -131,10 +143,12 @@ fn test_arithmetic_precedence() {
                                     operand_2: Int {
                                         value: 2,
                                     },
+                                    operator_position: 163..164,
                                 },
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 167..168,
                             },
                         },
                     ],

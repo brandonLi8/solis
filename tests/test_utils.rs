@@ -5,6 +5,7 @@
 extern crate expect_test;
 extern crate solis;
 
+use solis::ir_re::translator::translate;
 use expect_test::{expect, Expect};
 use solis::tokenizer::tokenizer::{find_next_token, tokenize};
 // use solis::asm::asm::{FloatRegister, Register};
@@ -54,6 +55,24 @@ pub fn parse_error_check(program: &str, expect: Expect) {
         expect,
     );
 }
+
+
+/// Tests translator output on program.
+pub fn translate_check(program: &str, expect: Expect) {
+    let context = Context { file_path: String::new(), file: program.to_string() };
+    expect.assert_eq(&format!("{:#?}", translate(parse(tokenize(&context)), &context)));
+}
+
+/// Tests translator output on program, where a compilation error is expected.
+pub fn translate_error_check(program: &str, expect: Expect) {
+    expect_error(
+        || {
+            translate_check(program, expect![]);
+        },
+        expect,
+    );
+}
+
 
 // /// Test translator output program.
 // pub fn translate_check(program: &str, expect: Expect) {

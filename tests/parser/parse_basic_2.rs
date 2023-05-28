@@ -38,13 +38,16 @@ fn test_multiple_expressions() {
                                 operand: Int {
                                     value: 123,
                                 },
+                                operator_position: 50..51,
                             },
                         },
                         Id {
                             value: "a",
+                            position: 65..66,
                         },
                         Id {
                             value: "b",
+                            position: 77..78,
                         },
                         BinaryExpr {
                             kind: EqualsEquals,
@@ -56,10 +59,12 @@ fn test_multiple_expressions() {
                                 operand_2: Int {
                                     value: 43,
                                 },
+                                operator_position: 91..92,
                             },
                             operand_2: Int {
                                 value: 45,
                             },
+                            operator_position: 96..98,
                         },
                         BinaryExpr {
                             kind: EqualsEquals,
@@ -69,6 +74,7 @@ fn test_multiple_expressions() {
                             operand_2: Bool {
                                 value: false,
                             },
+                            operator_position: 117..119,
                         },
                     ],
                 },
@@ -104,13 +110,16 @@ fn test_multiple_expressions() {
                                 operand: Int {
                                     value: 123,
                                 },
+                                operator_position: 40..41,
                             },
                         },
                         Id {
                             value: "a",
+                            position: 55..56,
                         },
                         Id {
                             value: "b",
+                            position: 57..58,
                         },
                         BinaryExpr {
                             kind: EqualsEquals,
@@ -122,10 +131,12 @@ fn test_multiple_expressions() {
                                 operand_2: Int {
                                     value: 43,
                                 },
+                                operator_position: 61..62,
                             },
                             operand_2: Int {
                                 value: 45,
                             },
+                            operator_position: 76..78,
                         },
                     ],
                 },

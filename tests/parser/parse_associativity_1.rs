@@ -32,10 +32,12 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 13..14,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 17..18,
                         },
                         BinaryExpr {
                             kind: Minus,
@@ -47,10 +49,12 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 33..34,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 37..38,
                         },
                         BinaryExpr {
                             kind: Plus,
@@ -62,10 +66,12 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 54..55,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 59..60,
                         },
                         BinaryExpr {
                             kind: Minus,
@@ -80,7 +86,9 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 80..81,
                             },
+                            operator_position: 75..76,
                         },
                         BinaryExpr {
                             kind: Times,
@@ -92,10 +100,12 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 97..98,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 101..102,
                         },
                         BinaryExpr {
                             kind: Mod,
@@ -107,10 +117,12 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 117..118,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 121..122,
                         },
                         BinaryExpr {
                             kind: Divide,
@@ -122,10 +134,12 @@ fn test_arithmetic_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 137..138,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 141..142,
                         },
                     ],
                 },
@@ -168,12 +182,16 @@ fn test_arithmetic_left_associative_2() {
                                                 operand_2: Int {
                                                     value: 4,
                                                 },
+                                                operator_position: 26..27,
                                             },
+                                            operator_position: 20..21,
                                         },
                                         operand_2: Int {
                                             value: 5,
                                         },
+                                        operator_position: 35..36,
                                     },
+                                    operator_position: 16..17,
                                 },
                                 operand_2: BinaryExpr {
                                     kind: Mod,
@@ -183,7 +201,9 @@ fn test_arithmetic_left_associative_2() {
                                     operand_2: Float {
                                         value: 2.0,
                                     },
+                                    operator_position: 43..44,
                                 },
+                                operator_position: 39..40,
                             },
                         },
                     ],

@@ -25,6 +25,7 @@ fn test_fib() {
                 functions: [
                     Function {
                         id: "fib",
+                        id_position: 13..16,
                         params: [
                             Param {
                                 id: "n",
@@ -39,10 +40,12 @@ fn test_fib() {
                                         kind: LessThanOrEquals,
                                         operand_1: Id {
                                             value: "n",
+                                            position: 46..47,
                                         },
                                         operand_2: Int {
                                             value: 1,
                                         },
+                                        operator_position: 48..50,
                                     },
                                     then_block: Block {
                                         exprs: [
@@ -63,10 +66,12 @@ fn test_fib() {
                                                                 kind: Minus,
                                                                 operand_1: Id {
                                                                     value: "n",
+                                                                    position: 114..115,
                                                                 },
                                                                 operand_2: Int {
                                                                     value: 1,
                                                                 },
+                                                                operator_position: 116..117,
                                                             },
                                                         ],
                                                     },
@@ -77,13 +82,16 @@ fn test_fib() {
                                                                 kind: Minus,
                                                                 operand_1: Id {
                                                                     value: "n",
+                                                                    position: 127..128,
                                                                 },
                                                                 operand_2: Int {
                                                                     value: 2,
                                                                 },
+                                                                operator_position: 129..130,
                                                             },
                                                         ],
                                                     },
+                                                    operator_position: 121..122,
                                                 },
                                             ],
                                         },
@@ -118,7 +126,9 @@ fn test_fib() {
                                     operand_2: Int {
                                         value: 3,
                                     },
+                                    operator_position: 189..190,
                                 },
+                                operator_position: 180..181,
                             },
                         },
                     ],
@@ -142,6 +152,7 @@ fn test_function() {
                 functions: [
                     Function {
                         id: "a",
+                        id_position: 13..14,
                         params: [
                             Param {
                                 id: "b",
@@ -165,14 +176,19 @@ fn test_function() {
                                         kind: Plus,
                                         operand_1: Id {
                                             value: "a",
+                                            position: 55..56,
                                         },
                                         operand_2: Id {
                                             value: "b",
+                                            position: 59..60,
                                         },
+                                        operator_position: 57..58,
                                     },
                                     operand_2: Id {
                                         value: "c",
+                                        position: 63..64,
                                     },
+                                    operator_position: 61..62,
                                 },
                             ],
                         },
@@ -219,6 +235,7 @@ fn test_multi_functions() {
                 functions: [
                     Function {
                         id: "a",
+                        id_position: 13..14,
                         params: [],
                         return_type: Int,
                         body: Block {
@@ -231,6 +248,7 @@ fn test_multi_functions() {
                     },
                     Function {
                         id: "a",
+                        id_position: 60..61,
                         params: [],
                         return_type: Unit,
                         body: Block {

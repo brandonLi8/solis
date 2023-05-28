@@ -29,10 +29,12 @@ fn test_comparison_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 13..14,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 17..18,
                         },
                         BinaryExpr {
                             kind: LessThan,
@@ -47,7 +49,9 @@ fn test_comparison_left_associative_1() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 38..39,
                             },
+                            operator_position: 33..34,
                         },
                         BinaryExpr {
                             kind: MoreThan,
@@ -59,10 +63,12 @@ fn test_comparison_left_associative_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 55..57,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 60..61,
                         },
                         BinaryExpr {
                             kind: LessThanOrEquals,
@@ -77,7 +83,9 @@ fn test_comparison_left_associative_1() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 85..87,
                             },
+                            operator_position: 77..79,
                         },
                     ],
                 },
@@ -114,6 +122,7 @@ fn test_comparison_left_associative_2() {
                                                 operand_2: Int {
                                                     value: 2,
                                                 },
+                                                operator_position: 17..18,
                                             },
                                             operand_2: BinaryExpr {
                                                 kind: Divide,
@@ -125,23 +134,29 @@ fn test_comparison_left_associative_2() {
                                                     operand_2: Int {
                                                         value: 4,
                                                     },
+                                                    operator_position: 27..28,
                                                 },
                                                 operand_2: Int {
                                                     value: 5,
                                                 },
+                                                operator_position: 36..37,
                                             },
+                                            operator_position: 21..23,
                                         },
                                         operand_2: Int {
                                             value: 3,
                                         },
+                                        operator_position: 40..42,
                                     },
                                     operand_2: Int {
                                         value: 2,
                                     },
+                                    operator_position: 45..47,
                                 },
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 50..52,
                             },
                         },
                     ],

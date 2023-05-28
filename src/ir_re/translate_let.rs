@@ -2,13 +2,13 @@
 
 //! Translates let expressions. See `translator.rs` for context.
 
-use ir_re::translate_expr::translate_expr;
 use ir_re::ir::{self, Type};
+use ir_re::translate_expr::translate_expr;
 use ir_re::type_checker::TypeChecker;
 use parser::ast;
 use std::rc::Rc;
 use utils::context::Position;
-use utils::error_messages::{internal_compiler_error, compilation_error, ErrorPosition};
+use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 
 /// Translates a `ast::Expr::Let` into a `ir::Expr::Let`
 ///
@@ -37,7 +37,7 @@ where
         bindings.push(ir::Expr::Let { id, init_expr: Box::new(init_expr) });
         (
             ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id, id_type: Rc::clone(&init_type) } },
-            init_type,
+            Type::Unit.into(),
         )
     } else {
         internal_compiler_error("non ast::Expr::Let passed in")

@@ -9,6 +9,6 @@ pub mod type_checker;
 mod translate_binary_expr;
 mod translate_expr;
 mod translate_function;
-mod translate_unary_expr;
 mod translate_if;
 mod translate_let;
+mod translate_unary_expr;

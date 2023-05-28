@@ -2,10 +2,12 @@
 
 //! Defines the functions for translating various types of expressions. See `translator.rs` for context.
 
+use ir_re::ir::{self, Type};
+use ir_re::translate_binary_expr::translate_binary_expr;
 use ir_re::translate_if::translate_if;
 use ir_re::translate_let::translate_let;
-use ir_re::ir::{self, Type};
-use ir_re::translator::{lift};
+use ir_re::translate_unary_expr::translate_unary_expr;
+use ir_re::translator::force_lift;
 use ir_re::type_checker::TypeChecker;
 use parser::ast;
 use std::rc::Rc;
@@ -27,8 +29,27 @@ where
     match expr {
         ast::Expr::Int { value } => (
             ir::Expr::Direct { expr: ir::DirectExpr::Int { value } },
-            Rc::new(Type::Int),
+            Type::Int.into(),
         ),
+        ast::Expr::Bool { value } => (
+            ir::Expr::Direct { expr: ir::DirectExpr::Bool { value } },
+            Type::Bool.into(),
+        ),
+        ast::Expr::Float { value } => {
+            (
+                // There are no such things as float immediates for x86. Instead, we must make each float a variable
+                // binding (in the compiler, there must be a `Location` for floats). For example `let a: float = 1.2 + 2.3`
+                // should translate to `let temp1 = 1.2; let temp2 = 2.3; let a = temp1 + temp2`.
+                ir::Expr::Direct {
+                    expr: force_lift(
+                        ir::Expr::Direct { expr: ir::DirectExpr::Float { value } },
+                        &Type::Float.into(),
+                        bindings,
+                    ),
+                },
+                Type::Float.into(),
+            )
+        }
 
         ast::Expr::Id { value, position } => {
             let id_type = type_checker.get_variable_type(value, &position);
@@ -41,25 +62,8 @@ where
 
         ast::Expr::Let { .. } => translate_let(expr, bindings, type_checker),
         ast::Expr::If { .. } => translate_if(expr, bindings, type_checker),
-
-        ast::Expr::BinaryExpr { kind, operand_1, operand_2, operator_position: _ } => {
-            let (operand_1, operand_1_type) = translate_expr(*operand_1, bindings, type_checker);
-            let (operand_2, operand_2_type) = translate_expr(*operand_2, bindings, type_checker);
-            let operand_type = Rc::clone(&operand_1_type);
-
-            (
-                ir::Expr::BinaryExpr {
-                    kind,
-                    operand_1: Box::new(lift(operand_1, &operand_1_type, bindings)),
-                    operand_2: Box::new(lift(operand_2, &operand_2_type, bindings)),
-                    operand_type,
-                },
-                Rc::new(Type::Unit),
-            )
-        }
-
-        _ => todo!(),
+        ast::Expr::BinaryExpr { .. } => translate_binary_expr(expr, bindings, type_checker),
+        ast::Expr::UnaryExpr { .. } => translate_unary_expr(expr, bindings, type_checker),
+        ast::Expr::Call { .. } => todo!(),
     }
 }
-
-

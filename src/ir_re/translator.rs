@@ -10,6 +10,7 @@
 
 use ir_re::ir::{self, Type};
 use ir_re::translate_expr::translate_expr;
+use ir_re::translate_function::{create_procedure_table, translate_functions};
 use ir_re::type_checker::TypeChecker;
 use parser::ast;
 use std::rc::Rc;
@@ -19,10 +20,10 @@ use utils::context::Context;
 /// * program: output from the parser
 pub fn translate<'a>(program: ast::Program<'a>, context: &'a Context) -> ir::Program<'a> {
     // Create the type_checker with lifetime 't (out of scope after this function)
-    let mut type_checker = TypeChecker::new(context);
+    let mut type_checker = TypeChecker::new(create_procedure_table(&program.functions, context), context);
 
     ir::Program {
-        functions: vec![],
+        functions: translate_functions(program.functions, &mut type_checker),
         body: translate_block(program.body, &mut type_checker).0,
     }
 }
@@ -94,6 +95,38 @@ pub fn force_lift<'a: 'b, 'b>(
     ir::DirectExpr::Id { value: &direct_identifier, id_type: Rc::clone(&expr_type) }
 }
 
+/// Converts a direct to another type, if given `to_type`, by lifting the direct through a `Expr::TypeCoercion`.
+///
+/// * `expr` - the translated expression
+/// * `from_type` - the type of the expr
+/// * `to_type - the type to convert to
+/// * `bindings` - where to put the additional binding
+///
+/// * return - (
+///     - the result expression,
+///     - and the type of the expression
+///   )
+pub fn coerce<'a: 'b, 'b>(
+    expr: ir::DirectExpr<'a>,
+    from_type: Rc<Type>,
+    to_type: Option<Rc<Type>>,
+    bindings: &'b mut Vec<ir::Expr<'a>>,
+) -> (ir::DirectExpr<'a>, Rc<Type>) {
+    if let Some(to_type) = to_type {
+        // create the type_coercion expression
+        let type_coercion = ir::Expr::TypeCoercion {
+            expr: Box::new(expr),
+            from_type: Rc::clone(&from_type),
+            to_type: Rc::clone(&to_type),
+        };
+
+        // lift the type coercion
+        (force_lift(type_coercion, &to_type, bindings), to_type)
+    } else {
+        (expr, from_type)
+    }
+}
+
 // Generates a unique string (&str) that is used as the identifier of temporary lifts.
 // The name cannot conflict with any source code names.
 fn gen_temp_identifier<'a>() -> &'a str {
@@ -110,59 +143,3 @@ fn gen_temp_identifier<'a>() -> &'a str {
 
     Box::leak(format!("@temp{}", tag_value).into_boxed_str())
 }
-
-// // Translates a `ir::Expr` into `ir::DirectExpr::Id` by adding a temporary let-binding.
-// fn to_binding(expr: ir::Expr, expr_type: Type, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
-//     let direct_identifier = gen_temp_identifier();
-//     bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(expr) });
-//     ir::DirectExpr::Id { value: direct_identifier, id_type: expr_type }
-// }
-
-// /// Translates a `ast::Program` into a `ir::Program`
-// pub fn translate_program<'a>(context: &'a Context, program: ast::Program<'a>) -> ir::Program<'a> {
-//     let mut type_checker = TypeChecker::new(context, &HashMap::new());
-
-//     let mut functions_map = HashMap::new();
-//     for function in &program.functions {
-//         if functions_map.insert(function.id, function).is_some() {
-//             compilation_error(
-//                 context,
-//                 ErrorPosition::Span(&function.id_position),
-//                 &format!("Function`{}` has already been declared", function.id),
-//             )
-//         }
-//     }
-
-//     let mut type_checker = TypeChecker::new(context, &functions_map);
-
-//     // Translate functions.
-//     let mut functions = vec![];
-//     for function in &program.functions {
-//         // functions.push(translate_function(&mut type_checker, function));
-//     }
-
-//     let (body, _) = translate_block(&mut type_checker, &program.body);
-//     ir::Program { functions, body }
-// }
-
-// Translates a `ast::Function` into a `ir::Function`
-// fn translate_function<'a>(type_checker: &'a mut TypeChecker<'a>, function: &'a ast::Function<'a>) -> ir::Function<'a> {
-//     todo!()
-// let mut type_checker = TypeChecker::inherited(type_checker);
-
-// // Bind parameters in the function scope.
-// for param in &function.params {
-//     type_checker.bind_variable(&param.id, &param.type_reference);
-// }
-
-// let (body, return_type) = translate_block(&mut type_checker, &function.body);
-
-// // Type check the function
-// type_checker.type_check_function(&function.id, return_type, &function.id_position);
-
-// ir::Function {
-//     id: function.id,
-//     params: function.params.iter().map(|p| p.id).collect(),
-//     body,
-// }
-// }

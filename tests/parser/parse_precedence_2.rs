@@ -34,7 +34,9 @@ fn test_comparison_precedence_1() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 17..18,
                             },
+                            operator_position: 13..14,
                         },
                         BinaryExpr {
                             kind: MoreThan,
@@ -46,10 +48,12 @@ fn test_comparison_precedence_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 33..34,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 37..38,
                         },
                         BinaryExpr {
                             kind: LessThanOrEquals,
@@ -61,10 +65,12 @@ fn test_comparison_precedence_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 54..55,
                             },
                             operand_2: Int {
                                 value: 3,
                             },
+                            operator_position: 59..61,
                         },
                         BinaryExpr {
                             kind: LessThanOrEquals,
@@ -79,7 +85,9 @@ fn test_comparison_precedence_1() {
                                 operand_2: Int {
                                     value: 3,
                                 },
+                                operator_position: 82..83,
                             },
+                            operator_position: 76..78,
                         },
                         BinaryExpr {
                             kind: EqualsEquals,
@@ -91,10 +99,12 @@ fn test_comparison_precedence_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 99..100,
                             },
                             operand_2: Bool {
                                 value: true,
                             },
+                            operator_position: 103..105,
                         },
                         BinaryExpr {
                             kind: EqualsEquals,
@@ -109,7 +119,9 @@ fn test_comparison_precedence_1() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 133..134,
                             },
+                            operator_position: 127..129,
                         },
                     ],
                 },
@@ -140,14 +152,19 @@ fn test_comparison_precedence_2() {
                                     kind: Plus,
                                     operand_1: Id {
                                         value: "z",
+                                        position: 25..26,
                                     },
                                     operand_2: Id {
                                         value: "y",
+                                        position: 29..30,
                                     },
+                                    operator_position: 27..28,
                                 },
                                 operand_2: Id {
                                     value: "z",
+                                    position: 33..34,
                                 },
+                                operator_position: 31..32,
                             },
                         },
                         Let {
@@ -167,7 +184,9 @@ fn test_comparison_precedence_2() {
                                     operand_2: Int {
                                         value: 3,
                                     },
+                                    operator_position: 66..67,
                                 },
+                                operator_position: 61..63,
                             },
                         },
                         Let {
@@ -187,7 +206,9 @@ fn test_comparison_precedence_2() {
                                     operand_2: Int {
                                         value: 3,
                                     },
+                                    operator_position: 99..101,
                                 },
+                                operator_position: 94..95,
                             },
                         },
                     ],

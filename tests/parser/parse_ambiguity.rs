@@ -29,6 +29,7 @@ fn test_ambiguity_unary() {
                                 operand_2: Int {
                                     value: 2,
                                 },
+                                operator_position: 36..37,
                             },
                         },
                     ],
@@ -59,6 +60,7 @@ fn test_ambiguity_unary() {
                             operand: Int {
                                 value: 2,
                             },
+                            operator_position: 37..38,
                         },
                     ],
                 },

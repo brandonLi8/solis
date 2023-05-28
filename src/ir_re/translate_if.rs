@@ -1,18 +1,15 @@
-
-
-//----------------------------------------------------------------------------------------------------------------------
 // Copyright © 2022-2023 Brandon Li. All rights reserved.
 
 //! Translates if expressions. See `translator.rs` for context.
 
-use utils::context::Position;
-use ir_re::translator::{lift, translate_block};
-use ir_re::translate_expr::translate_expr;
 use ir_re::ir::{self, Type};
+use ir_re::translate_expr::translate_expr;
+use ir_re::translator::{force_lift, translate_block};
 use ir_re::type_checker::TypeChecker;
 use parser::ast;
 use std::rc::Rc;
-use utils::error_messages::{internal_compiler_error, compilation_error, ErrorPosition};
+use utils::context::Position;
+use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
 
 /// Translates a `ast::Expr::If` into a `ir::Expr::If`
 ///
@@ -31,8 +28,9 @@ where
     if let ast::Expr::If { condition, then_block, else_block, if_position } = expr {
         let (condition, condition_type) = translate_expr(*condition, bindings, type_checker);
 
-        // lift the condition to "outside" the if statement.
-        let condition = lift(condition, &condition_type, bindings);
+        // force_lift the condition to "outside" the if statement. We force_lift because the `Cmp` instruction disallows
+        // immediates. See `asm.rs`
+        let condition = force_lift(condition, &condition_type, bindings);
 
         let (then_block, then_block_type) = translate_block(then_block, &mut TypeChecker::inherit_scope(type_checker));
 
@@ -45,8 +43,7 @@ where
         };
 
         // Type check and get the result type
-        let result_type =
-            type_checker.type_check_if(condition_type, then_block_type, else_block_type, &if_position);
+        let result_type = type_checker.type_check_if(condition_type, then_block_type, else_block_type, &if_position);
 
         (
             ir::Expr::If { condition: Box::new(condition), then_block, else_block },

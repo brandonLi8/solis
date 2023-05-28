@@ -24,10 +24,13 @@ fn parse_if_no_else() {
                                 kind: LessThan,
                                 operand_1: Id {
                                     value: "a",
+                                    position: 14..15,
                                 },
                                 operand_2: Id {
                                     value: "b",
+                                    position: 18..19,
                                 },
+                                operator_position: 16..17,
                             },
                             then_block: Block {
                                 exprs: [
@@ -39,6 +42,7 @@ fn parse_if_no_else() {
                                         operand_2: Int {
                                             value: 2,
                                         },
+                                        operator_position: 36..37,
                                     },
                                     BinaryExpr {
                                         kind: Plus,
@@ -48,6 +52,7 @@ fn parse_if_no_else() {
                                         operand_2: Int {
                                             value: 3,
                                         },
+                                        operator_position: 54..55,
                                     },
                                 ],
                             },
@@ -77,10 +82,13 @@ fn parse_if_empty() {
                                 kind: LessThan,
                                 operand_1: Id {
                                     value: "a",
+                                    position: 14..15,
                                 },
                                 operand_2: Id {
                                     value: "b",
+                                    position: 18..19,
                                 },
+                                operator_position: 16..17,
                             },
                             then_block: Block {
                                 exprs: [],
@@ -116,10 +124,13 @@ fn parse_if_else_basic() {
                                 kind: LessThan,
                                 operand_1: Id {
                                     value: "a",
+                                    position: 14..15,
                                 },
                                 operand_2: Id {
                                     value: "b",
+                                    position: 18..19,
                                 },
+                                operator_position: 16..17,
                             },
                             then_block: Block {
                                 exprs: [
@@ -131,6 +142,7 @@ fn parse_if_else_basic() {
                                         operand_2: Int {
                                             value: 2,
                                         },
+                                        operator_position: 36..37,
                                     },
                                     BinaryExpr {
                                         kind: Plus,
@@ -140,6 +152,7 @@ fn parse_if_else_basic() {
                                         operand_2: Int {
                                             value: 3,
                                         },
+                                        operator_position: 54..55,
                                     },
                                 ],
                             },
@@ -154,6 +167,7 @@ fn parse_if_else_basic() {
                                             operand_2: Int {
                                                 value: 5,
                                             },
+                                            operator_position: 101..102,
                                         },
                                     ],
                                 },
@@ -201,10 +215,13 @@ fn parse_if_else_chain() {
                                     kind: LessThan,
                                     operand_1: Id {
                                         value: "a",
+                                        position: 27..28,
                                     },
                                     operand_2: Id {
                                         value: "b",
+                                        position: 31..32,
                                     },
+                                    operator_position: 29..30,
                                 },
                                 then_block: Block {
                                     exprs: [
@@ -216,6 +233,7 @@ fn parse_if_else_chain() {
                                             operand_2: Int {
                                                 value: 2,
                                             },
+                                            operator_position: 49..50,
                                         },
                                         BinaryExpr {
                                             kind: Plus,
@@ -225,6 +243,7 @@ fn parse_if_else_chain() {
                                             operand_2: Int {
                                                 value: 3,
                                             },
+                                            operator_position: 68..69,
                                         },
                                     ],
                                 },
@@ -234,6 +253,7 @@ fn parse_if_else_chain() {
                                             If {
                                                 condition: Id {
                                                     value: "c",
+                                                    position: 102..103,
                                                 },
                                                 then_block: Block {
                                                     exprs: [
@@ -245,6 +265,7 @@ fn parse_if_else_chain() {
                                                             operand_2: Int {
                                                                 value: 3,
                                                             },
+                                                            operator_position: 120..121,
                                                         },
                                                     ],
                                                 },
@@ -254,6 +275,7 @@ fn parse_if_else_chain() {
                                                             If {
                                                                 condition: Id {
                                                                     value: "d",
+                                                                    position: 154..155,
                                                                 },
                                                                 then_block: Block {
                                                                     exprs: [
@@ -265,6 +287,7 @@ fn parse_if_else_chain() {
                                                                             operand_2: Int {
                                                                                 value: 2,
                                                                             },
+                                                                            operator_position: 172..173,
                                                                         },
                                                                     ],
                                                                 },
@@ -274,11 +297,13 @@ fn parse_if_else_chain() {
                                                                             If {
                                                                                 condition: Id {
                                                                                     value: "c",
+                                                                                    position: 206..207,
                                                                                 },
                                                                                 then_block: Block {
                                                                                     exprs: [
                                                                                         Id {
                                                                                             value: "a",
+                                                                                            position: 222..223,
                                                                                         },
                                                                                     ],
                                                                                 },
@@ -293,6 +318,7 @@ fn parse_if_else_chain() {
                                                                                                 operand_2: Int {
                                                                                                     value: 1,
                                                                                                 },
+                                                                                                operator_position: 267..268,
                                                                                             },
                                                                                         ],
                                                                                     },

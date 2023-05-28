@@ -102,8 +102,8 @@ pub enum Expr<'a> {
     // Converts one type to another type. We do this in the IR layer instead of the compiler layer
     TypeCoercion {
         expr: Box<DirectExpr<'a>>,
-        from_type: Type,
-        to_type: Type,
+        from_type: Rc<Type>,
+        to_type: Rc<Type>,
     },
 }
 
