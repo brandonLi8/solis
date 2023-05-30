@@ -2,16 +2,16 @@
 
 //! Translates functions. See `translator.rs` for context.
 
-use utils::Set;
-use ir_re::translate_expr::translate_expr;
-use std::rc::Rc;
-use ir_re::translator::{translate_block, lift};
 use ir_re::ir::{self, Type};
+use ir_re::translate_expr::translate_expr;
+use ir_re::translator::{lift, translate_block};
 use ir_re::type_checker::TypeChecker;
 use parser::ast;
 use std::collections::HashMap;
+use std::rc::Rc;
 use utils::context::{Context, Position};
-use utils::error_messages::{compilation_error, ErrorPosition, internal_compiler_error};
+use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPosition};
+use utils::Set;
 
 /// A ProcedureTable is used to store information about functions definitions.
 /// Table looks like:
@@ -65,10 +65,7 @@ where
     'a: 't,
     't: 'b,
 {
-    functions
-        .into_iter()
-        .map(|function| translate_function(function, type_checker))
-        .collect()
+    functions.into_iter().map(|function| translate_function(function, type_checker)).collect()
 }
 
 /// Translates a `ast::Function` into a `ir::Function`
@@ -100,11 +97,7 @@ where
     // Type check the function
     type_checker.type_check_function(&function.id, return_type, &function.id_position);
 
-    ir::Function {
-        id: &function.id,
-        params,
-        body,
-    }
+    ir::Function { id: &function.id, params, body }
 }
 
 /// Translates a `ast::Expr::Call` into a `ir::Expr::Call`
@@ -138,11 +131,7 @@ where
 
         // let return_type = type_checker.type_check_call(id, &expr.position, arg_types, arg_positions);
         (
-            ir::Expr::Call {
-                id,
-                args: lifted_args,
-                live_variables: Set::new(),
-            },
+            ir::Expr::Call { id, args: lifted_args, live_variables: Set::new() },
             Type::Unit.into(),
         )
     } else {
@@ -150,19 +139,13 @@ where
     }
 }
 
-
 impl<'a> TypeChecker<'a> {
     // Type checks a function declaration.
     //
     // * id - the function identifier
     // * found_return_type - the return type of the translated body
     // * id_position - the position of the function name
-    fn type_check_function(
-        &mut self,
-        id: &'a str,
-        found_return_type: Rc<Type>,
-        id_position: &Position,
-    ) {
+    fn type_check_function(&mut self, id: &'a str, found_return_type: Rc<Type>, id_position: &Position) {
         match self.procedure_table.get(id) {
             Some((return_type, _)) => {
                 if *return_type != *found_return_type {

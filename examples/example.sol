@@ -1,2 +1,2 @@
+let a: int = 2 + (2 + 1
 
-        let a: int = if false { 5 }

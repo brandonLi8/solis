@@ -39,6 +39,9 @@ pub enum ErrorPosition<'a> {
 /// * `error_position`: describes where the error is in the source code (for pin pointing)
 /// * `message`: the error message to display
 pub fn compilation_error(context: &Context, error_position: ErrorPosition, message: &str) -> ! {
+    #[cfg(feature = "test")]
+    colored::control::SHOULD_COLORIZE.set_override(false);
+
     // Convenience aliases.
     let file = &context.file;
     let file_path = &context.file_path;
@@ -46,54 +49,67 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
     let is_not_whitespace = |c: char| !c.is_whitespace();
 
     // Convert the ErrorPosition to a `Range<usize>`
-    let (error_start, error_length) = match error_position {
+    let (error_start, error_end) = match error_position {
         ErrorPosition::EndOfFile => {
             // Get the index of where the white-space at the end of the file starts
             let whitespace_start_index = file.rfind(is_not_whitespace).unwrap_or(last_index) + 1;
-            (whitespace_start_index, 1)
+            (whitespace_start_index, whitespace_start_index + 1)
         }
-        ErrorPosition::Index(index) => (index, 1),
-        ErrorPosition::Span(span) => (span.start, span.len()),
+        ErrorPosition::Index(index) => (index, index + 1),
+        ErrorPosition::Span(span) => (span.start, span.end),
         ErrorPosition::WhitespaceBefore(span) => {
             // Get the index of where the white-space before the token starts
             let whitespace_start_index = file[..span.start].rfind(is_not_whitespace).map_or(0, |i| i + 1);
-            (whitespace_start_index, 1)
+            (whitespace_start_index, whitespace_start_index + 1)
         }
     };
 
-    // Get the index of the next_newline (or last_index + 1)
-    let next_newline = file[error_start..]
-        .find('\n')
-        .map_or(last_index + 1, |i| error_start + i);
+    // Get the entire code-block that is displayed.
+    let next_newline = file[error_end - 1..].find('\n').map_or(last_index + 1, |i| error_end + i);
+    let prev_newline = file[..error_start].rfind('\n').map_or(0, |i| i + 1);
+    let error_block_raw = &context.file[prev_newline..next_newline];
 
-    // Get the index of where the line starts (or 0)
-    let line_start_index = file[..error_start].rfind('\n').map_or(0, |i| i + 1);
-
-    // Compute the line number and the column within that line number
+    // Compute the line number and column for the start of the error.
     let line_number = if error_start > 0 { file[..error_start].lines().count() } else { 1 };
-    let column = error_start - line_start_index;
+    let column = error_start - prev_newline;
 
-    // Disable coloring on unit tests.
-    #[cfg(feature = "test")]
-    {
-        use colored::control::SHOULD_COLORIZE;
-        SHOULD_COLORIZE.set_override(false);
-    }
+    let bar = "|".blue().bold();
+    let bar_padding = " ".repeat(error_block_raw.lines().count().to_string().len());
+
+    // Format the error_block_raw for the purposes of error messaging.
+    let error_block: String = error_block_raw
+        .lines()
+        .enumerate()
+        .scan(prev_newline, |line_start_index, (i, line)| {
+            let line_end_index = *line_start_index + line.len();
+
+            let carret_padding = " ".repeat(if i == 0 { column } else { 0 });
+            let num_carets = if line_end_index >= error_end {
+                error_end - carret_padding.len() - *line_start_index
+            } else if carret_padding.len() >= line.len() {
+                1
+            } else {
+                line.len() - carret_padding.len()
+            };
+
+            *line_start_index = line_end_index;
+
+            Some(format!(
+                "{: >bar_padding_len$} {bar} {line}\n{bar_padding} {bar} {carret_padding}{carets}\n",
+                (line_number + i).to_string().blue().bold(),
+                bar_padding_len = bar_padding.len(),
+                carets = "^".repeat(num_carets).yellow().bold()
+            ))
+        })
+        .collect();
 
     let error_message = format!(
-        "{error}: {message}\n {arrow} {file_path}:{line_number}:{column}\n  \
-                 {bar_padding}{bar}\n\
-        {display_line_number} {bar} {line}\n  \
-                 {bar_padding}{bar} {padding}{caret}\n",
+        "{error}: {message}\n {arrow} {file_path}:{line_number}:{column}\n\
+         {bar_padding} {bar}\n\
+         {error_block}",
         error = "Error".red().bold(),
         message = message.bold(),
         arrow = "-->".blue().bold(),
-        bar_padding = " ".repeat(line_number.to_string().len() - 1),
-        bar = "|".blue().bold(),
-        display_line_number = line_number.to_string().blue().bold(),
-        line = &context.file[line_start_index..next_newline],
-        padding = " ".repeat(column),
-        caret = "^".repeat(error_length).yellow().bold()
     );
 
     // For testing purposes, we don't want to exit() when we want to test that certain inputs raise errors.

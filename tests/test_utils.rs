@@ -5,9 +5,10 @@
 extern crate expect_test;
 extern crate solis;
 
-use solis::ir_re::translator::translate;
 use expect_test::{expect, Expect};
+use solis::ir_re::translator::translate;
 use solis::tokenizer::tokenizer::{find_next_token, tokenize};
+use solis::utils::error_messages::{compilation_error, ErrorPosition};
 // use solis::asm::asm::{FloatRegister, Register};
 // use solis::ir::ir::Type;
 // use solis::ir::translator::translate_program;
@@ -56,7 +57,6 @@ pub fn parse_error_check(program: &str, expect: Expect) {
     );
 }
 
-
 /// Tests translator output on program.
 pub fn translate_check(program: &str, expect: Expect) {
     let context = Context { file_path: String::new(), file: program.to_string() };
@@ -72,7 +72,6 @@ pub fn translate_error_check(program: &str, expect: Expect) {
         expect,
     );
 }
-
 
 // /// Test translator output program.
 // pub fn translate_check(program: &str, expect: Expect) {
@@ -153,6 +152,17 @@ pub fn translate_error_check(program: &str, expect: Expect) {
 //         allocate_registers(&program.body, &Set::new(), registers, float_registers)
 //     ));
 // }
+
+/// Tests error_message output on given error_position for a program.
+pub fn compilation_error_check(program: &str, error_position: ErrorPosition, expect: Expect) {
+    expect_error(
+        || {
+            let context = Context { file_path: String::new(), file: program.to_string() };
+            compilation_error(&context, error_position, "<error-message>");
+        },
+        expect,
+    );
+}
 
 // Function the expects a panic message when calling `function`.
 fn expect_error<F>(function: F, expect: expect_test::Expect)

@@ -10,3 +10,4 @@ single_line_if_else_max_width=100
 struct_lit_width=70
 use_field_init_shorthand=true
 struct_variant_width=60
+chain_width=100
