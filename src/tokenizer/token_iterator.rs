@@ -24,7 +24,7 @@ use utils::error_messages::{compilation_error, internal_compiler_error, ErrorPos
 type TokenAndPosition<'a> = (Token<'a>, Position);
 
 pub struct TokenIterator<'a> {
-    // compilation context
+    /// compilation context
     pub context: &'a Context,
 
     // index that represents everything that has been tokenized already (to the left).
@@ -32,6 +32,9 @@ pub struct TokenIterator<'a> {
 
     // the peeked token and position
     peeked: Option<TokenAndPosition<'a>>,
+
+    /// index of where the previous token ended. we can't track the entire previous token since it got moved out.
+    pub prev_token_end: usize,
 }
 
 impl<'a> TokenIterator<'a> {
@@ -41,7 +44,7 @@ impl<'a> TokenIterator<'a> {
         let mut cursor = 0;
         let first_token = find_next_token(context, &mut cursor);
 
-        Self { context, cursor, peeked: first_token }
+        Self { context, cursor, peeked: first_token, prev_token_end: 0 }
     }
 
     // Advances the iterator
@@ -51,6 +54,10 @@ impl<'a> TokenIterator<'a> {
         let next = self.peeked.take();
 
         self.peeked = find_next_token(self.context, &mut self.cursor);
+
+        if let Some((_, ref next_token_position)) = next {
+            self.prev_token_end = next_token_position.end;
+        }
         next
     }
 

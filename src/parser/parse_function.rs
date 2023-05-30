@@ -3,11 +3,11 @@
 //! Responsible for parsing function declarations.
 
 use parser::ast::{Expr, Function, Param};
-use parser::parse_expr::parse_expr;
 use parser::parser::parse_type;
-use parser::parser_utils::{parse_block, parse_comma_separated_list, ParseBlockStopMode};
+use parser::parser_utils::{parse_block, parse_comma_separated_list, parse_expr_and_position, ParseBlockStopMode};
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
+use utils::context::Position;
 use utils::error_messages::internal_compiler_error;
 
 /// Corresponds to the `<functions>` rule and parses into a `Vec<ast::Function>`
@@ -84,8 +84,8 @@ fn parse_param(mut tokens: TokenIterator) -> (Param, TokenIterator) {
 
 /// Corresponds to `<call>` rule and parses into a `ast::Expr::Call`.
 /// * id - the name of the function
-pub fn parse_call<'a>(id: &'a str, tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
-    let (args, tokens) = parse_comma_separated_list::<Expr>(parse_expr, tokens);
+pub fn parse_call<'a>(id: &'a str, id_position: Position, tokens: TokenIterator<'a>) -> (Expr<'a>, TokenIterator<'a>) {
+    let (args, tokens) = parse_comma_separated_list::<(Expr, Position)>(parse_expr_and_position, tokens);
 
-    (Expr::Call { id, args }, tokens)
+    (Expr::Call { id, id_position, args }, tokens)
 }

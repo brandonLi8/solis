@@ -4,6 +4,7 @@
 
 use ir_re::ir::{self, Type};
 use ir_re::translate_binary_expr::translate_binary_expr;
+use ir_re::translate_function::translate_call;
 use ir_re::translate_if::translate_if;
 use ir_re::translate_let::translate_let;
 use ir_re::translate_unary_expr::translate_unary_expr;
@@ -64,6 +65,6 @@ where
         ast::Expr::If { .. } => translate_if(expr, bindings, type_checker),
         ast::Expr::BinaryExpr { .. } => translate_binary_expr(expr, bindings, type_checker),
         ast::Expr::UnaryExpr { .. } => translate_unary_expr(expr, bindings, type_checker),
-        ast::Expr::Call { .. } => todo!(),
+        ast::Expr::Call { .. } => translate_call(expr, bindings, type_checker),
     }
 }

@@ -166,6 +166,7 @@ fn test_comparison_precedence_2() {
                                 },
                                 operator_position: 31..32,
                             },
+                            init_expr_position: 25..34,
                         },
                         Let {
                             id: "b",
@@ -188,6 +189,7 @@ fn test_comparison_precedence_2() {
                                 },
                                 operator_position: 61..63,
                             },
+                            init_expr_position: 59..69,
                         },
                         Let {
                             id: "c",
@@ -210,6 +212,7 @@ fn test_comparison_precedence_2() {
                                 },
                                 operator_position: 94..95,
                             },
+                            init_expr_position: 92..104,
                         },
                     ],
                 },

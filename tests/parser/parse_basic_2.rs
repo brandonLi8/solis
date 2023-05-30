@@ -28,6 +28,7 @@ fn test_multiple_expressions() {
                             init_expr: Int {
                                 value: 32,
                             },
+                            init_expr_position: 24..26,
                         },
                         Let {
                             id: "b",
@@ -40,6 +41,7 @@ fn test_multiple_expressions() {
                                 },
                                 operator_position: 50..51,
                             },
+                            init_expr_position: 50..54,
                         },
                         Id {
                             value: "a",
@@ -100,6 +102,7 @@ fn test_multiple_expressions() {
                             init_expr: Int {
                                 value: 32,
                             },
+                            init_expr_position: 24..26,
                         },
                         Let {
                             id: "b",
@@ -112,6 +115,7 @@ fn test_multiple_expressions() {
                                 },
                                 operator_position: 40..41,
                             },
+                            init_expr_position: 40..44,
                         },
                         Id {
                             value: "a",

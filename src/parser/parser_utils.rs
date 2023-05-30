@@ -2,10 +2,11 @@
 
 //! Utility functions used in the parsing module.
 
-use parser::ast::Block;
+use parser::ast::{Block, Expr};
 use parser::parse_expr::parse_expr;
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
+use utils::context::Position;
 
 /// Used to determine behavior of the `parse_block` function.
 pub enum ParseBlockStopMode {
@@ -82,4 +83,13 @@ pub fn parse_comma_separated_list<'a, T>(
 
     tokens.consume_token(Token::CloseParen);
     (items, tokens)
+}
+
+/// Like `parse_expr` but parses into `(Expr, Position)`
+pub fn parse_expr_and_position(tokens: TokenIterator) -> ((Expr, Position), TokenIterator) {
+    // Get the first token of the expression.
+    let expr_first_token_start = tokens.peek_or_error().1.start;
+
+    let (expr, tokens) = parse_expr(tokens);
+    ((expr, expr_first_token_start..tokens.prev_token_end), tokens)
 }

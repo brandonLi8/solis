@@ -40,6 +40,7 @@ pub enum Expr<'a> {
         id_position: Position,
         type_reference: Type,
         init_expr: Box<Expr<'a>>,
+        init_expr_position: Position,
     },
     If {
         condition: Box<Expr<'a>>,
@@ -73,7 +74,8 @@ pub enum Expr<'a> {
     },
     Call {
         id: &'a str,
-        args: Vec<Expr<'a>>,
+        id_position: Position,
+        args: Vec<(Expr<'a>, Position)>,
     },
 }
 

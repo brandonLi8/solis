@@ -862,10 +862,10 @@ fn test_translate_redeclare_before_declare() {
         ",
         expect![[r#"
             Error: Variable `a` is already declared in this scope
-             --> :2:38
+             --> :2:35
               |
             2 |         let a: int = if true { let a: int = 0 } else { 0 }
-              |                                       ^^^
+              |                                    ^
         "#]],
     );
 }
@@ -877,11 +877,11 @@ fn test_translate_no_else_type_mismatch() {
         let a: int = if false { 5 }
         ",
         expect![[r#"
-            Error: Mismatched types, expected `<unit>`, but found `int`
-             --> :2:15
+            Error: Mismatched types, expected `int`, but found `<unit>`
+             --> :2:21
               |
             2 |         let a: int = if false { 5 }
-              |                ^^^
+              |                      ^^^^^^^^^^^^^^
         "#]],
     );
 }

@@ -6,7 +6,7 @@ extern crate solis;
 
 // mod asm;
 // mod integration;
-// mod ir;
+mod ir;
 mod parser;
 // mod register_allocation;
 mod test_utils;

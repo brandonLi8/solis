@@ -10,11 +10,11 @@ fn test_let_type_reference_mismatch_1() {
     translate_error_check(
         "let a: int = true",
         expect![[r#"
-            Error: Mismatched types, expected `bool`, but found `int`
-             --> :1:7
+            Error: Mismatched types, expected `int`, but found `bool`
+             --> :1:13
               |
             1 | let a: int = true
-              |        ^^^
+              |              ^^^^
         "#]],
     );
 }
@@ -24,11 +24,11 @@ fn test_let_type_reference_mismatch_2() {
     translate_error_check(
         "let b: int = 1 + 2 + 3 < 4 * 5",
         expect![[r#"
-            Error: Mismatched types, expected `bool`, but found `int`
-             --> :1:7
+            Error: Mismatched types, expected `int`, but found `bool`
+             --> :1:13
               |
             1 | let b: int = 1 + 2 + 3 < 4 * 5
-              |        ^^^
+              |              ^^^^^^^^^^^^^^^^^
         "#]],
     );
 }
@@ -38,11 +38,11 @@ fn test_let_type_reference_mismatch_3() {
     translate_error_check(
         "let b: bool = let a: int = true",
         expect![[r#"
-            Error: Mismatched types, expected `bool`, but found `int`
-             --> :1:21
+            Error: Mismatched types, expected `int`, but found `bool`
+             --> :1:27
               |
             1 | let b: bool = let a: int = true
-              |                      ^^^
+              |                            ^^^^
         "#]],
     );
 }

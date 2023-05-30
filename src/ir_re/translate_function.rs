@@ -18,7 +18,7 @@ use utils::Set;
 ///
 /// | Key=Procedure Name | Return Type | Parameter Types |
 /// | -------------------| ----------- | --------------- |
-pub type ProcedureTable<'a> = HashMap<&'a str, (Type, Vec<Type>)>;
+pub type ProcedureTable<'a> = HashMap<&'a str, (Rc<Type>, Vec<Type>)>;
 
 /// Creates a ProcedureTable from a `Vec<ast::Function>`
 ///
@@ -43,7 +43,7 @@ pub fn create_procedure_table<'a>(functions: &Vec<ast::Function<'a>>, context: &
             // the `ast::Function` out and convert it to a `ir::Function`. But we must keep around the return/param
             // types for Call expressions, so we pre-clone these types here.
             (
-                procedure.return_type.clone(),
+                Rc::new(procedure.return_type.clone()),
                 procedure.params.iter().map(|p| p.type_reference.clone()).collect(),
             ),
         );
@@ -114,25 +114,27 @@ where
     'a: 't,
     't: 'b,
 {
-    if let ast::Expr::Call { id, args } = expr {
+    if let ast::Expr::Call { id, args, id_position } = expr {
         // We need to lift all arguments into directs.
         let mut lifted_args = vec![];
 
         // For type checking purposes.
         let mut arg_types = vec![];
+        let mut arg_positions = vec![];
 
-        for arg in args.into_iter() {
+        for (arg, arg_position) in args.into_iter() {
             let (arg, arg_type) = translate_expr(arg, bindings, type_checker);
 
             // Lift the argument
             lifted_args.push(lift(arg, &arg_type, bindings));
             arg_types.push(arg_type);
+            arg_positions.push(arg_position);
         }
 
-        // let return_type = type_checker.type_check_call(id, &expr.position, arg_types, arg_positions);
+        let return_type = type_checker.type_check_call(id, &id_position, arg_types, arg_positions);
         (
             ir::Expr::Call { id, args: lifted_args, live_variables: Set::new() },
-            Type::Unit.into(),
+            return_type,
         )
     } else {
         internal_compiler_error("non ast::Expr::Call passed in")
@@ -148,7 +150,7 @@ impl<'a> TypeChecker<'a> {
     fn type_check_function(&mut self, id: &'a str, found_return_type: Rc<Type>, id_position: &Position) {
         match self.procedure_table.get(id) {
             Some((return_type, _)) => {
-                if *return_type != *found_return_type {
+                if *return_type != found_return_type {
                     compilation_error(
                         self.context,
                         ErrorPosition::Span(id_position),
@@ -158,5 +160,57 @@ impl<'a> TypeChecker<'a> {
             }
             _ => internal_compiler_error("function not found in procedure table"),
         }
+    }
+
+    // Type checks a call expression (specifically the parameters), and returns the return type of the function.
+    //
+    // * id - the function identifier
+    // * id_position - the position of the function identifier
+    // * arg_types - the types of the arguments
+    // * arg_positions - the positions of the arguments
+    //
+    // * return - the return type of the function (from the declaration)
+    fn type_check_call(
+        &mut self,
+        id: &'a str,
+        id_position: &Position,
+        arg_types: Vec<Rc<Type>>,
+        arg_positions: Vec<Position>,
+    ) -> Rc<Type> {
+        // Check function existence
+        let (return_type, param_types) = self.procedure_table.get(id).unwrap_or_else(|| {
+            compilation_error(
+                self.context,
+                ErrorPosition::Span(id_position),
+                &format!("Unknown function `{id}`"),
+            )
+        });
+
+        // Check function arity.
+        if param_types.len() != arg_types.len() {
+            compilation_error(
+                self.context,
+                ErrorPosition::Span(id_position),
+                &format!(
+                    "This function takes {} arguments but {} were supplied",
+                    param_types.len(),
+                    arg_types.len()
+                ),
+            );
+        }
+
+        // Param type matching
+        for (param_type, (arg_type, arg_position)) in param_types.iter().zip(arg_types.iter().zip(arg_positions.iter()))
+        {
+            if *param_type != **arg_type {
+                compilation_error(
+                    self.context,
+                    ErrorPosition::Position(arg_position),
+                    &format!("Expected argument type `{param_type}`, found {arg_type}"),
+                )
+            }
+        }
+
+        return_type.clone()
     }
 }

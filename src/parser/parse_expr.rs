@@ -5,6 +5,7 @@
 use parser::ast::{Block, Expr};
 use parser::parse_infix::parse_infix_expr;
 use parser::parser::parse_type;
+use parser::parser_utils::parse_expr_and_position;
 use parser::parser_utils::{parse_block, ParseBlockStopMode};
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
@@ -34,7 +35,7 @@ pub fn parse_let_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
     tokens.consume_token(Token::Equals);
 
     // Binding initial expression
-    let (init_expr, tokens) = parse_expr(tokens);
+    let ((init_expr, init_expr_position), tokens) = parse_expr_and_position(tokens);
 
     (
         Expr::Let {
@@ -42,6 +43,7 @@ pub fn parse_let_expr(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
             id_position,
             type_reference,
             init_expr: Box::new(init_expr),
+            init_expr_position,
         },
         tokens,
     )

@@ -340,6 +340,7 @@ fn parse_if_else_chain() {
                                 ),
                                 if_position: 24..26,
                             },
+                            init_expr_position: 24..282,
                         },
                     ],
                 },

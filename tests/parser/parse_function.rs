@@ -61,34 +61,42 @@ fn test_fib() {
                                                     kind: Plus,
                                                     operand_1: Call {
                                                         id: "fib",
+                                                        id_position: 110..113,
                                                         args: [
-                                                            BinaryExpr {
-                                                                kind: Minus,
-                                                                operand_1: Id {
-                                                                    value: "n",
-                                                                    position: 114..115,
+                                                            (
+                                                                BinaryExpr {
+                                                                    kind: Minus,
+                                                                    operand_1: Id {
+                                                                        value: "n",
+                                                                        position: 114..115,
+                                                                    },
+                                                                    operand_2: Int {
+                                                                        value: 1,
+                                                                    },
+                                                                    operator_position: 116..117,
                                                                 },
-                                                                operand_2: Int {
-                                                                    value: 1,
-                                                                },
-                                                                operator_position: 116..117,
-                                                            },
+                                                                114..119,
+                                                            ),
                                                         ],
                                                     },
                                                     operand_2: Call {
                                                         id: "fib",
+                                                        id_position: 123..126,
                                                         args: [
-                                                            BinaryExpr {
-                                                                kind: Minus,
-                                                                operand_1: Id {
-                                                                    value: "n",
-                                                                    position: 127..128,
+                                                            (
+                                                                BinaryExpr {
+                                                                    kind: Minus,
+                                                                    operand_1: Id {
+                                                                        value: "n",
+                                                                        position: 127..128,
+                                                                    },
+                                                                    operand_2: Int {
+                                                                        value: 2,
+                                                                    },
+                                                                    operator_position: 129..130,
                                                                 },
-                                                                operand_2: Int {
-                                                                    value: 2,
-                                                                },
-                                                                operator_position: 129..130,
-                                                            },
+                                                                127..132,
+                                                            ),
                                                         ],
                                                     },
                                                     operator_position: 121..122,
@@ -117,10 +125,14 @@ fn test_fib() {
                                     kind: Times,
                                     operand_1: Call {
                                         id: "fib",
+                                        id_position: 182..185,
                                         args: [
-                                            Int {
-                                                value: 5,
-                                            },
+                                            (
+                                                Int {
+                                                    value: 5,
+                                                },
+                                                186..187,
+                                            ),
                                         ],
                                     },
                                     operand_2: Int {
@@ -130,6 +142,7 @@ fn test_fib() {
                                 },
                                 operator_position: 180..181,
                             },
+                            init_expr_position: 178..192,
                         },
                     ],
                 },
@@ -198,16 +211,26 @@ fn test_function() {
                     exprs: [
                         Call {
                             id: "a",
+                            id_position: 84..85,
                             args: [
-                                Int {
-                                    value: 1,
-                                },
-                                Int {
-                                    value: 2,
-                                },
-                                Int {
-                                    value: 3,
-                                },
+                                (
+                                    Int {
+                                        value: 1,
+                                    },
+                                    86..87,
+                                ),
+                                (
+                                    Int {
+                                        value: 2,
+                                    },
+                                    88..89,
+                                ),
+                                (
+                                    Int {
+                                        value: 3,
+                                    },
+                                    93..94,
+                                ),
                             ],
                         },
                     ],
@@ -260,6 +283,7 @@ fn test_multi_functions() {
                                     init_expr: Bool {
                                         value: false,
                                     },
+                                    init_expr_position: 95..100,
                                 },
                             ],
                         },
@@ -269,16 +293,26 @@ fn test_multi_functions() {
                     exprs: [
                         Call {
                             id: "a",
+                            id_position: 120..121,
                             args: [
-                                Int {
-                                    value: 1,
-                                },
-                                Int {
-                                    value: 2,
-                                },
-                                Int {
-                                    value: 3,
-                                },
+                                (
+                                    Int {
+                                        value: 1,
+                                    },
+                                    122..123,
+                                ),
+                                (
+                                    Int {
+                                        value: 2,
+                                    },
+                                    124..125,
+                                ),
+                                (
+                                    Int {
+                                        value: 3,
+                                    },
+                                    129..130,
+                                ),
                             ],
                         },
                     ],

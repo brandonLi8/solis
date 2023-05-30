@@ -24,14 +24,14 @@ where
     'a: 't,
     't: 'b,
 {
-    if let ast::Expr::Let { id, id_position, type_reference, init_expr } = expr {
+    if let ast::Expr::Let { id, id_position, type_reference, init_expr, init_expr_position } = expr {
         // Reserve the variable to prevent use of the identifier in the init_expr.
         type_checker.reserve_variable(id, type_reference, &id_position);
 
         // Now translate the init_expr
         let (init_expr, init_type) = translate_expr(*init_expr, bindings, type_checker);
 
-        type_checker.type_check_let(id, &*init_type, &id_position);
+        type_checker.type_check_let(id, &*init_type, &id_position, &init_expr_position);
 
         // Flatten out let bindings inside sub expressions as well.
         bindings.push(ir::Expr::Let { id, init_expr: Box::new(init_expr) });
@@ -49,18 +49,24 @@ impl<'a> TypeChecker<'a> {
     //
     // * id - the name of the identifier
     // * init_expr_type - the resulting type of the `init_expr`
-    fn type_check_let(&mut self, id: &'a str, init_expr_type: &Type, position: &Position) {
+    fn type_check_let(
+        &mut self,
+        id: &'a str,
+        init_expr_type: &Type,
+        id_position: &Position,
+        init_expr_position: &Position,
+    ) {
         // Get the annotated type_reference.
         let type_reference = self.get_reserved_variable_type(id);
 
         if type_reference != init_expr_type {
             compilation_error(
                 self.context,
-                ErrorPosition::Span(position),
-                &format!("Mismatched types, expected `{init_expr_type}`, but found `{type_reference}`"),
+                ErrorPosition::Position(init_expr_position),
+                &format!("Mismatched types, expected `{type_reference}`, but found `{init_expr_type}`"),
             )
         }
 
-        self.declare_reserved_variable(id, position);
+        self.declare_reserved_variable(id, id_position);
     }
 }

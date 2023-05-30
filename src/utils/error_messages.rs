@@ -22,6 +22,9 @@ pub enum ErrorPosition<'a> {
     /// before this token, the error position is there. If there is no white-space before (new-lines included), then
     /// the error occurred at the start of the position.
     WhitespaceBefore(&'a Position),
+
+    /// Error occurred at any generic position of the source code.
+    Position(&'a Position),
 }
 
 /// Called when there is an error within the Solis **input program** at compile time. There are a variety of reasons for
@@ -62,6 +65,7 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
             let whitespace_start_index = file[..span.start].rfind(is_not_whitespace).map_or(0, |i| i + 1);
             (whitespace_start_index, whitespace_start_index + 1)
         }
+        ErrorPosition::Position(position) => (position.start, position.end),
     };
 
     // Get the entire code-block that is displayed.
@@ -70,11 +74,11 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
     let error_block_raw = &context.file[prev_newline..next_newline];
 
     // Compute the line number and column for the start of the error.
-    let line_number = if error_start > 0 { file[..error_start].lines().count() } else { 1 };
+    let line_number = if error_start > 0 { file[..error_start].matches('\n').count() } else { 0 } + 1;
     let column = error_start - prev_newline;
 
     let bar = "|".blue().bold();
-    let bar_padding = " ".repeat(error_block_raw.lines().count().to_string().len());
+    let bar_padding = " ".repeat((error_block_raw.lines().count() + line_number - 1).to_string().len());
 
     // Format the error_block_raw for the purposes of error messaging.
     let error_block: String = error_block_raw

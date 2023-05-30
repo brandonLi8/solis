@@ -99,9 +99,7 @@ fn test_fib() {
                                                                 id_type: Int,
                                                             },
                                                         ],
-                                                        live_variables: RefCell {
-                                                            value: {},
-                                                        },
+                                                        live_variables: {},
                                                     },
                                                 },
                                                 Let {
@@ -114,9 +112,7 @@ fn test_fib() {
                                                                 id_type: Int,
                                                             },
                                                         ],
-                                                        live_variables: RefCell {
-                                                            value: {},
-                                                        },
+                                                        live_variables: {},
                                                     },
                                                 },
                                                 BinaryExpr {
@@ -150,9 +146,7 @@ fn test_fib() {
                                         value: 5,
                                     },
                                 ],
-                                live_variables: RefCell {
-                                    value: {},
-                                },
+                                live_variables: {},
                             },
                         },
                         Let {
@@ -263,9 +257,7 @@ fn test_function_1() {
                                     value: 3,
                                 },
                             ],
-                            live_variables: RefCell {
-                                value: {},
-                            },
+                            live_variables: {},
                         },
                     ],
                 },
@@ -358,9 +350,7 @@ fn test_multi_functions() {
                                     value: 3,
                                 },
                             ],
-                            live_variables: RefCell {
-                                value: {},
-                            },
+                            live_variables: {},
                         },
                     ],
                 },

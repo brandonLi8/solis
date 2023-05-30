@@ -128,6 +128,7 @@ fn test_arithmetic_precedence() {
                                 },
                                 operator_position: 130..131,
                             },
+                            init_expr_position: 128..137,
                         },
                         Let {
                             id: "b",
@@ -150,6 +151,7 @@ fn test_arithmetic_precedence() {
                                 },
                                 operator_position: 167..168,
                             },
+                            init_expr_position: 161..170,
                         },
                     ],
                 },

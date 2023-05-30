@@ -158,6 +158,7 @@ fn test_comparison_left_associative_2() {
                                 },
                                 operator_position: 50..52,
                             },
+                            init_expr_position: 14..54,
                         },
                     ],
                 },

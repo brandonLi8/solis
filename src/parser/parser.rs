@@ -49,7 +49,7 @@ pub fn parse_terminal(mut tokens: TokenIterator) -> (Expr, TokenIterator) {
                 // Either Call or plain ID
                 if let Some((Token::OpenParen, _)) = tokens.peek() {
                     tokens.advance();
-                    return parse_call(id, tokens);
+                    return parse_call(id, next_token_position, tokens);
                 }
                 Expr::Id { value: id, position: next_token_position }
             }

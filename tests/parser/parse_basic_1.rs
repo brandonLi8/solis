@@ -38,6 +38,7 @@ fn test_basic() {
                             init_expr: Int {
                                 value: 32,
                             },
+                            init_expr_position: 19..21,
                         },
                         Let {
                             id: "varName2",
@@ -46,6 +47,7 @@ fn test_basic() {
                             init_expr: Bool {
                                 value: true,
                             },
+                            init_expr_position: 52..56,
                         },
                         Let {
                             id: "varName3",
@@ -54,6 +56,7 @@ fn test_basic() {
                             init_expr: Float {
                                 value: 2.0,
                             },
+                            init_expr_position: 88..90,
                         },
                     ],
                 },

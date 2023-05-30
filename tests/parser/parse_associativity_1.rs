@@ -205,6 +205,7 @@ fn test_arithmetic_left_associative_2() {
                                 },
                                 operator_position: 39..40,
                             },
+                            init_expr_position: 13..47,
                         },
                     ],
                 },

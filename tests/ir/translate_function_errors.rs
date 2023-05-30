@@ -46,7 +46,7 @@ fn test_declaration_return_type_mismatch_2() {
 }
 
 #[test]
-fn test_use_return_type_mismatch() {
+fn test_call_return_type_mismatch() {
     translate_error_check(
         "
         fun fib(n: int) : int {
@@ -56,17 +56,17 @@ fn test_use_return_type_mismatch() {
         let a: bool = fib(2)
         ",
         expect![[r#"
-            Error: Mismatched types, expected `int`, but found `bool`
-             --> :6:15
+            Error: Mismatched types, expected `bool`, but found `int`
+             --> :6:22
               |
             6 |         let a: bool = fib(2)
-              |                ^^^^
+              |                       ^^^^^^
         "#]],
     );
 }
 
 #[test]
-fn test_use_bad_arity_1() {
+fn test_call_bad_arity_1() {
     translate_error_check(
         "
         fun a(b: int, c: int, d: int) : int {
@@ -88,7 +88,7 @@ fn test_use_bad_arity_1() {
 }
 
 #[test]
-fn test_use_bad_arity_2() {
+fn test_call_bad_arity_2() {
     translate_error_check(
         "
         fun a(b: int, c: int, d: int) : int {
@@ -128,21 +128,25 @@ fn test_declaration_param_type() {
 }
 
 #[test]
-fn test_use_param_type() {
+fn test_call_param_type() {
     translate_error_check(
         "
         fun a(b: int, c: bool, d: ()) : bool {
           c
         }
 
-        a(1, 2 + 4, 3)
+        a(1, 2
+          + 4
+        , 3)
         ",
         expect![[r#"
             Error: Expected argument type `bool`, found int
-             --> :6:15
+             --> :6:13
               |
-            6 |         a(1, 2 + 4, 3)
-              |                ^
+            6 |         a(1, 2
+              |              ^
+            7 |           + 4
+              | ^^^^^^^^^^^^^
         "#]],
     );
 }

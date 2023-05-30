@@ -31,6 +31,7 @@ fn test_ambiguity_unary() {
                                 },
                                 operator_position: 36..37,
                             },
+                            init_expr_position: 24..38,
                         },
                     ],
                 },
@@ -54,6 +55,7 @@ fn test_ambiguity_unary() {
                             init_expr: Int {
                                 value: 1,
                             },
+                            init_expr_position: 24..25,
                         },
                         UnaryExpr {
                             kind: Negative,
