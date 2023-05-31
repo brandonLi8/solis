@@ -206,7 +206,7 @@ impl<'a> TypeChecker<'a> {
                 compilation_error(
                     self.context,
                     ErrorPosition::Position(arg_position),
-                    &format!("Expected argument type `{param_type}`, found {arg_type}"),
+                    &format!("Expected argument type `{param_type}`, found `{arg_type}`"),
                 )
             }
         }

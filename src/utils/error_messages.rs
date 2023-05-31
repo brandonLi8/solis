@@ -87,7 +87,7 @@ pub fn compilation_error(context: &Context, error_position: ErrorPosition, messa
         .scan(prev_newline, |line_start_index, (i, line)| {
             let line_end_index = *line_start_index + line.len();
 
-            let carret_padding = " ".repeat(if i == 0 { column } else { 0 });
+            let carret_padding = " ".repeat(if i == 0 { column } else { line.find(is_not_whitespace).unwrap_or(0) });
             let num_carets = if line_end_index >= error_end {
                 error_end - carret_padding.len() - *line_start_index
             } else if carret_padding.len() >= line.len() {

@@ -140,13 +140,13 @@ fn test_call_param_type() {
         , 3)
         ",
         expect![[r#"
-            Error: Expected argument type `bool`, found int
+            Error: Expected argument type `bool`, found `int`
              --> :6:13
               |
             6 |         a(1, 2
               |              ^
             7 |           + 4
-              | ^^^^^^^^^^^^^
+              |           ^^^
         "#]],
     );
 }

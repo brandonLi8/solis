@@ -107,8 +107,8 @@ fn test_position_multiline() {
 #[test]
 fn test_position_multiline_different_line_sizes() {
     compilation_error_check(
-        "\n\n\n\n\n\n\n\n0123\n5\n7",
-        ErrorPosition::Span(&(8..16)),
+        "\n\n\n\n\n\n\n\n0123\n5\n  0 2",
+        ErrorPosition::Span(&(8..8 + 13)),
         expect![[r#"
             Error: <error-message>
              --> :9:0
@@ -117,8 +117,8 @@ fn test_position_multiline_different_line_sizes() {
                | ^^^^
             10 | 5
                | ^
-            11 | 7
-               | ^
+            11 |   0 2
+               |   ^^^
         "#]],
     );
 }
