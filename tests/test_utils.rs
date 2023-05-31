@@ -6,7 +6,7 @@ extern crate expect_test;
 extern crate solis;
 
 use expect_test::{expect, Expect};
-use solis::ir_re::translator::translate;
+use solis::ir::translator::translate;
 use solis::tokenizer::tokenizer::{find_next_token, tokenize};
 use solis::utils::error_messages::{compilation_error, ErrorPosition};
 // use solis::asm::asm::{FloatRegister, Register};

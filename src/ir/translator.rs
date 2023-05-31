@@ -5,73 +5,46 @@
 //!
 //! As documented in `ir.rs`, the IR is like the AST except every operand must be a `Direct`. To translate operands that
 //! are complex expressions (like unary or binary expressions), we add temporary variables for the translations of
-//! each operands, and substitute the identifier as a Direct into the original expression.
+//! each operands (this is called "lifting" in the source code), and substitute the identifier as a Direct into the
+//! original expression.
 
-use utils::error_messages::internal_compiler_error;
 use ir::ir::{self, Type};
+use ir::translate_expr::translate_expr;
+use ir::translate_function::{create_procedure_table, translate_functions};
 use ir::type_checker::TypeChecker;
 use parser::ast;
-use register_allocation::register_allocator::Set;
-use std::cell::RefCell;
-use File;
+use std::rc::Rc;
+use utils::context::Context;
 
-/// Translates a `ast::Program` into a `ir::Program`
-pub fn translate_program(file: &File, program: ast::Program) -> ir::Program {
-    let mut type_checker = TypeChecker::new(file);
+/// Main translator function, which returns a `ir::Program`.
+/// * program: output from the parser
+pub fn translate<'a>(program: ast::Program<'a>, context: &'a Context) -> ir::Program<'a> {
+    // Create the type_checker with lifetime 't (out of scope after this function)
+    let mut type_checker = TypeChecker::new(create_procedure_table(&program.functions, context), context);
 
-    // Register all functions
-    for function in &program.functions {
-        let return_type = ast_type_to_ir_type(&function.return_type);
-        let param_types = function
-            .params
-            .iter()
-            .map(|p| ast_type_to_ir_type(&p.type_reference))
-            .collect();
-
-        type_checker.register_function(&function.id, return_type, param_types, &function.position);
-    }
-
-    // Translate functions.
-    let mut functions = vec![];
-    for function in &program.functions {
-        functions.push(translate_function(&mut type_checker, function));
-    }
-
-    let (body, _) = translate_block(&mut type_checker, &program.body);
-    ir::Program { functions, body }
-}
-
-// Translates a `ast::Function` into a `ir::Function`
-fn translate_function(type_checker: &mut TypeChecker, function: &ast::Function) -> ir::Function {
-    let mut type_checker = TypeChecker::inherited(type_checker);
-
-    // Bind parameters in the function scope.
-    for param in &function.params {
-        type_checker.bind_variable(&param.id, ast_type_to_ir_type(&param.type_reference));
-    }
-
-    let (body, return_type) = translate_block(&mut type_checker, &function.body);
-
-    // Type check the function
-    type_checker.type_check_function(&function.id, return_type, &function.position);
-
-    ir::Function {
-        id: function.id.to_string(),
-        params: function.params.iter().map(|p| p.id.to_string()).collect(),
-        body,
+    ir::Program {
+        functions: translate_functions(program.functions, &mut type_checker),
+        body: translate_block(program.body, &mut type_checker).0,
     }
 }
 
-// Translates a `ast::Block` into a `ir::Block`
-// * return - the block and the type that the block evaluates to
-fn translate_block(type_checker: &mut TypeChecker, block: &ast::Block) -> (ir::Block, Type) {
+/// Translates a `ast::Block` into a `ir::Block`.
+pub fn translate_block<'a: 't, 't>(
+    block: ast::Block<'a>,
+    type_checker: &'t mut TypeChecker<'a>,
+) -> (ir::Block<'a>, Rc<Type>) {
     let num_exprs = block.exprs.len();
     let mut exprs = vec![];
+    let mut result_type: Rc<Type> = Rc::new(Type::Unit);
 
-    let mut result_type = Type::Unit;
+    for (i, expr) in block.exprs.into_iter().enumerate() {
+        // Collect temporary bindings that are needed to execute the next expression here, with lifetime 'b (out of
+        // scope after each iteration)
+        let mut bindings = vec![];
+        let (translated_expr, expr_type) = translate_expr(expr, &mut bindings, type_checker);
 
-    for (i, expr) in block.exprs.iter().enumerate() {
-        let (translated_expr, expr_type) = translate_expr(expr, type_checker, &mut exprs);
+        // Add the binding expressions to the block first before the result expression.
+        exprs.append(&mut bindings);
 
         // Ignore top-level directs, unless it is the last expression in the block
         if i == num_exprs - 1 || !matches!(translated_expr, ir::Expr::Direct { .. }) {
@@ -83,220 +56,82 @@ fn translate_block(type_checker: &mut TypeChecker, block: &ast::Block) -> (ir::B
     (ir::Block { exprs }, result_type)
 }
 
-// Translates a `ast::Expr` into a `ir::Expr`
-// * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn translate_expr(expr: &ast::Expr, type_checker: &mut TypeChecker, bindings: &mut Vec<ir::Expr>) -> (ir::Expr, Type) {
-    match &expr.kind {
-        ast::ExprKind::Id { value } => {
-            let id_type = type_checker.get_declared_variable_type(value, &expr.position);
-            (
-                ir::Expr::Direct {
-                    expr: ir::DirectExpr::Id { value: value.to_string(), id_type: id_type.clone() },
-                },
-                id_type,
-            )
-        }
-        ast::ExprKind::Int { value } => (
-            ir::Expr::Direct { expr: ir::DirectExpr::Int { value: *value } },
-            Type::Int,
-        ),
-        ast::ExprKind::Bool { value } => (
-            ir::Expr::Direct { expr: ir::DirectExpr::Bool { value: *value } },
-            Type::Bool,
-        ),
-        ast::ExprKind::Float { value } => {
-            let float_expr = ir::Expr::Direct { expr: ir::DirectExpr::Float { value: *value } };
-            (
-                // There are no such things as float immediates for x86. Instead, we must make each float a variable
-                // binding (in the compiler, there must be a `Location` for floats). For example `let a: float = 1.2 + 2.3`
-                // should translate to `let temp1 = 1.2; let temp2 = 2.3; let a = temp1 + temp2`.
-                ir::Expr::Direct { expr: to_binding(float_expr, Type::Float, bindings) },
-                Type::Float,
-            )
-        }
-        ast::ExprKind::Let { id, init_expr, type_reference } => {
-            let type_reference = ast_type_to_ir_type(type_reference);
-
-            type_checker.register_variable_being_declared(id, type_reference.clone(), &expr.position);
-            let (init_expr, init_type) = translate_expr(init_expr, type_checker, bindings);
-            type_checker.type_check_let(id, init_type.clone(), type_reference, &expr.position);
-
-            // Flatten out let bindings inside sub expressions as well.
-            bindings.push(ir::Expr::Let { id: id.clone(), init_expr: Box::new(init_expr) });
-            (
-                ir::Expr::Direct { expr: ir::DirectExpr::Id { value: id.to_string(), id_type: init_type } },
-                Type::Unit,
-            )
-        }
-        ast::ExprKind::If { condition, then_block, else_block } => {
-            let (condition, condition_type) = translate_expr(condition, type_checker, bindings);
-            let condition = to_binding(condition, condition_type.clone(), bindings);
-
-            let (then_block, then_block_type) = translate_block(&mut TypeChecker::inherited(type_checker), then_block);
-
-            let (else_block, else_block_type) = match else_block {
-                None => (None, None),
-                Some(else_block) => {
-                    let (block, block_type) = translate_block(&mut TypeChecker::inherited(type_checker), else_block);
-                    (Some(block), Some(block_type))
-                }
-            };
-
-            // Type check and get the result type
-            let result_type =
-                type_checker.type_check_if(condition_type, then_block_type, else_block_type, &expr.position);
-            (
-                ir::Expr::If { condition: Box::new(condition), then_block, else_block },
-                result_type,
-            )
-        }
-        ast::ExprKind::UnaryExpr { kind, operand } => {
-            // Translate operand
-            let (operand_ir, operand_type) = translate_expr(operand, type_checker, bindings);
-
-            let kind = match kind {
-                ast::UnaryExprKind::Not => ir::UnaryExprKind::Not,
-                ast::UnaryExprKind::Negative => ir::UnaryExprKind::Negative,
-            };
-
-            // Type check and get the result type
-            let (result_type, operand_coercion) =
-                type_checker.type_check_unary_expr(&kind, operand_type.clone(), &expr.position);
-
-            // Convert the operand to a direct
-            let operand_ir = to_direct(operand_ir, operand_type.clone(), bindings);
-
-            // Perform type coercion, if needed
-            let (operand_ir, operand_type) = coerce_type(operand_ir, operand_type, operand_coercion, bindings);
-
-            (
-                ir::Expr::UnaryExpr { kind, operand: Box::new(operand_ir), operand_type },
-                result_type,
-            )
-        }
-        ast::ExprKind::BinaryExpr { kind, operand_1, operand_2 } => {
-            // Translate both operands
-            let (operand_1, operand_1_type) = translate_expr(operand_1, type_checker, bindings);
-            let (operand_2, operand_2_type) = translate_expr(operand_2, type_checker, bindings);
-
-            // Convert ast::BinaryExprKind to ir::BinaryExprKind.
-            let kind = match kind {
-                ast::BinaryExprKind::Plus => ir::BinaryExprKind::Plus,
-                ast::BinaryExprKind::Minus => ir::BinaryExprKind::Minus,
-                ast::BinaryExprKind::Times => ir::BinaryExprKind::Times,
-                ast::BinaryExprKind::Divide => ir::BinaryExprKind::Divide,
-                ast::BinaryExprKind::Mod => ir::BinaryExprKind::Mod,
-                ast::BinaryExprKind::LessThan => ir::BinaryExprKind::LessThan,
-                ast::BinaryExprKind::LessThanOrEquals => ir::BinaryExprKind::LessThanOrEquals,
-                ast::BinaryExprKind::MoreThan => ir::BinaryExprKind::MoreThan,
-                ast::BinaryExprKind::MoreThanOrEquals => ir::BinaryExprKind::MoreThanOrEquals,
-                ast::BinaryExprKind::EqualsEquals => ir::BinaryExprKind::EqualsEquals,
-                ast::BinaryExprKind::NotEquals => ir::BinaryExprKind::NotEquals,
-            };
-
-            // Type check and get the result type
-            let (result_type, operand_1_coercion, operand_2_coercion) = type_checker.type_check_binary_expr(
-                &kind,
-                operand_1_type.clone(),
-                operand_2_type.clone(),
-                &expr.position,
-            );
-
-            // Convert the operands to directs
-            let operand_1 = to_direct(operand_1, operand_1_type.clone(), bindings);
-            let operand_2 = to_direct(operand_2, operand_2_type.clone(), bindings);
-
-            // Perform type coercion, if needed
-            let (operand_1, operand_1_type) = coerce_type(operand_1, operand_1_type, operand_1_coercion, bindings);
-            let (operand_2, operand_2_type) = coerce_type(operand_2, operand_2_type, operand_2_coercion, bindings);
-
-            // For Solis, binary expressions must have operands be the same type (for now)
-            if operand_1_type != operand_2_type {
-                internal_compiler_error("operand type mismatch after coercion")
-            }
-
-            (
-                ir::Expr::BinaryExpr {
-                    kind,
-                    operand_1: Box::new(operand_1),
-                    operand_2: Box::new(operand_2),
-                    operand_type: operand_1_type,
-                },
-                result_type,
-            )
-        }
-        ast::ExprKind::Call { id, args } => {
-            let mut arg_types = vec![];
-            let mut arg_positions = vec![];
-            let mut direct_args = vec![]; // arguments that are converted to directs.
-
-            for arg in args {
-                arg_positions.push(arg.position.clone());
-                let (arg, arg_type) = translate_expr(arg, type_checker, bindings);
-                direct_args.push(to_direct(arg, arg_type.clone(), bindings));
-                arg_types.push(arg_type);
-            }
-
-            let return_type = type_checker.type_check_call(id, &expr.position, arg_types, arg_positions);
-            (
-                ir::Expr::Call {
-                    id: id.to_string(),
-                    args: direct_args,
-                    live_variables: RefCell::new(Set::new()),
-                },
-                return_type,
-            )
-        }
-    }
-}
-
-// Converts a direct to another type, if given `expr_coercion`, by adding an additional binding.
-// * return - (the (new) direct, and the type of the expression)
-fn coerce_type(
-    expr: ir::DirectExpr,
-    expr_type: Type,
-    expr_coercion: Option<Type>,
-    bindings: &mut Vec<ir::Expr>,
-) -> (ir::DirectExpr, Type) {
-    if let Some(expr_coercion) = expr_coercion {
-        let direct_identifier = gen_temp_identifier();
-        let init_expr = ir::Expr::TypeCoercion {
-            expr: Box::new(expr),
-            from_type: expr_type,
-            to_type: expr_coercion.clone(),
-        };
-        bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(init_expr) });
-
-        (
-            ir::DirectExpr::Id { value: direct_identifier, id_type: expr_coercion.clone() },
-            expr_coercion,
-        )
-    } else {
-        (expr, expr_type)
-    }
-}
-
-// Translates a `ir::Expr` into `ir::DirectExpr`.
-// * bindings - where to put additional bindings that are needed to translate the expression (temporary let-bindings)
-fn to_direct(expr: ir::Expr, expr_type: Type, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
+/// Lifts a `ir::Expr` into `ir::DirectExpr` (specifically `ir::DirectExpr::Id`), but only if the `ir::Expr` is not
+/// already a direct. For example, `lift((+ 1, 2))` -> `let temp = 1 + 2; temp`, but `lift(a)` -> `a`.
+///
+/// * `expr` - the translated expression
+/// * `expr_type` - the type of the expr
+/// * `bindings` - where to put the additional binding
+pub fn lift<'a: 'b, 'b>(
+    expr: ir::Expr<'a>,
+    expr_type: &Rc<Type>,
+    bindings: &'b mut Vec<ir::Expr<'a>>,
+) -> ir::DirectExpr<'a> {
     if let ir::Expr::Direct { expr } = expr {
         expr
     } else {
-        to_binding(expr, expr_type, bindings)
+        force_lift(expr, expr_type, bindings)
     }
 }
 
-// Translates a `ir::Expr` into `ir::DirectExpr::Id` by adding a temporary let-binding.
-fn to_binding(expr: ir::Expr, expr_type: Type, bindings: &mut Vec<ir::Expr>) -> ir::DirectExpr {
+/// Lifts a `ir::Expr` into `ir::DirectExpr` (specifically `ir::DirectExpr::Id`), no matter what.
+/// For example, `lift((+ 1, 2))` -> `let temp = 1 + 2; temp`.
+///
+/// * `expr` - the translated expression
+/// * `expr_type` - the type of the expr
+/// * `bindings` - where to put the additional binding
+pub fn force_lift<'a: 'b, 'b>(
+    expr: ir::Expr<'a>,
+    expr_type: &Rc<Type>,
+    bindings: &'b mut Vec<ir::Expr<'a>>,
+) -> ir::DirectExpr<'a> {
+    // Get a unique, temporary identifier.
     let direct_identifier = gen_temp_identifier();
-    bindings.push(ir::Expr::Let { id: direct_identifier.to_string(), init_expr: Box::new(expr) });
-    ir::DirectExpr::Id { value: direct_identifier, id_type: expr_type }
+
+    // Create the lifted binding.
+    let binding = ir::Expr::Let { id: &direct_identifier, init_expr: Box::new(expr) };
+
+    bindings.push(binding);
+    ir::DirectExpr::Id { value: &direct_identifier, id_type: Rc::clone(&expr_type) }
 }
 
-// Ensures that the variable name of temporary variables are unique and can't conflict any source code names.
-fn gen_temp_identifier() -> String {
+/// Converts a direct to another type, if given `to_type`, by lifting the direct through a `Expr::TypeCoercion`.
+///
+/// * `expr` - the translated expression
+/// * `from_type` - the type of the expr
+/// * `to_type - the type to convert to
+/// * `bindings` - where to put the additional binding
+///
+/// * return - (
+///     - the result expression,
+///     - and the type of the expression
+///   )
+pub fn coerce<'a: 'b, 'b>(
+    expr: ir::DirectExpr<'a>,
+    from_type: Rc<Type>,
+    to_type: Option<Rc<Type>>,
+    bindings: &'b mut Vec<ir::Expr<'a>>,
+) -> (ir::DirectExpr<'a>, Rc<Type>) {
+    if let Some(to_type) = to_type {
+        // create the type_coercion expression
+        let type_coercion = ir::Expr::TypeCoercion {
+            expr: Box::new(expr),
+            from_type: Rc::clone(&from_type),
+            to_type: Rc::clone(&to_type),
+        };
+
+        // lift the type coercion
+        (force_lift(type_coercion, &to_type, bindings), to_type)
+    } else {
+        (expr, from_type)
+    }
+}
+
+// Generates a unique string (&str) that is used as the identifier of temporary lifts.
+// The name cannot conflict with any source code names.
+fn gen_temp_identifier<'a>() -> &'a str {
     thread_local! {
-        pub static TAG: RefCell<u32> = RefCell::new(0);
+        pub static TAG: std::cell::RefCell<u32> = std::cell::RefCell::new(0);
     }
 
     let mut tag_value = 0;
@@ -306,15 +141,5 @@ fn gen_temp_identifier() -> String {
         *tag.borrow_mut() += 1;
     });
 
-    format!("@temp{tag_value}")
-}
-
-/// Converts a `ast::Type` to the corresponding `ir::Type`.
-const fn ast_type_to_ir_type(ast_type: &ast::Type) -> ir::Type {
-    match ast_type {
-        ast::Type::Int => ir::Type::Int,
-        ast::Type::Bool => ir::Type::Bool,
-        ast::Type::Float => ir::Type::Float,
-        ast::Type::Unit => ir::Type::Unit,
-    }
+    Box::leak(format!("@temp{}", tag_value).into_boxed_str())
 }

@@ -2,10 +2,10 @@
 
 //! Translates binary expressions. See `translator.rs` for context.
 
-use ir_re::ir::{self, BinaryExprKind, Type};
-use ir_re::translate_expr::translate_expr;
-use ir_re::translator::{coerce, lift};
-use ir_re::type_checker::TypeChecker;
+use ir::ir::{self, BinaryExprKind, Type};
+use ir::translate_expr::translate_expr;
+use ir::translator::{coerce, lift};
+use ir::type_checker::TypeChecker;
 use parser::ast;
 use std::rc::Rc;
 use utils::context::Position;

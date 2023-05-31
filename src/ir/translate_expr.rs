@@ -2,14 +2,14 @@
 
 //! Defines the functions for translating various types of expressions. See `translator.rs` for context.
 
-use ir_re::ir::{self, Type};
-use ir_re::translate_binary_expr::translate_binary_expr;
-use ir_re::translate_function::translate_call;
-use ir_re::translate_if::translate_if;
-use ir_re::translate_let::translate_let;
-use ir_re::translate_unary_expr::translate_unary_expr;
-use ir_re::translator::force_lift;
-use ir_re::type_checker::TypeChecker;
+use ir::ir::{self, Type};
+use ir::translate_binary_expr::translate_binary_expr;
+use ir::translate_function::translate_call;
+use ir::translate_if::translate_if;
+use ir::translate_let::translate_let;
+use ir::translate_unary_expr::translate_unary_expr;
+use ir::translator::force_lift;
+use ir::type_checker::TypeChecker;
 use parser::ast;
 use std::rc::Rc;
 
