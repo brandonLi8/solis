@@ -5,8 +5,7 @@
 use parser::ast::{Block, Expr};
 use parser::parse_infix::parse_infix_expr;
 use parser::parser::parse_type;
-use parser::parser_utils::parse_expr_and_position;
-use parser::parser_utils::{parse_block, ParseBlockStopMode};
+use parser::parser_utils::{parse_block, parse_expr_and_position, ParseBlockStopMode};
 use tokenizer::token_iterator::TokenIterator;
 use tokenizer::tokenizer::Token;
 use utils::error_messages::internal_compiler_error;
